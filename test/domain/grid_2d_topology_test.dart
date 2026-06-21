@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
-import 'package:arrowconmango_front/features/game/domain/entities/direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/node_id.dart';
 
 class _FakeNodeId extends NodeId {

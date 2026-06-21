@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
-import 'package:arrowconmango_front/features/game/domain/entities/direction.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/overlapping_arrows_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/services/level_builder.dart';
 
