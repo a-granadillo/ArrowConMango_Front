@@ -121,5 +121,29 @@ void main() {
       expect(medium.difficulty(), equals('Medium'));
       expect(hard.difficulty(), equals('Hard'));
     });
+
+    test('should_create_GameSession_from_template_board', () {
+      // Arrange
+      final builder = LevelBuilder()..levelId = 1;
+      builder.addArrow(
+        id: 'a1',
+        nodes: [node(0, 0)],
+        direction: CardinalDirection.right,
+      );
+      final level = builder.build();
+
+      // Act
+      final session = level.startSession(
+        sessionId: 'test-session-123',
+        startedAtMs: 1234567890,
+      );
+
+      // Assert
+      expect(session.sessionId, equals('test-session-123'));
+      expect(session.startedAtMs, equals(1234567890));
+      expect(session.boardState.arrowCount, equals(1));
+      expect(session.boardState.getArrowById('a1'), isNotNull);
+      expect(session.moveCount, equals(0));
+    });
   });
 }

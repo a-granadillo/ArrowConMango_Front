@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'board_state.dart';
+import 'game_session.dart';
 
 /// A pre-built level definition holding the template [BoardState] and metadata.
 ///
@@ -28,6 +29,21 @@ class Level extends Equatable {
     if (levelId <= 5) return 'Easy';
     if (levelId <= 10) return 'Medium';
     return 'Hard';
+  }
+
+  /// Creates a new [GameSession] from this level's template board.
+  ///
+  /// [sessionId] is a unique identifier for the session (e.g., UUID v4).
+  /// [startedAtMs] is the timestamp when the session started (epoch milliseconds).
+  GameSession startSession({
+    required String sessionId,
+    required int startedAtMs,
+  }) {
+    return GameSession(
+      sessionId: sessionId,
+      boardState: templateBoard,
+      startedAtMs: startedAtMs,
+    );
   }
 
   @override
