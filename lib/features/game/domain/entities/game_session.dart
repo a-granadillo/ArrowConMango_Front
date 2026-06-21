@@ -32,6 +32,16 @@ class GameSession extends Equatable {
   /// Victory condition: all arrows have exited the board (board is empty).
   bool get isVictory => boardState.isEmpty;
 
+  /// Returns the elapsed time in seconds since the session started.
+  ///
+  /// [nowMs] is the current timestamp in epoch milliseconds.
+  /// Returns 0 if [nowMs] is before [startedAtMs] (clock skew protection).
+  int elapsedSeconds(int nowMs) {
+    final elapsedMs = nowMs - startedAtMs;
+    if (elapsedMs < 0) return 0;
+    return elapsedMs ~/ 1000;
+  }
+
   // ignore: prefer_const_constructors_in_immutables
   GameSession({
     required this.sessionId,

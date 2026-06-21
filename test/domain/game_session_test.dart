@@ -143,5 +143,39 @@ void main() {
         expect(emptySession.isVictory, isTrue);
       });
     });
+
+    group('elapsedSeconds', () {
+      test('should_return_correct_seconds_when_time_passed', () {
+        // Act
+        final elapsed = session.elapsedSeconds(6000); // 5 seconds later
+
+        // Assert
+        expect(elapsed, 5);
+      });
+
+      test('should_return_zero_when_no_time_passed', () {
+        // Act
+        final elapsed = session.elapsedSeconds(1000); // same time
+
+        // Assert
+        expect(elapsed, 0);
+      });
+
+      test('should_return_zero_when_clock_skew', () {
+        // Act
+        final elapsed = session.elapsedSeconds(500); // before start
+
+        // Assert
+        expect(elapsed, 0);
+      });
+
+      test('should_truncate_milliseconds', () {
+        // Act
+        final elapsed = session.elapsedSeconds(2500); // 1.5 seconds
+
+        // Assert
+        expect(elapsed, 1);
+      });
+    });
   });
 }
