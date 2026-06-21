@@ -115,5 +115,33 @@ void main() {
         expect(identical(result, session), isTrue);
       });
     });
+
+    group('isVictory', () {
+      test('should_return_false_when_arrows_remain', () {
+        // Assert
+        expect(session.isVictory, isFalse);
+      });
+
+      test('should_return_true_when_all_arrows_exited', () {
+        // Arrange
+        final afterFirst = session.afterArrowExit(arrow1);
+        final afterSecond = afterFirst.afterArrowExit(arrow2);
+
+        // Assert
+        expect(afterSecond.isVictory, isTrue);
+      });
+
+      test('should_return_true_for_empty_board', () {
+        // Arrange
+        final emptySession = GameSession(
+          sessionId: 'empty',
+          boardState: BoardState(arrows: []),
+          startedAtMs: 1000,
+        );
+
+        // Assert
+        expect(emptySession.isVictory, isTrue);
+      });
+    });
   });
 }

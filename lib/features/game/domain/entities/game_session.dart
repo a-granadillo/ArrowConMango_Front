@@ -27,6 +27,11 @@ class GameSession extends Equatable {
   /// Timestamp (epoch milliseconds) when the session started.
   final int startedAtMs;
 
+  /// Whether the player has won the level.
+  ///
+  /// Victory condition: all arrows have exited the board (board is empty).
+  bool get isVictory => boardState.isEmpty;
+
   // ignore: prefer_const_constructors_in_immutables
   GameSession({
     required this.sessionId,
