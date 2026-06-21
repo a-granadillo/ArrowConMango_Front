@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../errors/arrow_not_found_failure.dart';
 import 'arrow_entity.dart';
 import 'board_state.dart';
 import 'command_history.dart';
@@ -39,7 +40,13 @@ class GameSession extends Equatable {
   ///
   /// Returns a new [GameSession] reflecting the updated board, incremented
   /// move count, and appended command history.
+  ///
+  /// Throws [ArrowNotFoundFailure] if [arrow] is not present in the current board.
   GameSession afterArrowExit(ArrowEntity arrow) {
+    if (boardState.getArrowById(arrow.id) == null) {
+      throw ArrowNotFoundFailure(arrowId: arrow.id);
+    }
+
     final cmd = ArrowExitCommand(
       exitedArrow: arrow,
       previousState: boardState,
