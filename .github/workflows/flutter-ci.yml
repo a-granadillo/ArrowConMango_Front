@@ -1,0 +1,57 @@
+name: Flutter CI/CD
+
+# Se ejecuta al hacer push o pull request en la rama principal
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    # Usamos la última versión de Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Traer el código del repositorio
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      # 2. Configurar Java (Es un requisito indispensable para compilar en Android)
+      - name: Configurar Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. Instalar y configurar Flutter
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # Usa la versión estable de Flutter
+          cache: true       # Activa el caché para que las futuras ejecuciones sean más rápidas
+
+      # 4. Descargar los paquetes (pubspec.yaml)
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      # 5. Analizar el código en busca de errores de sintaxis o malas prácticas
+      - name: Analizar el código (Linter)
+        run: flutter analyze
+
+      # 6. Ejecutar las pruebas unitarias (si tienes la carpeta 'test')
+      - name: Ejecutar pruebas
+        run: flutter test
+
+      # 7. Construir la aplicación para Android
+      - name: Construir APK (Android)
+        run: flutter build apk --release
+
+      # 8. Guardar el APK resultante en GitHub para poder descargarlo
+      - name: Subir el APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 3 # El archivo estará disponible por 3 días
