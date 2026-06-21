@@ -1,6 +1,6 @@
 import '../errors/failure.dart';
 
-/// Sealed result type for domain operations — replaces Either<Failure, T>.
+/// Sealed result type for domain operations — replaces `Either<Failure, T>`.
 ///
 /// Uses Dart 3 sealed classes so the compiler enforces exhaustive
 /// pattern matching. No external FP library needed.
