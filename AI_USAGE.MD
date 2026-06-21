@@ -110,6 +110,50 @@
 
 
 
+### Entrada #07 — Implementación de Jerarquía de Errores de Dominio
+
+- **Fecha / autor:** 21-06-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Generación de código de producción).
+- **Tarea/problema:** Crear el "idioma" de fallos del dominio v2. El motor de colisiones y los futuros casos de uso necesitan fallar con gracia usando tipos específicos en lugar de excepciones genéricas como `ArgumentError`. Se requiere una clase base abstracta `Failure` con Equatable para que el BLoC pueda comparar errores por valor.
+- **Prompt (paráfrasis fiel):** > "Implementa la jerarquía de errores de dominio: clase base abstracta `Failure` (Equatable + Exception) y tres errores específicos: `PathBlockedFailure` (con IDs de flecha moviéndose y bloqueadora), `ArrowNotFoundFailure` (con ID de flecha inexistente), y `TopologyOutOfBoundsFailure` (con coordenada inválida). Todo en Dart puro, sin Flutter."
+- **Resultado obtenido:** 4 archivos en `lib/features/game/domain/errors/`:
+  1. `failure.dart` — Clase base abstracta con `Equatable` e `Exception`.
+  2. `path_blocked_failure.dart` — Lleva `movingArrowId` y `blockingArrowId`.
+  3. `arrow_not_found_failure.dart` — Lleva `arrowId`.
+  4. `topology_out_of_bounds_failure.dart` — Lleva `coordinate`.
+- **Modificaciones del equipo:** Ninguna. El código generado cumplió con los requisitos SOLID (SRP: cada failure tiene una única razón de cambio; OCP: nuevos failures extienden la base sin modificar existentes).
+- **Verificación:** Código compilando sin warnings. Listo para ser consumido por los casos de uso mediante el tipo `Result<T>`.
+
+### Entrada #08 — Definición de Contratos de Repositorios (Puertos del Dominio)
+
+- **Fecha / autor:** 21-06-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Arquitecto de Software (Definición de puertos DIP).
+- **Tarea/problema:** Definir las interfaces abstractas de repositorio que la Capa 4 (Infraestructura) deberá implementar. Sin estos contratos, la capa de Casos de Uso estaba bloqueada porque no tenía abstracciones de las cuales depender (DIP). Además, el proyecto no tiene `dartz` ni `fpdart` como dependencias, por lo que `Either<Failure, T>` no estaba disponible.
+- **Prompt (paráfrasis fiel):** > "Define los contratos de repositorio del dominio: `ILevelRepository` (cargar nivel, contar niveles, obtener definición) e `IProgressRepository` (leer/guardar progreso). Crea un `Result<T>` con sealed classes de Dart 3 en lugar de usar `Either` de fpdart, para mantener consistencia con el `MoveCommand` sealed que ya existe. Sin dependencias externas."
+- **Resultado obtenido:** 3 archivos en `lib/features/game/domain/repositories/`:
+  1. `result.dart` — Sealed class `Result<T>` con `Success<T>` y `Error<T>`. Reemplaza `Either` sin dependencias externas.
+  2. `i_level_repository.dart` — Contrato con `loadLevel()`, `getLevelCount()`, `getLevelDefinition()`.
+  3. `i_progress_repository.dart` — Contrato con `loadProgress()`, `saveProgress()`.
+- **Modificaciones del equipo:** Decisión arquitectónica de usar sealed classes de Dart 3 en lugar de agregar `fpdart` como dependencia. Mantiene el dominio libre de dependencias FP externas y es consistente con el estilo del proyecto (`MoveCommand` ya usa sealed).
+- **Verificación:** Los contratos están listos para que la Capa 4 los implemente. El `Result<T>` permite pattern matching exhaustivo con `switch` de Dart 3.
+
+### Entrada #09 — Suite de Pruebas Unitarias v2 (Grid2DTopology, BoardState, CollisionValidator)
+
+- **Fecha / autor:** 21-06-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max + sub-agent sdd-apply)
+- **Rol en el flujo:** QA Automation (Ingeniero de Pruebas).
+- **Tarea/problema:** Las pruebas de la v1 fueron eliminadas junto con el refactor a topología abstracta. El código actual del dominio v2 no tenía red de seguridad. Se necesitaban pruebas unitarias exhaustivas para las tres clases críticas: la matemática de la topología 2D, el índice reverso O(1) del tablero, y la lógica de colisiones.
+- **Prompt (paráfrasis fiel):** > "Escribe 3 archivos de test usando `package:test` puro (NO flutter_test). Patrón AAA estricto con comentarios. Naming: `should_[expected]_when_[condition]`. Para Grid2DTopology: 12 tests cubriendo trayectorias, bordes, shifted nodes, neighbors, contains, exit boundary y tipo inválido. Para BoardState: 9 tests cubriendo lookups O(1), inmutabilidad al borrar/reemplazar, y reconstrucción del índice reverso. Para CollisionValidator: 6 tests cubriendo salida limpia, bloqueo frontal, bloqueo lateral, path parcial, slide libre y slide bloqueado. Usa Grid2DTopology real como dependencia del CollisionValidator."
+- **Resultado obtenido:** 27 tests unitarios en 3 archivos (`test/domain/`):
+  1. `grid_2d_topology_test.dart` — 12 tests (trayectorias en 4 direcciones, bordes, shift, neighbors, contains, exit boundary, tipo inválido).
+  2. `board_state_test.dart` — 9 tests (lookups por nodo e ID, inmutabilidad, replace, empty, count, reconstrucción de índice).
+  3. `collision_validator_test.dart` — 6 tests (exit limpio, bloqueo, boundary, path parcial, slide libre/bloqueado).
+- **Modificaciones del equipo:** Revisión manual de cada test contra el código de producción para verificar que los asserts son correctos (especialmente la matemática de `getShiftedNodes` y la trayectoria parcial en `checkExit`). Se confirmó que todos los expected values coinciden con la lógica real.
+- **Verificación:** Pendiente de ejecutar con `flutter test test/domain/` o `dart test test/domain/` en entorno con Flutter/Dart disponible. El código fue revisado manualmente y los valores esperados fueron verificados contra la implementación.
+- **Lecciones / limitaciones:** No se pudo ejecutar `dart test` en el entorno de desarrollo (sin Flutter/Dart en PATH). La verificación se hizo por inspección manual del código. Se recomienda ejecutar la suite antes del próximo commit a main.
+
 ---
 
 ## Evaluación crítica
@@ -118,11 +162,12 @@
 
 | Componente | % IA | % Equipo (correcciones) |
 |---|---|---|
-| Dominio (Grafo, Entidades, Command Pattern) | ~% | ~% |
+| Dominio (Entidades v2, Topología, Failures, Repos) | 85% | 15% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
-| Configuración CI/CD (GitHub Actions) | ~% | ~% |
+| Configuración CI/CD (GitHub Actions) | 70% | 30% |
+| Pruebas Unitarias (Dominio v2) | 90% | 10% |
 
 ### Casos donde la IA produjo resultados incorrectos o subóptimos
 
