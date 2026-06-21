@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../errors/overlapping_arrows_failure.dart';
 import 'arrow_entity.dart';
 import 'node_id.dart';
 
@@ -27,6 +28,13 @@ class BoardState extends Equatable {
     final index = <String, String>{};
     for (final arrow in arrows) {
       for (final node in arrow.occupiedNodes) {
+        final existing = index[node.key];
+        if (existing != null) {
+          throw OverlappingArrowsFailure(
+            nodeKey: node.key,
+            arrowIds: [existing, arrow.id],
+          );
+        }
         index[node.key] = arrow.id;
       }
     }

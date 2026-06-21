@@ -4,6 +4,7 @@ import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.d
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/node_id.dart';
+import 'package:arrowconmango_front/features/game/domain/errors/overlapping_arrows_failure.dart';
 
 void main() {
   group('BoardState', () {
@@ -134,6 +135,18 @@ void main() {
       expect(original.getArrowAtNode(node(0, 0)), equals(arrow1));
       expect(updated.getArrowAtNode(node(0, 0)), isNull);
       expect(updated.getArrowAtNode(node(0, 1)), isNull);
+    });
+
+    test('should_throw_when_arrows_overlap_at_same_node', () {
+      // Arrange
+      final arrow1 = arrow(id: 'a', nodes: [node(0, 0), node(0, 1)]);
+      final arrow2 = arrow(id: 'b', nodes: [node(0, 1), node(0, 2)]);
+
+      // Act / Assert
+      expect(
+        () => state([arrow1, arrow2]),
+        throwsA(isA<OverlappingArrowsFailure>()),
+      );
     });
   });
 }
