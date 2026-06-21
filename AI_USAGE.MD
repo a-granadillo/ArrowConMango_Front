@@ -192,6 +192,60 @@
 - **Modificaciones del equipo:** Ninguna. El código generado es limpio y sigue el patrón Builder canónico de Dart.
 - **Verificación:** 6/6 tests pasando. El builder está listo para ser consumido por la capa de datos cuando implemente la deserialización de JSON.
 
+### Entrada #13 — Validación de Flecha Existente en GameSession.afterArrowExit
+
+- **Fecha / autor:** 21-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Arquitecto de Software (Defensa de invariantes de dominio).
+- **Tarea/problema:** `GameSession.afterArrowExit` no validaba que la flecha existiera en el board antes de procesarla. Si se llamaba con una flecha inexistente, `boardState.withoutArrow` filtraba por ID, no la encontraba, y devolvía el mismo board sin error. Esto permitía bugs silenciosos donde el moveCount se incrementaba pero el board no cambiaba.
+- **Prompt (paráfrasis fiel):** > "Modifica `GameSession.afterArrowExit` para validar que la flecha existe en el board antes de procesarla. Si no existe, lanza `ArrowNotFoundFailure`. Agrega 4 tests: exit válido, incremento de moveCount, error cuando la flecha no está en el board, y error cuando la flecha ya salió (doble exit)."
+- **Resultado obtenido:**
+  1. Modificación de `GameSession.afterArrowExit` para validar existencia con `boardState.getArrowById(arrow.id)`.
+  2. Import de `ArrowNotFoundFailure` en `game_session.dart`.
+  3. `test/domain/game_session_test.dart` — 7 tests cubriendo afterArrowExit (4) y undoLastMove (3).
+- **Modificaciones del equipo:** Ninguna. La validación es directa y el test cubre el caso de doble exit (intentar sacar la misma flecha dos veces).
+- **Verificación:** 7/7 tests pasando en game_session_test.dart.
+
+### Entrada #14 — Método Level.startSession() para Crear GameSession
+
+- **Fecha / autor:** 21-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Arquitecto de Software (Encapsulamiento de reglas de dominio).
+- **Tarea/problema:** `Level` tenía `templateBoard` pero no había método para iniciar una `GameSession` desde él. El futuro `LoadLevelUseCase` necesitaría saber cómo generar un `sessionId`, setear `startedAtMs`, y clonar el board template. Ese conocimiento es de dominio y no debería vivir en el caso de uso (violación de SRP).
+- **Prompt (paráfrasis fiel):** > "Agrega un método `startSession(sessionId, startedAtMs)` a `Level` que cree y devuelva un `GameSession` usando el `templateBoard`. Los parámetros `sessionId` y `startedAtMs` deben ser requeridos. Agrega un test que verifique la creación correcta de la sesión."
+- **Resultado obtenido:**
+  1. Método `Level.startSession({required String sessionId, required int startedAtMs})` que devuelve `GameSession`.
+  2. Import de `game_session.dart` en `level.dart`.
+  3. Test `should_create_GameSession_from_template_board` agregado a `level_builder_test.dart`.
+- **Modificaciones del equipo:** Ninguna. El método es simple y delega la generación de UUID y timestamp al caso de uso (responsabilidad correcta).
+- **Verificación:** 7/7 tests pasando en level_builder_test.dart.
+
+### Entrada #15 — Getter isVictory en GameSession
+
+- **Fecha / autor:** 21-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Arquitecto de Software (Encapsulamiento de reglas de negocio).
+- **Tarea/problema:** La condición de victoria (`boardState.isEmpty` = todas las flechas salieron) no estaba expuesta en `GameSession`. El BLoC tendría que conocer esta regla de negocio directamente, lo que es una fuga de responsabilidad del dominio. Las reglas de negocio deben vivir en el dominio, no en la capa de presentación.
+- **Prompt (paráfrasis fiel):** > "Agrega un getter `isVictory` a `GameSession` que devuelva `true` cuando `boardState.isEmpty` es `true`. Agrega 3 tests: retorna false cuando quedan flechas, retorna true cuando todas salieron, y retorna true para un board vacío desde el inicio."
+- **Resultado obtenido:**
+  1. Getter `bool get isVictory => boardState.isEmpty` en `GameSession`.
+  2. 3 tests en `game_session_test.dart` cubriendo los casos: flechas restantes, todas salidas, y board vacío inicial.
+- **Modificaciones del equipo:** Ninguna. El getter es directo y encapsula la regla de negocio correctamente.
+- **Verificación:** 10/10 tests pasando en game_session_test.dart.
+
+### Entrada #16 — Método elapsedSeconds() en GameSession
+
+- **Fecha / autor:** 21-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Cálculo de métricas de dominio).
+- **Tarea/problema:** `GameSession` tenía `startedAtMs` pero no había método para obtener el tiempo transcurrido. `Score` necesita `timeElapsed` para calcular puntos, pero no había forma limpia de obtenerlo desde la sesión sin que el caso de uso hiciera la matemática (violación de SRP).
+- **Prompt (paráfrasis fiel):** > "Agrega un método `elapsedSeconds(int nowMs)` a `GameSession` que calcule los segundos transcurridos desde `startedAtMs`. Debe proteger contra clock skew (si `nowMs` es anterior a `startedAtMs`, retorna 0). Debe truncar milisegundos (división entera). Agrega 4 tests: tiempo correcto, cero cuando no pasó tiempo, cero en clock skew, y truncamiento de milisegundos."
+- **Resultado obtenido:**
+  1. Método `int elapsedSeconds(int nowMs)` en `GameSession` con protección contra clock skew y truncamiento.
+  2. 4 tests en `game_session_test.dart` cubriendo todos los casos.
+- **Modificaciones del equipo:** Ninguna. El método es robusto y maneja edge cases correctamente.
+- **Verificación:** 14/14 tests pasando en game_session_test.dart.
+
 ---
 
 ## Evaluación crítica
@@ -200,12 +254,12 @@
 
 | Componente | % IA | % Equipo (correcciones) |
 |---|---|---|
-| Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring) | 85% | 15% |
+| Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring, Validaciones, Session) | 85% | 15% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
 | Configuración CI/CD (GitHub Actions) | 70% | 30% |
-| Pruebas Unitarias (Dominio v2) | 90% | 10% |
+| Pruebas Unitarias (Dominio v2 — 44 tests) | 90% | 10% |
 
 ### Casos donde la IA produjo resultados incorrectos o subóptimos
 
