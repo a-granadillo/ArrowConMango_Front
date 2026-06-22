@@ -11,41 +11,34 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Manual fake for [CommandHistory] that reports a fixed [canUndo] value.
 class FakeCommandHistory extends CommandHistory {
-  final bool _canUndo;
+  final bool canUndoValue;
 
-  const FakeCommandHistory({required bool canUndo})
-    : _canUndo = canUndo,
-      super();
+  const FakeCommandHistory({required this.canUndoValue}) : super();
 
   @override
-  bool get canUndo => _canUndo;
+  bool get canUndo => canUndoValue;
 }
 
 /// Manual fake for [GameSession] that controls [history.canUndo] and
 /// the result of [undoLastMove].
 class FakeGameSession extends GameSession {
-  final CommandHistory _history;
-  final GameSession? _sessionAfterUndo;
+  final GameSession? sessionAfterUndoMock;
 
   FakeGameSession({
     required super.sessionId,
     required super.boardState,
     required super.startedAtMs,
-    required CommandHistory history,
-    GameSession? sessionAfterUndo,
-  }) : _history = history,
-       _sessionAfterUndo = sessionAfterUndo,
-       super(history: history);
-
-  @override
-  CommandHistory get history => _history;
+    required super.history,
+    this.sessionAfterUndoMock,
+  });
 
   @override
   GameSession undoLastMove() {
-    if (_sessionAfterUndo == null) {
+    final next = sessionAfterUndoMock;
+    if (next == null) {
       throw StateError('undoLastMove() called but no sessionAfterUndo was configured');
     }
-    return _sessionAfterUndo!;
+    return next;
   }
 }
 
@@ -72,7 +65,7 @@ void main() {
           sessionId: testSessionId,
           boardState: BoardState(arrows: const []),
           startedAtMs: testStartedAtMs,
-          history: const FakeCommandHistory(canUndo: false),
+          history: const FakeCommandHistory(canUndoValue: false),
         );
 
         // Act
@@ -97,8 +90,8 @@ void main() {
           sessionId: testSessionId,
           boardState: BoardState(arrows: const []),
           startedAtMs: testStartedAtMs,
-          history: const FakeCommandHistory(canUndo: true),
-          sessionAfterUndo: expectedSession,
+          history: const FakeCommandHistory(canUndoValue: true),
+          sessionAfterUndoMock: expectedSession,
         );
 
         // Act

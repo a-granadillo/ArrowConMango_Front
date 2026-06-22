@@ -32,7 +32,7 @@ class FakeLevel extends Level {
     required int startedAtMs,
   }) {
     if (_exceptionToThrow != null) {
-      throw _exceptionToThrow!;
+      throw _exceptionToThrow;
     }
     return _sessionToReturn!;
   }

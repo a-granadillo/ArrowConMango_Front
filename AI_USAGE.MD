@@ -246,7 +246,28 @@
 - **Modificaciones del equipo:** Ninguna. El método es robusto y maneja edge cases correctamente.
 - **Verificación:** 14/14 tests pasando en game_session_test.dart.
 
----
+### Entrada #16 — Plan de Implementación (Issue #7: Use Cases - Game Flow)
+
+- **Fecha / autor:** 21-06-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Arquitecto de Software Principal (Planificador).
+- **Tarea/problema:** Diseñar el plan de implementación detallado para el Issue #7 (Casos de Uso del flujo principal del juego), asegurando el estricto cumplimiento de Clean Architecture y preparando el terreno para el modelo "Coder".
+- **Prompt (paráfrasis fiel):** > "Actúa como un Arquitecto de Software Principal. Basado en el código actual y vivo de la Capa de Dominio (BoardState, ArrowEntity, GameSession, CollisionValidator, etc.), genera un Plan de Implementación detallado para 5 Casos de Uso (LoadLevel, StartGameSession, TriggerArrowExit, UndoMove, EvaluateGameState). Para cada uno define: propósito, dependencias, inputs/outputs (usando `Result<T>`), flujo lógico y manejo de errores. Incluye además la estrategia de testing (patrón AAA). No generes el código de implementación aún."
+- **Resultado obtenido:** El modelo generó un documento Markdown exhaustivo detallando las firmas de los métodos, inyección de dependencias (ej. `ILevelRepository`, `CollisionValidator`) y flujos lógicos para los 5 casos de uso. Adicionalmente, identificó la necesidad de crear un DTO (`GameEvaluation`) en la capa de aplicación y definió 22 escenarios de prueba unitaria usando *mocks* manuales.
+- **Modificaciones del equipo: 1. Aplicación del Patrón Planner-Coder:** Se separó la fase de diseño de la fase de código para minimizar errores de contexto. 2. **Inyección de Contexto Dinámico:** En lugar de depender de documentación estática, se alimentó al modelo directamente con el código fuente actualizado de la rama `develop` para garantizar compatibilidad absoluta con los cambios recientes del equipo.
+- **Verificación:** El diseño cumple con el Principio de Inversión de Dependencias (DIP), evita el uso de excepciones para el control de flujo (adoptando `Result<T>`) y mantiene la capa libre de dependencias de Flutter.
+---------------------------------------------------------
+### Entrada #17 — Implementación de Código (Issue #7: Use Cases - Game Flow)
+
+- **Fecha / autor:** 21-06-2026 / Alberto Monasterio
+- **Herramienta:** Kimi (Modelo: Programador)
+- **Rol en el flujo:** Senior Dart Developer (Ejecutor / Coder).
+- **Tarea/problema:** Generar el código puro en Dart para la capa de aplicación (1 DTO y 5 Casos de Uso del Issue #7), basándose estrictamente en el plan arquitectónico de la Entrada #16 y manteniendo la pureza de Clean Architecture.
+- **Prompt (paráfrasis fiel):** > "Actúa como un Senior Dart Developer. Estamos implementando el Issue #7 usando Clean Architecture pura. Tu tarea es generar el código Dart puro para los archivos [Nombres de los archivos] basándote exactamente en el plan del Arquitecto proporcionado a continuación. Reglas de código: Cero dependencias de Flutter, usa `Result<T>`, si la clase `Failure` es abstracta usa `GenericFailure(String message)`. Genera el código en un solo bloque estructurado."
+- **Resultado obtenido:** El modelo generó la implementación exitosa y robusta de `GameEvaluation` (DTO), `LoadLevelUseCase`, `StartGameSessionUseCase`, `TriggerArrowExitUseCase`, `UndoMoveUseCase` y `EvaluateGameStateUseCase`. El código respetó las reglas funcionales (inmutabilidad, manejo seguro de errores con `try-catch`) y las inyecciones de dependencias indicadas.
+- **Modificaciones del equipo:** 1. **Estrategia de Micro-Prompting:** En lugar de solicitar todo el código de una vez, se dividió la generación en 5 peticiones aisladas (una por caso de uso) en ventanas de contexto limpias para evitar alucinaciones. 2. **Ajuste de Tipado:** Se detectó que el modelo intentó instanciar directamente la clase base `Failure` (la cual es abstracta). Se intervino manualmente creando e implementando una clase concreta `GenericFailure` para envolver correctamente las excepciones no controladas. 3. **Resolución de Rutas:** Se corrigieron manualmente todas las rutas de los `import` relativos en los 6 archivos generados utilizando las herramientas de auto-importado del IDE.
+- **Verificación:** Todos los archivos pasaron el análisis estático (`flutter analyze`) sin errores rojos, respetan las convenciones del equipo y se integraron en el historial de Git mediante una secuencia de 6 commits atómicos y semánticos (`feat(game-flow)`).
+
 
 ## Evaluación crítica
 

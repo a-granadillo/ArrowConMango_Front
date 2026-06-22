@@ -31,14 +31,12 @@ class _FakeDirection implements Direction {
 
 /// Manual fake that controls which [ArrowEntity] is found on the board.
 class _FakeBoardState extends BoardState {
-  final ArrowEntity? _arrowToReturn;
+  final ArrowEntity? arrowToReturn;
 
-  _FakeBoardState({ArrowEntity? arrowToReturn})
-    : _arrowToReturn = arrowToReturn,
-      super(arrows: const []);
+  _FakeBoardState({this.arrowToReturn}) : super(arrows: const []);
 
   @override
-  ArrowEntity? getArrowById(String id) => _arrowToReturn;
+  ArrowEntity? getArrowById(String id) => arrowToReturn;
 }
 
 /// Manual fake that controls the result of [afterArrowExit].
@@ -62,7 +60,7 @@ class _FakeGameSession extends GameSession {
   @override
   GameSession afterArrowExit(ArrowEntity arrow) {
     if (_exceptionToThrow != null) {
-      throw _exceptionToThrow!;
+      throw _exceptionToThrow;
     }
     return _nextSession!;
   }
