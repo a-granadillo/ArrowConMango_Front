@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/node_id.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/overlapping_arrows_failure.dart';
