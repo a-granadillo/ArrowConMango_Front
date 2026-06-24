@@ -17,6 +17,7 @@ class MangoColors {
   static const Color background = Color(0xFF1A1A1A);
   static const Color surface = Color(0xFF2D2D2D);
   static const Color cardBackground = Color(0xFF3D3D3D);
+  static const Color softCream = Color(0xFFFFF8E7);
 
   // Error color
   static const Color error = Color(0xFFB00020);
@@ -24,6 +25,7 @@ class MangoColors {
   // Text colors
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFB0B0B0);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
 
   // Arrow colors for the game
   static const List<Color> arrowColors = [
