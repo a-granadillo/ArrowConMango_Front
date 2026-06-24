@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/node_id.dart';
 
 class _FakeNodeId extends NodeId {
@@ -14,7 +15,7 @@ class _FakeNodeId extends NodeId {
 
 void main() {
   group('Grid2DTopology', () {
-    const topology = Grid2DTopology(rows: 5, cols: 5);
+    late final topology = Grid2DTopology(rows: 5, cols: 5);
 
     Grid2DNodeId node(int row, int col) => Grid2DNodeId(row: row, col: col);
 
