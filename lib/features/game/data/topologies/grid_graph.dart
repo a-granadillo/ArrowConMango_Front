@@ -1,6 +1,5 @@
 import '../../domain/entities/cardinal_direction.dart';
 import '../../domain/entities/direction.dart';
-import '../../domain/entities/node_id.dart';
 import '../../domain/services/graph.dart';
 import 'grid_2d_topology.dart';
 
@@ -26,10 +25,9 @@ class GridGraph implements Graph<Grid2DNodeId> {
   GridGraph._({
     required this.rows,
     required this.cols,
-    required Map<String, Map<Direction, Grid2DNodeId>> adjacency,
-    required Map<String, Set<Direction>> boundaries,
-  })  : _adjacency = adjacency,
-        _boundaries = boundaries;
+    required this._adjacency,
+    required this._boundaries,
+  });
 
   factory GridGraph.build({required int rows, required int cols}) {
     final adjacency = <String, Map<Direction, Grid2DNodeId>>{};

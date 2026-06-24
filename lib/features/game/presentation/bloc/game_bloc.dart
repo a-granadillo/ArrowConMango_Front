@@ -105,9 +105,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   GameBloc({
     required BoardState initialBoard,
-    required CollisionValidator validator,
-  }) : _validator = validator,
-       _initialBoard = initialBoard,
+    required this._validator,
+  }) : _initialBoard = initialBoard,
        super(GameState(board: initialBoard)) {
     on<ArrowTapped>(_onArrowTapped);
     on<GameReset>(_onReset);

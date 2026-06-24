@@ -13,7 +13,6 @@ class MangoTheme {
         primary: MangoColors.mangoOrange,
         secondary: MangoColors.leafGreen,
         surface: MangoColors.surface,
-        background: MangoColors.background,
         error: MangoColors.error,
       ),
       
