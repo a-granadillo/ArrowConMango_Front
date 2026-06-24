@@ -13,13 +13,104 @@ Este roadmap divide el proyecto en **17 features independientes** organizadas po
 
 ## 🎯 Features por Capa
 
+### **CAPA 4: Infraestructura (Data Layer)**
+
+#### GitHub #1: Data Models & Mappers
+**Scope:** Modelos de datos y mappers para conversión  
+**Dependencias:** Ninguna  
+**Estimación:** 6 horas  
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** a-granadillo
+
+**Incluye:**
+- `LevelModel` - Modelo de nivel persistente
+- `BoardStateModel` - Modelo de estado del tablero
+- `ArrowModel` - Modelo de flecha
+- Mappers: `LevelMapper`, `BoardStateMapper`, `ArrowMapper`
+
+**Archivos:**
+```
+lib/features/game/data/models/
+├── level_model.dart
+├── board_state_model.dart
+├── arrow_model.dart
+└── mappers/
+    ├── level_mapper.dart
+    ├── board_state_mapper.dart
+    └── arrow_mapper.dart
+```
+
+**Tests:** 3 archivos de test (mappers)
+
+**GitHub Issue:** [#1](https://github.com/a-granadillo/ArrowConMango_Front/issues/1)
+
+---
+
+#### GitHub #2: Local Storage - Hive Implementation
+**Scope:** Persistencia local con Hive  
+**Dependencias:** GitHub #1 (Data Models)  
+**Estimación:** 8 horas  
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** a-granadillo
+
+**Incluye:**
+- `HiveLevelRepository` - Repositorio de niveles
+- `HiveProgressRepository` - Repositorio de progreso
+- Configuración de Hive boxes
+- TypeAdapters para modelos
+
+**Archivos:**
+```
+lib/features/game/data/repositories/
+├── hive_level_repository.dart
+└── hive_progress_repository.dart
+
+lib/core/database/
+└── hive_config.dart
+```
+
+**Tests:** 2 archivos de test (repositories)
+
+**GitHub Issue:** [#2](https://github.com/a-granadillo/ArrowConMango_Front/issues/2)
+
+---
+
+#### GitHub #3: Level Definitions (15 Niveles)
+**Scope:** Definición de 15 niveles de dificultad progresiva  
+**Dependencias:** GitHub #1 (Data Models)  
+**Estimación:** 10 horas  
+**Prioridad:** 🟡 ALTA  
+**Asignado:** a-granadillo
+
+**Incluye:**
+- 5 niveles Easy (3-4 flechas)
+- 5 niveles Medium (5-6 flechas)
+- 5 niveles Hard (7-8 flechas)
+- `LevelDefinitions` - Clase con todas las definiciones
+
+**Archivos:**
+```
+lib/features/game/data/level_definitions/
+├── level_definitions.dart
+├── easy_levels.dart
+├── medium_levels.dart
+└── hard_levels.dart
+```
+
+**Tests:** 1 archivo de test (validación de niveles)
+
+**GitHub Issue:** [#3](https://github.com/a-granadillo/ArrowConMango_Front/issues/3)
+
+---
+
 ### **CAPA 2: Casos de Uso (Application Layer)**
 
-#### Feature #1: Use Cases - Game Flow
+#### GitHub #7: Use Cases - Game Flow
 **Scope:** Casos de uso para el flujo principal del juego  
 **Dependencias:** Ninguna (solo dominio)  
 **Estimación:** 8 horas  
-**Prioridad:** 🔴 CRÍTICA
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** AlbertoMonasterio
 
 **Incluye:**
 - `LoadLevelUseCase` - Cargar nivel desde repositorio
@@ -40,20 +131,16 @@ lib/features/game/domain/use_cases/
 
 **Tests:** 5 archivos de test (patrón AAA, mocks de repositorios)
 
-**GitHub Issue Template:**
-```
-Title: feat(use-cases): implement game flow use cases
-Labels: enhancement, layer-2, priority-critical
-Assignee: [Persona A]
-```
+**GitHub Issue:** [#7](https://github.com/a-granadillo/ArrowConMango_Front/issues/7)
 
 ---
 
-#### Feature #2: Use Cases - Progress & Scoring
+#### GitHub #8: Use Cases - Progress & Scoring
 **Scope:** Casos de uso para progreso y puntuación  
-**Dependencias:** Feature #1 (para EvaluateGameStateUseCase)  
+**Dependencias:** GitHub #7 (para EvaluateGameStateUseCase)  
 **Estimación:** 5 horas  
-**Prioridad:** 🔴 CRÍTICA
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** AlbertoMonasterio
 
 **Incluye:**
 - `SaveLocalProgressUseCase` - Guardar progreso local
@@ -70,13 +157,16 @@ lib/features/game/domain/use_cases/
 
 **Tests:** 3 archivos de test
 
+**GitHub Issue:** [#8](https://github.com/a-granadillo/ArrowConMango_Front/issues/8)
+
 ---
 
-#### Feature #3: Use Cases - Level Management
+#### GitHub #9: Use Cases - Level Management
 **Scope:** Casos de uso para gestión de niveles  
 **Dependencias:** Ninguna  
 **Estimación:** 4 horas  
-**Prioridad:** 🟡 ALTA
+**Prioridad:** 🟡 ALTA  
+**Asignado:** AlbertoMonasterio
 
 **Incluye:**
 - `GetLevelListUseCase` - Obtener lista de niveles
@@ -93,103 +183,18 @@ lib/features/game/domain/use_cases/
 
 **Tests:** 3 archivos de test
 
----
-
-### **CAPA 4: Infraestructura (Data Layer)**
-
-#### Feature #4: Data Models & Mappers
-**Scope:** DTOs y mappers para serialización  
-**Dependencias:** Ninguna  
-**Estimación:** 6 horas  
-**Prioridad:** 🔴 CRÍTICA
-
-**Incluye:**
-- `LevelModel` - DTO para Level
-- `BoardStateModel` - DTO para BoardState
-- `ArrowEntityModel` - DTO para ArrowEntity
-- `AppProgressModel` - DTO para AppProgress
-- Mappers: `toEntity()` / `fromEntity()`
-
-**Archivos:**
-```
-lib/features/game/data/models/
-├── level_model.dart
-├── board_state_model.dart
-├── arrow_entity_model.dart
-├── app_progress_model.dart
-└── mappers/
-    ├── level_mapper.dart
-    ├── board_state_mapper.dart
-    └── arrow_entity_mapper.dart
-```
-
-**Tests:** Tests de mappers (round-trip: entity → model → entity)
-
----
-
-#### Feature #5: Local Storage - Hive Implementation
-**Scope:** Implementación de repositorios con Hive  
-**Dependencias:** Feature #4 (models)  
-**Estimación:** 8 horas  
-**Priority:** 🔴 CRÍTICA
-
-**Incluye:**
-- `HiveLocalStorageAdapter` - Adaptador para Hive
-- `HiveLevelRepository` - Implementación de ILevelRepository
-- `HiveProgressRepository` - Implementación de IProgressRepository
-- TypeAdapters para Hive
-
-**Archivos:**
-```
-lib/features/game/data/repositories/
-├── hive_local_storage_adapter.dart
-├── hive_level_repository.dart
-└── hive_progress_repository.dart
-
-lib/features/game/data/datasources/
-└── hive_type_adapters.dart
-```
-
-**Tests:** Tests de integración con Hive (mock file system)
-
----
-
-#### Feature #6: Level Definitions (15 Niveles)
-**Scope:** Definiciones JSON de 15 niveles manuales  
-**Dependencias:** Feature #4 (models)  
-**Estimación:** 10 horas  
-**Prioridad:** 🔴 CRÍTICA
-
-**Incluye:**
-- 5 niveles Easy (1-5)
-- 5 niveles Medium (6-10)
-- 5 niveles Hard (11-15)
-- Distintas formas de tablero (rectangular, L-shape, etc.)
-- Validación de que todos son resolubles
-
-**Archivos:**
-```
-assets/levels/
-├── level_01.json
-├── level_02.json
-├── ...
-└── level_15.json
-
-lib/features/game/data/datasources/
-└── level_json_loader.dart
-```
-
-**Tests:** Test de carga y validación de cada nivel
+**GitHub Issue:** [#9](https://github.com/a-granadillo/ArrowConMango_Front/issues/9)
 
 ---
 
 ### **CAPA 3/4: Presentación (BLoC + UI)**
 
-#### Feature #7: BLoC - Game State Management
+#### GitHub #10: BLoC - Game State Management
 **Scope:** BLoC para manejo de estado del juego  
-**Dependencias:** Feature #1, #2 (use cases)  
+**Dependencias:** GitHub #7, #8 (use cases)  
 **Estimación:** 12 horas  
-**Prioridad:** 🔴 CRÍTICA
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** AlbertoMonasterio
 
 **Incluye:**
 - `GameBloc` - BLoC principal
@@ -209,18 +214,22 @@ lib/features/game/presentation/bloc/
 
 **Tests:** Tests de BLoC con bloc_test
 
+**GitHub Issue:** [#10](https://github.com/a-granadillo/ArrowConMango_Front/issues/10)
+
 ---
 
-#### Feature #8: BLoC - Progress & Menu State
+#### GitHub #11: BLoC - Progress & Menu State
 **Scope:** BLoC para progreso y menús  
-**Dependencias:** Feature #3 (use cases)  
+**Dependencias:** GitHub #9 (Level Management Use Cases)  
 **Estimación:** 6 horas  
-**Prioridad:** 🟡 ALTA
+**Prioridad:** 🟡 ALTA  
+**Asignado:** AlbertoMonasterio
 
 **Incluye:**
 - `ProgressBloc` - BLoC de progreso
 - `ProgressEvent` / `ProgressState`
 - `MenuBloc` - BLoC de menú principal
+- `MenuEvent` / `MenuState`
 
 **Archivos:**
 ```
@@ -235,18 +244,21 @@ lib/features/game/presentation/bloc/
 
 **Tests:** Tests de BLoC
 
+**GitHub Issue:** [#11](https://github.com/a-granadillo/ArrowConMango_Front/issues/11)
+
 ---
 
-#### Feature #9: UI - Menu Screens
-**Scope:** Pantallas de menú  
-**Dependencias:** Feature #8 (BLoC)  
+#### GitHub #4: UI - Menu Screens
+**Scope:** Pantallas de menú (Splash, MainMenu, LevelSelection, Settings)  
+**Dependencias:** GitHub #11 (MenuBloc)  
 **Estimación:** 6 horas  
-**Prioridad:** 🟡 ALTA
+**Prioridad:** 🟡 ALTA  
+**Asignado:** a-granadillo
 
 **Incluye:**
 - `SplashScreen` - Pantalla de carga
 - `MainMenuScreen` - Menú principal
-- `LevelSelectionScreen` - Selección de niveles
+- `LevelSelectionScreen` - Selección de nivel
 - `SettingsScreen` - Configuración
 
 **Archivos:**
@@ -260,20 +272,23 @@ lib/features/game/presentation/screens/
 
 **Tests:** Widget tests
 
+**GitHub Issue:** [#4](https://github.com/a-granadillo/ArrowConMango_Front/issues/4)
+
 ---
 
-#### Feature #10: UI - Game Screen
-**Scope:** Pantalla principal del juego  
-**Dependencias:** Feature #7 (GameBloc)  
+#### GitHub #5: UI - Game Screen
+**Scope:** Pantalla principal del juego con animaciones  
+**Dependencias:** GitHub #10 (GameBloc)  
 **Estimación:** 15 horas  
-**Prioridad:** 🔴 CRÍTICA
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** a-granadillo
 
 **Incluye:**
 - `GameScreen` - Pantalla de juego
-- `BoardGridWidget` - Renderizado del tablero
-- `ArrowWidget` - Renderizado de flechas
-- `GameControlsWidget` - Botones de control (undo, restart)
-- Animaciones de movimiento de flechas
+- `BoardGrid` - Widget del tablero
+- `ArrowWidget` - Widget de flecha con animaciones
+- `GameControls` - Botones de control (undo, reset, etc.)
+- Animaciones de deslizamiento
 
 **Archivos:**
 ```
@@ -281,23 +296,23 @@ lib/features/game/presentation/screens/
 └── game_screen.dart
 
 lib/features/game/presentation/widgets/
-├── board_grid_widget.dart
+├── board_grid.dart
 ├── arrow_widget.dart
-├── game_controls_widget.dart
-└── animations/
-    ├── arrow_exit_animation.dart
-    └── victory_animation.dart
+└── game_controls.dart
 ```
 
-**Tests:** Widget tests + golden tests
+**Tests:** Widget tests + animation tests
+
+**GitHub Issue:** [#5](https://github.com/a-granadillo/ArrowConMango_Front/issues/5)
 
 ---
 
-#### Feature #11: UI - Result Screens
-**Scope:** Pantallas de resultado  
-**Dependencias:** Feature #7 (GameBloc)  
+#### GitHub #12: UI - Result Screens
+**Scope:** Pantallas de resultado (victoria y derrota)  
+**Dependencias:** GitHub #10 (GameBloc)  
 **Estimación:** 4 horas  
-**Prioridad:** 🟡 ALTA
+**Prioridad:** 🟡 ALTA  
+**Asignado:** AlbertoMonasterio
 
 **Incluye:**
 - `VictoryScreen` - Pantalla de victoria
@@ -313,15 +328,18 @@ lib/features/game/presentation/screens/
 
 **Tests:** Widget tests
 
+**GitHub Issue:** [#12](https://github.com/a-granadillo/ArrowConMango_Front/issues/12)
+
 ---
 
-### **FEATURES TRANSVERSALES**
+### **CAPA 1: Core (Transversales)**
 
-#### Feature #12: Dependency Injection (get_it + injectable)
-**Scope:** Configuración de inyección de dependencias  
-**Dependencias:** Features #1-5 (use cases + repos)  
+#### GitHub #13: Dependency Injection (get_it + injectable)
+**Scope:** Configuración de inyección de dependencias con get_it  
+**Dependencias:** GitHub #7, #8, #9 (Use Cases), GitHub #1, #2 (Data Layer)  
 **Estimación:** 4 horas  
-**Prioridad:** 🔴 CRÍTICA
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** ambos
 
 **Incluye:**
 - `ServiceLocator` - Configuración de get_it
@@ -338,13 +356,16 @@ lib/core/di/
 
 **Tests:** Test de que todas las dependencias se resuelven
 
+**GitHub Issue:** [#13](https://github.com/a-granadillo/ArrowConMango_Front/issues/13)
+
 ---
 
-#### Feature #13: AOP - Logging & Error Handling
+#### GitHub #14: AOP - Logging & Error Handling
 **Scope:** Aspectos transversales (logging, manejo de errores)  
-**Dependencias:** Feature #12 (DI)  
+**Dependencias:** GitHub #13 (Dependency Injection)  
 **Estimación:** 6 horas  
-**Prioridad:** 🟡 ALTA
+**Prioridad:** 🟡 ALTA  
+**Asignado:** ambos
 
 **Incluye:**
 - `LoggingDecorator` - Decorador para logging
@@ -361,18 +382,21 @@ lib/core/aop/
 
 **Tests:** Tests de decorators
 
+**GitHub Issue:** [#14](https://github.com/a-granadillo/ArrowConMango_Front/issues/14)
+
 ---
 
-#### Feature #14: Internationalization (i18n)
+#### GitHub #15: Internationalization (i18n)
 **Scope:** Soporte para español e inglés  
-**Dependencias:** Ninguna  
+**Dependencias:** Ninguna (independiente)  
 **Estimación:** 4 horas  
-**Prioridad:** 🟢 MEDIA
+**Prioridad:** 🟢 MEDIA  
+**Asignado:** ambos
 
 **Incluye:**
 - Configuración de flutter_localizations
 - Archivos de traducción (es.json, en.json)
-- `AppLocalizations` class
+- AppLocalizations class
 - Actualización de todas las pantallas
 
 **Archivos:**
@@ -389,13 +413,16 @@ lib/l10n/
 
 **Tests:** Test de que todas las keys existen en ambos idiomas
 
+**GitHub Issue:** [#15](https://github.com/a-granadillo/ArrowConMango_Front/issues/15)
+
 ---
 
-#### Feature #15: Audio System
-**Scope:** Música y efectos de sonido  
-**Dependencias:** Ninguna  
+#### GitHub #6: Audio System
+**Scope:** Sistema de audio (música y efectos)  
+**Dependencias:** Ninguna (independiente)  
 **Estimación:** 4 horas  
-**Prioridad:** 🟢 MEDIA
+**Prioridad:** 🟢 MEDIA  
+**Asignado:** a-granadillo
 
 **Incluye:**
 - `AudioManager` - Gestor de audio (Singleton)
@@ -422,15 +449,18 @@ assets/audio/
 
 **Tests:** Test de que AudioManager inicializa correctamente
 
+**GitHub Issue:** [#6](https://github.com/a-granadillo/ArrowConMango_Front/issues/6)
+
 ---
 
 ### **DOCUMENTACIÓN**
 
-#### Feature #16: Diagramas Obligatorios
-**Scope:** Diagramas de clases y capas  
-**Dependencias:** Features #1-15 (todo implementado)  
+#### GitHub #16: Diagramas Obligatorios
+**Scope:** Diagramas de clases y capas Clean Architecture  
+**Dependencias:** GitHub #1-#15 (todo implementado)  
 **Estimación:** 6 horas  
-**Prioridad:** 🔴 CRÍTICA
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** ambos
 
 **Incluye:**
 - Diagrama de clases (PlantUML o draw.io)
@@ -446,13 +476,16 @@ docs/
 └── clean_architecture_diagram.png
 ```
 
+**GitHub Issue:** [#16](https://github.com/a-granadillo/ArrowConMango_Front/issues/16)
+
 ---
 
-#### Feature #17: README & AI_USAGE Final
+#### GitHub #17: README & AI_USAGE Final
 **Scope:** Documentación final completa  
-**Dependencias:** Features #1-16  
+**Dependencias:** GitHub #1-#16  
 **Estimación:** 4 horas  
-**Prioridad:** 🔴 CRÍTICA
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** ambos
 
 **Incluye:**
 - README.md completo (estructura del enunciado)
@@ -470,75 +503,69 @@ docs/screenshots/
 └── victory.png
 ```
 
+**GitHub Issue:** [#17](https://github.com/a-granadillo/ArrowConMango_Front/issues/17)
+
 ---
 
 ## 📊 Matriz de Dependencias
 
 ```
-Feature #1 (Game Flow Use Cases) ─────────────┐
-Feature #2 (Progress Use Cases) ──────────────┤
-Feature #3 (Level Management Use Cases) ──────┤
-                                              │
-Feature #4 (Data Models) ─────────────────────┤
-                                              │
-Feature #5 (Hive Repos) ──────────────────────┤
-                                              │
-Feature #6 (15 Niveles) ──────────────────────┤
-                                              │
-Feature #7 (Game BLoC) ◄──────────────────────┤
-Feature #8 (Progress BLoC) ◄──────────────────┤
-                                              │
-Feature #9 (Menu UI) ◄────────────────────────┤
-Feature #10 (Game UI) ◄───────────────────────┤
-Feature #11 (Result UI) ◄─────────────────────┤
-                                              │
-Feature #12 (DI) ◄────────────────────────────┤
-Feature #13 (AOP) ◄───────────────────────────┤
-                                              │
-Feature #14 (i18n) ───────────────────────────┤
-Feature #15 (Audio) ──────────────────────────┤
-                                              │
-Feature #16 (Diagramas) ◄─────────────────────┤
-Feature #17 (README) ◄────────────────────────┘
-```
-
+GitHub #7 (Use Cases - Game Flow) ─────────────┐
+GitHub #8 (Use Cases - Progress) ──────────────┤
+GitHub #9 (Use Cases - Level Management) ──────┤
+                                               │
+GitHub #1 (Data Models) ───────────────────────┤
+                                               │
+GitHub #2 (Hive Repos) ────────────────────────┤
+                                               │
+GitHub #3 (15 Niveles) ────────────────────────┤
+                                               │
+GitHub #10 (BLoC - Game) ◄─────────────────────┤
+GitHub #11 (BLoC - Progress) ◄─────────────────┤
+                                               │
+GitHub #4 (UI - Menu) ◄────────────────────────┤
+GitHub #5 (UI - Game) ◄────────────────────────┤
+GitHub #12 (UI - Result) ◄─────────────────────┤
+                                               │
+GitHub #13 (DI) ◄──────────────────────────────┤
+GitHub #14 (AOP) ◄─────────────────────────────┤
+                                               │
+GitHub #15 (i18n) ─────────────────────────────┤
+GitHub #6 (Audio) ─────────────────────────────┤
+                                               │
+GitHub #16 (Diagramas) ◄───────────────────────┤
+GitHub #17 (README) ◄──────────────────────────┘
+```  
+**Dependencias:** Feature #12 (DI)  
 ---
 
 ## 👥 División de Trabajo Sugerida
 
-### **Persona A: Data Layer & Infrastructure**
-**Features asignadas:** #4, #5, #6, #12  
-**Horas estimadas:** 28 horas  
+### **Persona A (a-granadillo): Data Layer & UI**
+**Features asignadas:** GitHub #1, #2, #3, #4, #5, #6  
+**Horas estimadas:** 34 horas  
 **Ramas:**
-- `feat/data-models`
-- `feat/hive-repositories`
-- `feat/level-definitions`
-- `feat/dependency-injection`
+- `feat/data-models` (GitHub #1)
+- `feat/hive-repositories` (GitHub #2)
+- `feat/level-definitions` (GitHub #3)
+- `feat/menu-ui` (GitHub #4)
+- `feat/game-ui` (GitHub #5)
+- `feat/audio` (GitHub #6)
 
-### **Persona B: Use Cases & BLoC**
-**Features asignadas:** #1, #2, #3, #7, #8  
+### **Persona B (AlbertoMonasterio): Use Cases & BLoC**
+**Features asignadas:** GitHub #7, #8, #9, #10, #11, #12  
 **Horas estimadas:** 35 horas  
 **Ramas:**
-- `feat/game-use-cases`
-- `feat/progress-use-cases`
-- `feat/level-use-cases`
-- `feat/game-bloc`
-- `feat/progress-bloc`
-
-### **Persona C: UI & Features Transversales**
-**Features asignadas:** #9, #10, #11, #13, #14, #15  
-**Horas estimadas:** 39 horas  
-**Ramas:**
-- `feat/menu-ui`
-- `feat/game-ui`
-- `feat/result-ui`
-- `feat/aop`
-- `feat/i18n`
-- `feat/audio`
+- `feat/game-use-cases` (GitHub #7)
+- `feat/progress-use-cases` (GitHub #8)
+- `feat/level-use-cases` (GitHub #9)
+- `feat/game-bloc` (GitHub #10)
+- `feat/progress-bloc` (GitHub #11)
+- `feat/result-ui` (GitHub #12)
 
 ### **Compartido (ambos):**
-**Features:** #16, #17  
-**Horas estimadas:** 10 horas
+**Features:** GitHub #13, #14, #15, #16, #17  
+**Horas estimadas:** 24 horas
 
 ---
 
@@ -592,27 +619,27 @@ gh pr merge [pr-number] --squash --delete-branch
 ## 📅 Cronograma Sugerido
 
 ### **Semana 1-2: Capas 2 y 4**
-- Persona A: Features #4, #5
-- Persona B: Features #1, #2, #3
-- Persona C: Feature #14 (i18n - independiente)
+- a-granadillo: GitHub #1 (Data Models), #2 (Hive)
+- AlbertoMonasterio: GitHub #7, #8, #9 (Use Cases)
+- Ambos: GitHub #15 (i18n - independiente)
 
 ### **Semana 3-4: Capa 3/4 (BLoC)**
-- Persona A: Feature #6 (15 niveles)
-- Persona B: Features #7, #8
-- Persona C: Feature #15 (Audio - independiente)
+- a-granadillo: GitHub #3 (15 niveles)
+- AlbertoMonasterio: GitHub #10, #11 (BLoC)
+- Ambos: GitHub #6 (Audio - independiente)
 
 ### **Semana 5-6: UI**
-- Persona A: Feature #12 (DI)
-- Persona B: Soporte a Persona C
-- Persona C: Features #9, #10, #11
+- a-granadillo: GitHub #4, #5 (Menu UI, Game UI)
+- AlbertoMonasterio: GitHub #12 (Result UI), soporte a a-granadillo
+- Ambos: GitHub #13 (DI)
 
 ### **Semana 7: Features Transversales**
-- Persona A: Feature #13 (AOP)
-- Persona B: Testing general
-- Persona C: Pulir UI
+- a-granadillo: Testing general
+- AlbertoMonasterio: GitHub #14 (AOP)
+- Ambos: Pulir UI
 
 ### **Semana 8: Documentación**
-- Todos: Features #16, #17
+- Ambos: GitHub #16, #17 (Diagramas, README)
 - Testing final
 - Preparación de defensa
 
@@ -620,9 +647,9 @@ gh pr merge [pr-number] --squash --delete-branch
 
 ## ⚠️ Notas Importantes
 
-1. **Features #14 y #15 son completamente independientes** - Pueden empezarse en cualquier momento
-2. **Feature #12 (DI) debe hacerse después de Features #1-5** - Necesita todas las clases registradas
-3. **Feature #6 (15 niveles) puede hacerse en paralelo** - Solo necesita Feature #4 (models)
+1. **GitHub #15 y #6 son completamente independientes** - Pueden empezarse en cualquier momento
+2. **GitHub #13 (DI) debe hacerse después de #1-#5** - Necesita todas las clases registradas
+3. **GitHub #3 (15 niveles) puede hacerse en paralelo** - Solo necesita #1 (models)
 4. **Testing continuo** - Cada feature debe incluir sus tests antes de merge
 5. **CI/CD ya configurado** - GitHub Actions corre tests automáticamente en cada PR
 
@@ -630,23 +657,23 @@ gh pr merge [pr-number] --squash --delete-branch
 
 ## 📋 Checklist de Completitud
 
-- [ ] Feature #1: Game Flow Use Cases
-- [ ] Feature #2: Progress Use Cases
-- [ ] Feature #3: Level Management Use Cases
-- [ ] Feature #4: Data Models & Mappers
-- [ ] Feature #5: Hive Implementation
-- [ ] Feature #6: 15 Level Definitions
-- [ ] Feature #7: Game BLoC
-- [ ] Feature #8: Progress BLoC
-- [ ] Feature #9: Menu UI
-- [ ] Feature #10: Game UI
-- [ ] Feature #11: Result UI
-- [ ] Feature #12: Dependency Injection
-- [ ] Feature #13: AOP
-- [ ] Feature #14: i18n
-- [ ] Feature #15: Audio
-- [ ] Feature #16: Diagrams
-- [ ] Feature #17: README & AI_USAGE
+- [ ] GitHub #1: Data Models & Mappers (a-granadillo)
+- [ ] GitHub #2: Local Storage - Hive (a-granadillo)
+- [ ] GitHub #3: Level Definitions (a-granadillo)
+- [ ] GitHub #4: UI - Menu Screens (a-granadillo)
+- [ ] GitHub #5: UI - Game Screen (a-granadillo)
+- [ ] GitHub #6: Audio System (a-granadillo)
+- [ ] GitHub #7: Use Cases - Game Flow (AlbertoMonasterio)
+- [ ] GitHub #8: Use Cases - Progress & Scoring (AlbertoMonasterio)
+- [ ] GitHub #9: Use Cases - Level Management (AlbertoMonasterio)
+- [ ] GitHub #10: BLoC - Game State Management (AlbertoMonasterio)
+- [ ] GitHub #11: BLoC - Progress & Menu State (AlbertoMonasterio)
+- [ ] GitHub #12: UI - Result Screens (AlbertoMonasterio)
+- [ ] GitHub #13: Dependency Injection (ambos)
+- [ ] GitHub #14: AOP - Logging & Error Handling (ambos)
+- [ ] GitHub #15: Internationalization (ambos)
+- [ ] GitHub #16: Diagrams (ambos)
+- [ ] GitHub #17: README & AI_USAGE (ambos)
 
 ---
 
