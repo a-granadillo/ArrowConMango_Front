@@ -39,6 +39,9 @@ dependencies:
   equatable: ^2.0.7
   lib: ^0.3.0
 
+  # State management for game logic
+  flutter_bloc: ^8.1.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

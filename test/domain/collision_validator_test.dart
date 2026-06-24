@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/node_id.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
@@ -19,7 +20,7 @@ void main() {
 
     BoardState state(List<ArrowEntity> arrows) => BoardState(arrows: arrows);
 
-    const validator = CollisionValidator(Grid2DTopology(rows: 5, cols: 5));
+    late final validator = CollisionValidator(Grid2DTopology(rows: 5, cols: 5));
 
     test('should_allow_exit_when_path_is_clear', () {
       // Arrange
