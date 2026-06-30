@@ -1,8 +1,7 @@
-import '../../domain/entities/arrow_entity.dart';
-import '../../domain/entities/cardinal_direction.dart';
-import '../../data/topologies/grid_2d_topology.dart';
-import '../models/arrow_model.dart';
-import '../models/node_model.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
+import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
+import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
 
 /// Mapper for converting between [ArrowEntity] and [ArrowModel].
 ///

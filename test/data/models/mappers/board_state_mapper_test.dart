@@ -1,9 +1,9 @@
 import 'package:test/test.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
-import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/board_state_mapper.dart';
 
 void main() {

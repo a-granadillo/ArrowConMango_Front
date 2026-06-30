@@ -1,5 +1,5 @@
-import '../../domain/entities/board_state.dart';
-import '../models/board_state_model.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
+import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'arrow_mapper.dart';
 
 /// Mapper for converting between [BoardState] and [BoardStateModel].

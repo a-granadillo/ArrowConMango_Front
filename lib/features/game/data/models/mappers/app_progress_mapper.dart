@@ -1,5 +1,5 @@
-import '../../domain/entities/app_progress.dart';
-import '../models/app_progress_model.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/data/models/app_progress_model.dart';
 
 /// Mapper for converting between [AppProgress] and [AppProgressModel].
 ///

@@ -1,5 +1,5 @@
-import '../../domain/entities/level.dart';
-import '../models/level_model.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
+import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'board_state_mapper.dart';
 
 /// Mapper for converting between [Level] and [LevelModel].
