@@ -5,6 +5,7 @@ import 'package:arrowconmango_front/features/game/data/models/mappers/arrow_mapp
 import 'package:arrowconmango_front/features/game/data/models/mappers/board_state_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/level_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:test/test.dart';
 
