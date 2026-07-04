@@ -269,6 +269,38 @@
 - **Verificación:** Todos los archivos pasaron el análisis estático (`flutter analyze`) sin errores rojos, respetan las convenciones del equipo y se integraron en el historial de Git mediante una secuencia de 6 commits atómicos y semánticos (`feat(game-flow)`).
 
 
+### Entrada #18 — Refactoring a Arquitectura Basada en Grafos (Graph<V>)
+
+- **Fecha / autor:** 24-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Arquitecto de Software (Refactoring de infraestructura).
+- **Tarea/problema:** `Grid2DTopology` contenía toda la lógica de adyacencia, trayectorias y navegación embebida en una sola clase monolítica. El profesor recomendó usar grafos explícitos para modelar el tablero y las flechas. Se necesitaba una abstracción `Graph<V>` en el dominio (DIP) y una implementación `GridGraph` en la capa de datos con listas de adyacencia precomputadas para lookups O(1).
+- **Prompt (paráfrasis fiel):** > "Refactoriza `Grid2DTopology` para usar una arquitectura basada en grafos. Crea una abstracción `Graph<V>` en `domain/services/` con métodos `neighbors(node)`, `contains(node)`, `nodes`. Crea `GridGraph` en `data/topologies/` que precompute listas de adyacencia al construirse. `Grid2DTopology` debe delegar en `GridGraph` internamente. Mueve `CardinalDirection` de la capa de datos a `domain/entities/`. Actualiza todos los tests afectados."
+- **Resultado obtenido:**
+  1. `lib/features/game/domain/services/graph.dart` — Abstracción genérica `Graph<V>` con interfaz mínima.
+  2. `lib/features/game/data/topologies/grid_graph.dart` — Implementación con adyacencia precomputada O(1).
+  3. `lib/features/game/domain/entities/cardinal_direction.dart` — Movido de la capa de datos al dominio.
+  4. Refactoring de `Grid2DTopology` para delegar en `GridGraph`.
+  5. Actualización de 5 archivos de tests (imports y `const` → `late final`).
+- **Modificaciones del equipo:** Se corrigieron imports en los tests (cambio de `const` a `late final` para instancias de `Grid2DTopology` ya que el constructor ahora construye un `GridGraph` internamente y no es una expresión constante).
+- **Verificación:** Suite completa de tests del dominio pasando sin errores.
+- **Lecciones / limitaciones:** Cuando un constructor deja de ser `const` (porque ahora hace trabajo computacional como precomputar adyacencia), todas las instancias en tests deben cambiar de `const` a `late final`.
+
+### Entrada #19 — Implementación de Data Models & Mappers (Issue #1)
+
+- **Fecha / autor:** 24-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Capa de Datos — Models & Mappers).
+- **Tarea/problema:** La Capa de Datos necesitaba modelos serializables (JSON) y mappers bidireccionales para traducir entre los modelos de persistencia y las entidades puras del dominio. Sin esto, los repositorios no pueden implementar la deserialización requerida por `ILevelRepository` e `IProgressRepository`.
+- **Prompt (paráfrasis fiel):** > "Implementa 5 data models (`NodeModel`, `ArrowModel`, `BoardStateModel`, `LevelModel`, `AppProgressModel`) con métodos `fromJson`/`toJson` en `lib/features/game/data/models/`. Crea 4 mappers bidireccionales (`ArrowMapper`, `BoardStateMapper`, `LevelMapper`, `AppProgressMapper`) en `data/models/mappers/` que traduzcan entre models y entidades de dominio. Incluye 18 tests unitarios con patrón AAA cubriendo round-trip serialization, edge cases y validaciones."
+- **Resultado obtenido:**
+  1. 5 archivos de modelos en `lib/features/game/data/models/` con serialización JSON completa.
+  2. 4 archivos de mappers en `lib/features/game/data/models/mappers/` con conversión bidireccional.
+  3. 5 archivos de tests en `test/data/models/` con 27 tests totales usando patrón AAA (19 tests de mappers + 8 tests de round-trip JSON).
+- **Modificaciones del equipo:** Se corrigieron imports en los mappers (cambio de imports relativos a package imports para mayor robustez). Se agregaron imports faltantes (`ArrowModel`, `BoardStateModel`) en los archivos de tests. Se corrigió un cast inseguro en `ArrowMapper.toModel` agregando validación explícita con `ArgumentError`. Se documentó que `LevelMapper` es lossy y que `AppProgressMapper` usa `currentToken` como workaround temporal.
+- **Verificación:** 27/27 tests pasando. Los mappers están listos para ser consumidos por los repositorios de la Capa de Datos.
+- **Lecciones / limitaciones:** Los package imports (`package:arrowconmango_front/features/...`) son más robustos que los imports relativos en proyectos Flutter con estructuras de carpetas profundas.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
@@ -276,6 +308,7 @@
 | Componente | % IA | % Equipo (correcciones) |
 |---|---|---|
 | Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring, Validaciones, Session) | 85% | 15% |
+| Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
@@ -289,6 +322,7 @@
 3. **Inyección de dependencias directa:** En varios componentes UI, sugirió instanciar repositorios directamente con `new HiveLocalStorageAdapter()` en lugar de utilizar el Service Locator (`get_it`), rompiendo el Principio de Inversión de Dependencias (DIP). Fue corregido manualmente en revisión.
 4. **Historial de Commands ineficiente:** Guardaba clones profundos (deep copies) de todo el tablero en cada movimiento, lo cual fue optimizado manualmente por el equipo a un enfoque de deltas (guardar solo la celda cambiada).
 5. **Constructor const con expresiones no constantes:** En `OverlappingArrowsFailure`, la IA generó un constructor `const` que usaba `arrowIds.join(", ")` en el `super()` call. Dart no permite invocaciones de método en expresiones constantes. Se corrigió eliminando el modificador `const` del constructor.
+6. **Imports relativos frágiles en Data Models:** La IA generó imports relativos (`../../domain/entities/...`) en los mappers de la capa de datos. Con estructuras de carpetas profundas en Flutter, estos imports se rompen fácilmente al reorganizar archivos. Se corrigió manualmente usando package imports (`package:arrowconmango_front/features/game/domain/...`) para mayor robustez.
 
 ### Reflexión del equipo
 
