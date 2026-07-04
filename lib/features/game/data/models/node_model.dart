@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Serializable representation of a 2D grid node.
 ///
-/// Maps to [Grid2DNodeId] in the infrastructure layer. This model is
+/// Maps to [Grid2DNodeId] in the data layer. This model is
 /// intentionally simple (row/col) because the current persistence format
 /// only supports 2D rectangular boards.
 class NodeModel extends Equatable {

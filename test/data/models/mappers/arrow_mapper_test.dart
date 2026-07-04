@@ -4,6 +4,7 @@ import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/node_id.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -107,5 +108,43 @@ void main() {
       // Act / Assert
       expect(() => mapper.toEntity(model), throwsArgumentError);
     });
+
+    test('should_throw_with_clear_message_when_node_is_not_Grid2DNodeId', () {
+      // Arrange — create an entity with a non-Grid2DNodeId node
+      // This simulates a future topology (e.g., hexagonal) being passed to
+      // the 2D-specific mapper.
+      final entity = ArrowEntity(
+        id: 'arrow-7',
+        direction: CardinalDirection.up,
+        occupiedNodes: [_FakeNodeId('hex-1')],
+      );
+
+      // Act / Assert
+      expect(
+        () => mapper.toModel(entity),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('ArrowMapper only supports Grid2DNodeId'),
+          ),
+        ),
+      );
+    });
   });
+}
+
+/// Fake NodeId for testing non-Grid2D topologies.
+class _FakeNodeId implements NodeId {
+  final String value;
+  const _FakeNodeId(this.value);
+
+  @override
+  String get key => value;
+
+  @override
+  List<Object?> get props => [value];
+
+  @override
+  bool get stringify => true;
 }

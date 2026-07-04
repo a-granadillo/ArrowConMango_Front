@@ -27,8 +27,13 @@ class ArrowMapper {
       direction: entity.direction.label,
       nodes: entity.occupiedNodes
           .map((node) {
-            final gridNode = node as Grid2DNodeId;
-            return NodeModel(row: gridNode.row, col: gridNode.col);
+            if (node is! Grid2DNodeId) {
+              throw ArgumentError(
+                'ArrowMapper only supports Grid2DNodeId, got ${node.runtimeType}. '
+                'Use a topology-specific mapper for other node types.',
+              );
+            }
+            return NodeModel(row: node.row, col: node.col);
           })
           .toList(),
     );

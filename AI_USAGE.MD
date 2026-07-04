@@ -296,9 +296,9 @@
 - **Resultado obtenido:**
   1. 5 archivos de modelos en `lib/features/game/data/models/` con serialización JSON completa.
   2. 4 archivos de mappers en `lib/features/game/data/models/mappers/` con conversión bidireccional.
-  3. 4 archivos de tests en `test/data/models/mappers/` con 18 tests totales usando patrón AAA.
-- **Modificaciones del equipo:** Se corrigieron imports en los mappers (cambio de imports relativos a package imports para mayor robustez). Se agregaron imports faltantes (`ArrowModel`, `BoardStateModel`) en los archivos de tests.
-- **Verificación:** 18/18 tests pasando. Los mappers están listos para ser consumidos por los repositorios de la Capa de Datos.
+  3. 5 archivos de tests en `test/data/models/` con 27 tests totales usando patrón AAA (19 tests de mappers + 8 tests de round-trip JSON).
+- **Modificaciones del equipo:** Se corrigieron imports en los mappers (cambio de imports relativos a package imports para mayor robustez). Se agregaron imports faltantes (`ArrowModel`, `BoardStateModel`) en los archivos de tests. Se corrigió un cast inseguro en `ArrowMapper.toModel` agregando validación explícita con `ArgumentError`. Se documentó que `LevelMapper` es lossy y que `AppProgressMapper` usa `currentToken` como workaround temporal.
+- **Verificación:** 27/27 tests pasando. Los mappers están listos para ser consumidos por los repositorios de la Capa de Datos.
 - **Lecciones / limitaciones:** Los package imports (`package:arrowconmango_front/features/...`) son más robustos que los imports relativos en proyectos Flutter con estructuras de carpetas profundas.
 
 ## Evaluación crítica
@@ -308,7 +308,7 @@
 | Componente | % IA | % Equipo (correcciones) |
 |---|---|---|
 | Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring, Validaciones, Session) | 85% | 15% |
-| Data Models & Mappers (5 modelos, 4 mappers, 18 tests) | 90% | 10% |
+| Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |

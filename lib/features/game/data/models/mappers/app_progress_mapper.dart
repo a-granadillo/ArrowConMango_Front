@@ -7,6 +7,10 @@ import 'package:arrowconmango_front/features/game/domain/entities/app_progress.d
 /// unlocked levels and an opaque token. The data model adds a dedicated
 /// current-level indicator and optional per-level scores, so the conversion
 /// is lossy for scores and the token is used to persist the current level.
+///
+/// **TODO:** Consider adding a `currentLevel` field to [AppProgress] entity
+/// instead of repurposing `currentToken`, which is semantically meant for
+/// authentication/session state.
 class AppProgressMapper {
   const AppProgressMapper();
 
@@ -25,7 +29,7 @@ class AppProgressMapper {
     return AppProgressModel(
       currentLevel: currentLevel,
       completedLevels: completedLevels,
-      scores: const {},
+      scores: null,
     );
   }
 }
