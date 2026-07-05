@@ -301,6 +301,23 @@
 - **Verificación:** 27/27 tests pasando. Los mappers están listos para ser consumidos por los repositorios de la Capa de Datos.
 - **Lecciones / limitaciones:** Los package imports (`package:arrowconmango_front/features/...`) son más robustos que los imports relativos en proyectos Flutter con estructuras de carpetas profundas.
 
+### Entrada #20 — Implementación de Hive Repositories (Issue #2)
+
+- **Fecha / autor:** 24-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max + sub-agent sdd-apply)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Capa de Datos — Repositorios de Persistencia).
+- **Tarea/problema:** Los contratos de repositorio del dominio (`ILevelRepository` e `IProgressRepository`) necesitaban implementación concreta usando Hive para persistencia local. Sin esto, los casos de uso no pueden cargar niveles ni guardar progreso del jugador.
+- **Prompt (paráfrasis fiel):** > "Implementa `HiveLevelRepository` y `HiveProgressRepository` que implementen los contratos del dominio. Crea TypeAdapters manuales para los 5 modelos (NodeModel, ArrowModel, BoardStateModel, LevelModel, AppProgressModel) con typeIds 0-4. Agrega configuración de Hive en `lib/core/database/hive_config.dart`. Usa `Box<T>` inyectado por constructor para testabilidad. Incluye 8 tests unitarios con boxes mock."
+- **Resultado obtenido:**
+  1. `lib/core/database/hive_config.dart` — Inicialización de Hive, registro de adapters, apertura de boxes.
+  2. 5 TypeAdapters manuales en `lib/features/game/data/models/adapters/` (typeIds 0-4).
+  3. `HiveLevelRepository` implementando `ILevelRepository` con `Box<LevelModel>`.
+  4. `HiveProgressRepository` implementando `IProgressRepository` con `Box<AppProgressModel>`.
+  5. 8 tests unitarios en `test/data/repositories/` usando boxes fake.
+- **Modificaciones del equipo:** Se agregó `dependency_overrides: analyzer: ^12.0.0` en `pubspec.yaml` para resolver conflicto entre `hive_generator` (requiere analyzer <7.0.0) y Flutter 3.44+ (requiere analyzer ^12.0.0). Los TypeAdapters se escribieron manualmente en lugar de usar `build_runner` por esta incompatibilidad.
+- **Verificación:** 103/103 tests pasando (95 existentes + 8 nuevos). `flutter analyze` sin errores.
+- **Lecciones / limitaciones:** `hive_generator` no es compatible con versiones recientes de `analyzer`. Los adapters manuales son una alternativa válida que además evita modificar los modelos de Issue #1. Cuando `hive_generator` actualice sus constraints, se puede migrar a adapters generados.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
@@ -309,6 +326,7 @@
 |---|---|---|
 | Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring, Validaciones, Session) | 85% | 15% |
 | Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
+| Hive Repositories (2 repos, 5 adapters, 8 tests) | 95% | 5% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
@@ -323,6 +341,7 @@
 4. **Historial de Commands ineficiente:** Guardaba clones profundos (deep copies) de todo el tablero en cada movimiento, lo cual fue optimizado manualmente por el equipo a un enfoque de deltas (guardar solo la celda cambiada).
 5. **Constructor const con expresiones no constantes:** En `OverlappingArrowsFailure`, la IA generó un constructor `const` que usaba `arrowIds.join(", ")` en el `super()` call. Dart no permite invocaciones de método en expresiones constantes. Se corrigió eliminando el modificador `const` del constructor.
 6. **Imports relativos frágiles en Data Models:** La IA generó imports relativos (`../../domain/entities/...`) en los mappers de la capa de datos. Con estructuras de carpetas profundas en Flutter, estos imports se rompen fácilmente al reorganizar archivos. Se corrigió manualmente usando package imports (`package:arrowconmango_front/features/game/domain/...`) para mayor robustez.
+7. **Conflicto de dependencias con hive_generator:** La IA sugirió usar `hive_generator` con `build_runner` para generar TypeAdapters automáticamente, pero `hive_generator: ^2.0.1` requiere `analyzer <7.0.0` mientras que Flutter 3.44+ requiere `analyzer ^12.0.0`. Las constraints son mutuamente excluyentes. Se resolvió escribiendo los adapters manualmente y agregando `dependency_overrides: analyzer: ^12.0.0` en `pubspec.yaml`.
 
 ### Reflexión del equipo
 
