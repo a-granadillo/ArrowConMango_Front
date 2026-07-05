@@ -1,0 +1,52 @@
+import 'package:arrowconmango_front/features/game/data/models/app_progress_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/mappers/app_progress_mapper.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
+import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
+import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:hive/hive.dart';
+
+/// Hive-backed implementation of [IProgressRepository].
+///
+/// Persists [AppProgressModel] objects in a [Box] under a single key
+/// and maps them to/from the domain [AppProgress] entity.
+class HiveProgressRepository implements IProgressRepository {
+  static const String _progressKey = 'app_progress';
+
+  final Box<AppProgressModel> _progressBox;
+  final AppProgressMapper _progressMapper;
+
+  HiveProgressRepository(
+    this._progressBox,
+    this._progressMapper,
+  );
+
+  @override
+  Future<Result<AppProgress>> loadProgress() async {
+    try {
+      final model = _progressBox.get(_progressKey);
+      if (model == null) {
+        return const Success<AppProgress>(AppProgress());
+      }
+
+      return Success<AppProgress>(_progressMapper.toEntity(model));
+    } on Exception catch (e) {
+      return Error<AppProgress>(
+        GenericFailure('Failed to load progress: $e'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> saveProgress(AppProgress progress) async {
+    try {
+      final model = _progressMapper.toModel(progress);
+      await _progressBox.put(_progressKey, model);
+      return const Success<void>(null);
+    } on Exception catch (e) {
+      return Error<void>(
+        GenericFailure('Failed to save progress: $e'),
+      );
+    }
+  }
+}
