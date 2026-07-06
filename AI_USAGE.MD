@@ -314,9 +314,9 @@
   3. `HiveLevelRepository` implementando `ILevelRepository` con `Box<LevelModel>`.
   4. `HiveProgressRepository` implementando `IProgressRepository` con `Box<AppProgressModel>`.
   5. 8 tests unitarios en `test/data/repositories/` usando boxes fake.
-- **Modificaciones del equipo:** Se agregó `dependency_overrides: analyzer: ^12.0.0` en `pubspec.yaml` para resolver conflicto entre `hive_generator` (requiere analyzer <7.0.0) y Flutter 3.44+ (requiere analyzer ^12.0.0). Los TypeAdapters se escribieron manualmente en lugar de usar `build_runner` por esta incompatibilidad.
+- **Modificaciones del equipo:** Se agregó `dependency_overrides: analyzer: ^12.0.0` en `pubspec.yaml` para resolver conflicto entre `hive_generator` (requiere analyzer <7.0.0) y Flutter 3.44+ (requiere analyzer ^12.0.0). Los TypeAdapters se escribieron manualmente en lugar de usar `build_runner` por esta incompatibilidad. Posteriormente, se aplicaron 10 correcciones basadas en revisión de Copilot: (1) bug de compilación en test (`lengthOverride` → `_lengthOverride`), (2) guards con `isAdapterRegistered` para prevenir crashes en hot restart, (3-7) cambio de `on Exception catch (e)` a `catch (e)` para consistencia con use cases, (8) remoción de dependencias fantasma (`hive_generator`, `build_runner`, `dependency_overrides`), (9-10) alineación de nombres de tests con convención `should_[expected]_when_[condition]`.
 - **Verificación:** 103/103 tests pasando (95 existentes + 8 nuevos). `flutter analyze` sin errores.
-- **Lecciones / limitaciones:** `hive_generator` no es compatible con versiones recientes de `analyzer`. Los adapters manuales son una alternativa válida que además evita modificar los modelos de Issue #1. Cuando `hive_generator` actualice sus constraints, se puede migrar a adapters generados.
+- **Lecciones / limitaciones:** `hive_generator` no es compatible con versiones recientes de `analyzer`. Los adapters manuales son una alternativa válida que además evita modificar los modelos de Issue #1. Cuando `hive_generator` actualice sus constraints, se puede migrar a adapters generados. Las revisiones automáticas de Copilot detectaron bugs de compilación y problemas de consistencia que mejoraron la calidad del código.
 
 ## Evaluación crítica
 
