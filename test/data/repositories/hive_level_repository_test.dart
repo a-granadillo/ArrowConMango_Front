@@ -16,14 +16,14 @@ import 'package:test/test.dart';
 
 class _FakeLevelBox extends Fake implements Box<LevelModel> {
   final Map<dynamic, LevelModel> _data = {};
-  int _lengthOverride;
+  int lengthOverride;
 
-  _FakeLevelBox({int lengthOverride = -1}) : _lengthOverride = lengthOverride;
+  _FakeLevelBox({this.lengthOverride = -1});
 
   void seed(int levelId, LevelModel model) {
     _data[levelId] = model;
-    if (_lengthOverride < 0) {
-      _lengthOverride = _data.length;
+    if (lengthOverride < 0) {
+      lengthOverride = _data.length;
     }
   }
 
@@ -33,7 +33,7 @@ class _FakeLevelBox extends Fake implements Box<LevelModel> {
   }
 
   @override
-  int get length => _lengthOverride >= 0 ? _lengthOverride : _data.length;
+  int get length => lengthOverride >= 0 ? lengthOverride : _data.length;
 
   @override
   bool containsKey(dynamic key) => _data.containsKey(key);
