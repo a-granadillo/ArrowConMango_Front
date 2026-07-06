@@ -18,7 +18,7 @@ class _FakeLevelBox extends Fake implements Box<LevelModel> {
   final Map<dynamic, LevelModel> _data = {};
   int _lengthOverride;
 
-  _FakeLevelBox({this._lengthOverride = -1});
+  _FakeLevelBox({int lengthOverride = -1}) : _lengthOverride = lengthOverride;
 
   void seed(int levelId, LevelModel model) {
     _data[levelId] = model;
@@ -97,7 +97,7 @@ void main() {
     });
 
     test('should_return_box_length_when_getLevelCount_called', () async {
-      final box = _FakeLevelBox(_lengthOverride: 5);
+      final box = _FakeLevelBox(lengthOverride: 5);
       final repo = HiveLevelRepository(box, mapper);
 
       final result = await repo.getLevelCount();
