@@ -27,10 +27,20 @@ class HiveConfig {
   }
 
   static void _registerAdapters() {
-    Hive.registerAdapter(NodeModelAdapter());
-    Hive.registerAdapter(ArrowModelAdapter());
-    Hive.registerAdapter(BoardStateModelAdapter());
-    Hive.registerAdapter(LevelModelAdapter());
-    Hive.registerAdapter(AppProgressModelAdapter());
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(NodeModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(ArrowModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(BoardStateModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter(LevelModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(AppProgressModelAdapter());
+    }
   }
 }

@@ -30,7 +30,7 @@ class HiveProgressRepository implements IProgressRepository {
       }
 
       return Success<AppProgress>(_progressMapper.toEntity(model));
-    } on Exception catch (e) {
+    } catch (e) {
       return Error<AppProgress>(
         GenericFailure('Failed to load progress: $e'),
       );
@@ -43,7 +43,7 @@ class HiveProgressRepository implements IProgressRepository {
       final model = _progressMapper.toModel(progress);
       await _progressBox.put(_progressKey, model);
       return const Success<void>(null);
-    } on Exception catch (e) {
+    } catch (e) {
       return Error<void>(
         GenericFailure('Failed to save progress: $e'),
       );

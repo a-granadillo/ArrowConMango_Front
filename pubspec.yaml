@@ -50,10 +50,6 @@ dev_dependencies:
   # Pure Dart test package for domain-layer unit tests (no Flutter imports).
   test: ^1.25.0
 
-  # Generates Hive TypeAdapters from annotated model classes.
-  hive_generator: ^2.0.1
-  build_runner: ^2.4.6
-
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -102,9 +98,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-
-# Temporary override so that `hive_generator: ^2.0.1` (analyzer <7.0.0) can
-# coexist with `flutter_test` / `test` on Flutter 3.44+ (analyzer ^12.0.0).
-# Adapters in this change are hand-written, so code generation is not required.
-dependency_overrides:
-  analyzer: ^12.0.0

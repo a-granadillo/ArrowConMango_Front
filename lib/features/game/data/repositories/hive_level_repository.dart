@@ -37,7 +37,7 @@ class HiveLevelRepository implements ILevelRepository {
           startedAtMs: DateTime.now().millisecondsSinceEpoch,
         ),
       );
-    } on Exception catch (e) {
+    } catch (e) {
       return Error<GameSession>(
         GenericFailure('Failed to load level $levelId: $e'),
       );
@@ -48,7 +48,7 @@ class HiveLevelRepository implements ILevelRepository {
   Future<Result<int>> getLevelCount() async {
     try {
       return Success<int>(_levelsBox.length);
-    } on Exception catch (e) {
+    } catch (e) {
       return Error<int>(
         GenericFailure('Failed to get level count: $e'),
       );
@@ -66,7 +66,7 @@ class HiveLevelRepository implements ILevelRepository {
       }
 
       return Success<Level>(_levelMapper.toEntity(model));
-    } on Exception catch (e) {
+    } catch (e) {
       return Error<Level>(
         GenericFailure('Failed to get level definition $levelId: $e'),
       );

@@ -56,7 +56,7 @@ void main() {
   const mapper = LevelMapper(BoardStateMapper(ArrowMapper()));
 
   group('HiveLevelRepository', () {
-    test('loadLevel returns GameSession for existing level', () async {
+    test('should_return_GameSession_when_level_exists', () async {
       final box = _FakeLevelBox()
         ..seed(
           1,
@@ -84,7 +84,7 @@ void main() {
       expect(session.boardState.arrowCount, equals(1));
     });
 
-    test('loadLevel returns Error when level is missing', () async {
+    test('should_return_Error_when_level_is_missing', () async {
       final box = _FakeLevelBox();
       final repo = HiveLevelRepository(box, mapper);
 
@@ -96,8 +96,8 @@ void main() {
       expect(failure.message, contains('99'));
     });
 
-    test('getLevelCount returns box length', () async {
-      final box = _FakeLevelBox(lengthOverride: 5);
+    test('should_return_box_length_when_getLevelCount_called', () async {
+      final box = _FakeLevelBox(_lengthOverride: 5);
       final repo = HiveLevelRepository(box, mapper);
 
       final result = await repo.getLevelCount();
@@ -106,7 +106,7 @@ void main() {
       expect((result as Success<int>).value, equals(5));
     });
 
-    test('getLevelDefinition returns Level for existing level', () async {
+    test('should_return_Level_when_getLevelDefinition_called_with_existing_level', () async {
       final box = _FakeLevelBox()
         ..seed(
           2,
@@ -135,7 +135,7 @@ void main() {
       expect(level.templateBoard.arrowCount, equals(1));
     });
 
-    test('getLevelDefinition returns Error when level is missing', () async {
+    test('should_return_Error_when_getLevelDefinition_called_with_missing_level', () async {
       final box = _FakeLevelBox();
       final repo = HiveLevelRepository(box, mapper);
 
@@ -147,7 +147,7 @@ void main() {
       expect(failure.message, contains('42'));
     });
 
-    test('loadLevel wraps exceptions in Error', () async {
+    test('should_wrap_exceptions_in_Error_when_loadLevel_fails', () async {
       final repo = HiveLevelRepository(
         _ThrowingLevelBox(),
         mapper,
@@ -158,7 +158,7 @@ void main() {
       expect(result, isA<Error<GameSession>>());
     });
 
-    test('getLevelCount wraps exceptions in Error', () async {
+    test('should_wrap_exceptions_in_Error_when_getLevelCount_fails', () async {
       final repo = HiveLevelRepository(
         _ThrowingLevelBox(),
         mapper,
@@ -169,7 +169,7 @@ void main() {
       expect(result, isA<Error<int>>());
     });
 
-    test('getLevelDefinition wraps exceptions in Error', () async {
+    test('should_wrap_exceptions_in_Error_when_getLevelDefinition_fails', () async {
       final repo = HiveLevelRepository(
         _ThrowingLevelBox(),
         mapper,

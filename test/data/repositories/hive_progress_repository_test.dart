@@ -48,8 +48,7 @@ void main() {
   const mapper = AppProgressMapper();
 
   group('HiveProgressRepository', () {
-    test('loadProgress returns default AppProgress when nothing is saved',
-        () async {
+    test('should_return_default_AppProgress_when_nothing_is_saved', () async {
       final box = _FakeProgressBox();
       final repo = HiveProgressRepository(box, mapper);
 
@@ -61,7 +60,7 @@ void main() {
       expect(progress.currentToken, isEmpty);
     });
 
-    test('loadProgress returns mapped entity when progress exists', () async {
+    test('should_return_mapped_entity_when_progress_exists', () async {
       final box = _FakeProgressBox()
         ..seed(
           'app_progress',
@@ -80,7 +79,7 @@ void main() {
       expect(progress.currentToken, equals('3'));
     });
 
-    test('saveProgress stores mapped model', () async {
+    test('should_store_mapped_model_when_saveProgress_called', () async {
       final box = _FakeProgressBox();
       final repo = HiveProgressRepository(box, mapper);
       const progress = AppProgress(
@@ -97,7 +96,7 @@ void main() {
       expect(saved.completedLevels, equals([1, 2, 3]));
     });
 
-    test('loadProgress wraps exceptions in Error', () async {
+    test('should_wrap_exceptions_in_Error_when_loadProgress_fails', () async {
       final repo = HiveProgressRepository(_ThrowingProgressBox(), mapper);
 
       final result = await repo.loadProgress();
@@ -106,7 +105,7 @@ void main() {
       expect((result as Error<AppProgress>).failure, isA<GenericFailure>());
     });
 
-    test('saveProgress wraps exceptions in Error', () async {
+    test('should_wrap_exceptions_in_Error_when_saveProgress_fails', () async {
       final repo = HiveProgressRepository(_ThrowingProgressBox(), mapper);
 
       final result = await repo.saveProgress(const AppProgress());
