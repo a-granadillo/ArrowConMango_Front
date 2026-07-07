@@ -36,9 +36,7 @@ class UnlockNextLevelUseCase {
         case Success(:final value):
           progress = value;
         case Error(:final failure):
-          return Error<AppProgress>(
-            GenericFailure('Failed to load progress: ${failure.message}'),
-          );
+          return Error<AppProgress>(failure);
       }
 
       final nextLevelId = currentLevelId + 1;
@@ -49,9 +47,7 @@ class UnlockNextLevelUseCase {
         case Success(:final value):
           levelCount = value;
         case Error(:final failure):
-          return Error<AppProgress>(
-            GenericFailure('Failed to get level count: ${failure.message}'),
-          );
+          return Error<AppProgress>(failure);
       }
 
       if (nextLevelId > levelCount) {
@@ -67,9 +63,7 @@ class UnlockNextLevelUseCase {
         case Success<void>():
           return Success<AppProgress>(updatedProgress);
         case Error(:final failure):
-          return Error<AppProgress>(
-            GenericFailure('Failed to save progress: ${failure.message}'),
-          );
+          return Error<AppProgress>(failure);
       }
     } catch (e) {
       return Error<AppProgress>(

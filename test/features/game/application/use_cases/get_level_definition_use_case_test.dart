@@ -63,6 +63,26 @@ void main() {
     );
 
     test(
+      'should_return_error_when_level_id_is_negative',
+      () async {
+        // Arrange
+        const negativeLevelId = -5;
+
+        // Act
+        final result = await useCase(levelId: negativeLevelId);
+
+        // Assert
+        switch (result) {
+          case Success(:final value):
+            fail('Expected Error, got Success: $value');
+          case Error(:final failure):
+            expect(failure, isA<GenericFailure>());
+        }
+        expect(fakeRepository.requestedLevelId, isNull);
+      },
+    );
+
+    test(
       'should_return_error_when_repository_returns_a_failure',
       () async {
         // Arrange

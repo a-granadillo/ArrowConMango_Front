@@ -11,8 +11,8 @@ import 'package:arrowconmango_front/features/game/domain/repositories/result.dar
 /// progress from [IProgressRepository]. Each entry is marked as unlocked when
 /// its [levelId] is present in [AppProgress.unlockedLevels].
 ///
-/// Any repository failure or unhandled exception is surfaced as a
-/// [GenericFailure] wrapped in an [Error].
+/// Repository failures are propagated directly so their concrete type is
+/// preserved; unhandled exceptions are surfaced as a [GenericFailure].
 class GetLevelListUseCase {
   final ILevelRepository _levelRepository;
   final IProgressRepository _progressRepository;
@@ -27,9 +27,7 @@ class GetLevelListUseCase {
         case Success(:final value):
           levelCount = value;
         case Error(:final failure):
-          return Error<List<LevelSummary>>(
-            GenericFailure('Failed to get level count: ${failure.message}'),
-          );
+          return Error<List<LevelSummary>>(failure);
       }
 
       final progressResult = await _progressRepository.loadProgress();
@@ -38,9 +36,7 @@ class GetLevelListUseCase {
         case Success(:final value):
           progress = value;
         case Error(:final failure):
-          return Error<List<LevelSummary>>(
-            GenericFailure('Failed to load progress: ${failure.message}'),
-          );
+          return Error<List<LevelSummary>>(failure);
       }
 
       final summaries = List<LevelSummary>.generate(

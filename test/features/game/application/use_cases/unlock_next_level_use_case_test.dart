@@ -51,6 +51,33 @@ void main() {
     );
 
     test(
+      'should_succeed_when_next_level_already_unlocked',
+      () async {
+        // Arrange
+        fakeLevelRepository.countResult = const Success<int>(3);
+        fakeProgressRepository.loadResult = const Success<AppProgress>(
+          AppProgress(unlockedLevels: [1, 2]),
+        );
+        fakeProgressRepository.saveResult = const Success<void>(null);
+
+        // Act
+        final result = await useCase(currentLevelId: 1);
+
+        // Assert
+        switch (result) {
+          case Success(:final value):
+            expect(value, equals(const AppProgress(unlockedLevels: [1, 2])));
+          case Error(:final failure):
+            fail('Expected Success, got Error: $failure');
+        }
+        expect(
+          fakeProgressRepository.savedProgress,
+          equals(const AppProgress(unlockedLevels: [1, 2])),
+        );
+      },
+    );
+
+    test(
       'should_return_level_not_found_failure_when_next_level_exceeds_total',
       () async {
         // Arrange
