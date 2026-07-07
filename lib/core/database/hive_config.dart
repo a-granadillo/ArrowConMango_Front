@@ -1,3 +1,4 @@
+import 'package:arrowconmango_front/features/game/data/level_definitions/level_definitions.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/app_progress_model_adapter.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/arrow_model_adapter.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/board_size_model_adapter.dart';
@@ -20,11 +21,28 @@ class HiveConfig {
 
   /// Initialises Hive for Flutter, registers all model adapters,
   /// and opens the boxes required by the game feature.
+  /// 
+  /// Seeds the levels box with built-in level definitions if empty.
   static Future<void> initialise() async {
     await Hive.initFlutter();
     _registerAdapters();
-    await Hive.openBox<LevelModel>(levelsBoxName);
+    
+    final levelsBox = await Hive.openBox<LevelModel>(levelsBoxName);
+    await _seedLevelsIfNeeded(levelsBox);
+    
     await Hive.openBox<AppProgressModel>(progressBoxName);
+  }
+  
+  /// Seeds the levels box with built-in definitions if it's empty.
+  /// 
+  /// This handles both fresh installs and schema migrations where
+  /// the adapter layout has changed.
+  static Future<void> _seedLevelsIfNeeded(Box<LevelModel> box) async {
+    if (box.isEmpty) {
+      for (final level in LevelDefinitions.allLevels) {
+        await box.put(level.id, level);
+      }
+    }
   }
 
   static void _registerAdapters() {

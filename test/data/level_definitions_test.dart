@@ -93,6 +93,21 @@ void main() {
         expect(restored, equals(level));
       }
     });
+
+    test('should_preserve_board_size_through_domain_round_trip', () {
+      const mapper = LevelMapper(BoardStateMapper(ArrowMapper()));
+
+      for (final level in LevelDefinitions.allLevels) {
+        final entity = mapper.toEntity(level);
+        final restored = mapper.toModel(entity);
+        
+        expect(
+          restored.boardSize,
+          equals(level.boardSize),
+          reason: 'Level ${level.id} (${level.name}) boardSize not stable through round-trip',
+        );
+      }
+    });
   });
 
   group('Easy levels', () {
