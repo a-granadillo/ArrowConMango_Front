@@ -1,5 +1,6 @@
 import 'package:arrowconmango_front/features/game/data/models/app_progress_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/board_size_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
@@ -85,6 +86,7 @@ void main() {
         id: 5,
         name: 'Level 5',
         difficulty: 'Medium',
+        boardSize: BoardSizeModel(rows: 4, cols: 5),
         boardState: BoardStateModel(
           arrows: [
             ArrowModel(
@@ -105,6 +107,7 @@ void main() {
       expect(json['id'], equals(5));
       expect(json['name'], equals('Level 5'));
       expect(json['difficulty'], equals('Medium'));
+      expect(json['boardSize'], equals({'rows': 4, 'cols': 5}));
     });
   });
 

@@ -38,6 +38,42 @@ void main() {
       }
     });
 
+    test('should_have_board_size_defined_for_all_levels', () {
+      for (final level in LevelDefinitions.allLevels) {
+        expect(
+          level.boardSize.rows,
+          greaterThan(0),
+          reason: 'Level ${level.id} has invalid boardSize.rows',
+        );
+        expect(
+          level.boardSize.cols,
+          greaterThan(0),
+          reason: 'Level ${level.id} has invalid boardSize.cols',
+        );
+      }
+    });
+
+    test('should_have_all_arrow_nodes_within_board_bounds', () {
+      for (final level in LevelDefinitions.allLevels) {
+        for (final arrow in level.boardState.arrows) {
+          for (final node in arrow.nodes) {
+            expect(
+              node.row,
+              inInclusiveRange(0, level.boardSize.rows - 1),
+              reason:
+                  'Level ${level.id} arrow ${arrow.id} node row ${node.row} is out of bounds',
+            );
+            expect(
+              node.col,
+              inInclusiveRange(0, level.boardSize.cols - 1),
+              reason:
+                  'Level ${level.id} arrow ${arrow.id} node col ${node.col} is out of bounds',
+            );
+          }
+        }
+      }
+    });
+
     test('should_map_to_domain_without_overlapping_arrows', () {
       const mapper = LevelMapper(BoardStateMapper(ArrowMapper()));
 
