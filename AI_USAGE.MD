@@ -358,6 +358,22 @@
 - **Verificación:** 105 tests pasando (100 existentes + 5 nuevos). `dart analyze` sin errores. `flutter test` pendiente en entorno con Flutter disponible.
 - **Lecciones / limitaciones:** La integración con el sistema de grafos requiere dimensiones explícitas del tablero para validar posiciones y calcular trayectorias. El refactor fue necesario antes de implementar el BLoC y la lógica de movimientos. Los tuples de Dart no son serializables directamente, las listas son más compatibles con JSON y Hive.
 
+### Entrada #23 — Fixes Post-Review Adversarial (BoardSizeModel + Hive Seeding)
+
+- **Fecha / autor:** 24-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max + sub-agents jd-judge-a/jd-judge-b)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Capa de Datos — Correcciones de Seguridad).
+- **Tarea/problema:** La revisión adversarial identificó 3 problemas críticos: (1) BoardSizeModel sin validación runtime acepta dimensiones inválidas, (2) cambio de schema en Hive sin migración rompe datos persistidos, (3) falta test de round-trip para boardSize en los 15 niveles.
+- **Prompt (paráfrasis fiel):** > "Revisión adversarial de feat/level-definitions. Busca bugs, problemas de seguridad, performance y violaciones de arquitectura. Sé específico con file/line y sugiere fixes."
+- **Resultado obtenido:**
+  1. `lib/features/game/data/models/board_size_model.dart` — Validación runtime con asserts y ArgumentError en fromJson.
+  2. `lib/features/game/data/models/level_model.dart` — fromJson maneja gracefully falta de boardSize (backward compatibility).
+  3. `lib/core/database/hive_config.dart` — Seeding automático de niveles si el box está vacío.
+  4. `test/data/level_definitions_test.dart` — Test de round-trip boardSize para los 15 niveles.
+- **Modificaciones del equipo:** Se priorizaron los 3 problemas críticos (W1, C1, W3) sobre las sugerencias de calidad (S1-S5) que pueden ir en un PR futuro. El seeding en HiveConfig resuelve tanto fresh installs como migraciones de schema.
+- **Verificación:** Pendiente de ejecutar `flutter test` en entorno con Flutter disponible. Los cambios fueron revisados por 2 jueces adversariales independientes.
+- **Lecciones / limitaciones:** Las revisiones adversariales son esenciales antes de merge para detectar problemas de migración de datos y validación de inputs. El seeding automático es una buena práctica para manejar cambios de schema en bases de datos locales.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
