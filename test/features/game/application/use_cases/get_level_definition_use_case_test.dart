@@ -1,42 +1,11 @@
 import 'package:arrowconmango_front/features/game/application/use_cases/get_level_definition_use_case.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
-import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
-import 'package:arrowconmango_front/features/game/domain/repositories/i_level_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Manual fake for [ILevelRepository].
-///
-/// Only [getLevelDefinition] is exercised by [GetLevelDefinitionUseCase];
-/// the other contract methods throw [UnimplementedError] if invoked.
-class FakeLevelRepository implements ILevelRepository {
-  Result<Level>? definitionResult;
-  Object? exceptionToThrow;
-  int? requestedLevelId;
-
-  @override
-  Future<Result<int>> getLevelCount() async {
-    throw UnimplementedError('getLevelCount() should not be called');
-  }
-
-  @override
-  Future<Result<GameSession>> loadLevel(int levelId) async {
-    throw UnimplementedError('loadLevel() should not be called');
-  }
-
-  @override
-  Future<Result<Level>> getLevelDefinition(int levelId) async {
-    requestedLevelId = levelId;
-
-    if (exceptionToThrow != null) {
-      throw exceptionToThrow!;
-    }
-
-    return definitionResult!;
-  }
-}
+import '../../../../helpers/fakes/fake_level_repository.dart';
 
 void main() {
   group('GetLevelDefinitionUseCase', () {
@@ -118,7 +87,7 @@ void main() {
       'should_return_generic_failure_when_repository_throws_unhandled_exception',
       () async {
         // Arrange
-        fakeRepository.exceptionToThrow = Exception('Unexpected load error');
+        fakeRepository.definitionExceptionToThrow = Exception('Unexpected load error');
 
         // Act
         final result = await useCase(levelId: 5);
