@@ -9,5 +9,5 @@ class LevelNotFoundFailure extends Failure {
       : super('Level $levelId not found');
 
   @override
-  List<Object?> get props => [levelId, message];
+  List<Object?> get props => [message, levelId];
 }

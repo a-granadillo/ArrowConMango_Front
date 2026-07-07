@@ -17,11 +17,16 @@ class FakeLevelRepository implements ILevelRepository {
 
   @override
   Future<Result<int>> getLevelCount() async {
-    if (countExceptionToThrow != null) {
-      throw countExceptionToThrow!;
+    final exception = countExceptionToThrow;
+    if (exception != null) {
+      throw exception;
     }
 
-    return countResult!;
+    final result = countResult;
+    if (result == null) {
+      throw StateError('Debes configurar countResult en el Arrange del test');
+    }
+    return result;
   }
 
   @override
@@ -33,10 +38,17 @@ class FakeLevelRepository implements ILevelRepository {
   Future<Result<Level>> getLevelDefinition(int levelId) async {
     requestedLevelId = levelId;
 
-    if (definitionExceptionToThrow != null) {
-      throw definitionExceptionToThrow!;
+    final exception = definitionExceptionToThrow;
+    if (exception != null) {
+      throw exception;
     }
 
-    return definitionResult!;
+    final result = definitionResult;
+    if (result == null) {
+      throw StateError(
+        'Debes configurar definitionResult en el Arrange del test',
+      );
+    }
+    return result;
   }
 }
