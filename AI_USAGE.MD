@@ -318,6 +318,23 @@
 - **Verificación:** 103/103 tests pasando (95 existentes + 8 nuevos). `flutter analyze` sin errores.
 - **Lecciones / limitaciones:** `hive_generator` no es compatible con versiones recientes de `analyzer`. Los adapters manuales son una alternativa válida que además evita modificar los modelos de Issue #1. Cuando `hive_generator` actualice sus constraints, se puede migrar a adapters generados. Las revisiones automáticas de Copilot detectaron bugs de compilación y problemas de consistencia que mejoraron la calidad del código.
 
+### Entrada #21 — Implementación de Level Definitions (Issue #3)
+
+- **Fecha / autor:** 24-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max + sub-agent sdd-apply)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Capa de Datos — Definiciones de Niveles).
+- **Tarea/problema:** El enunciado requiere 15 niveles manuales con dificultad progresiva y distintas formas de tableros. Se necesitaban definiciones concretas de niveles con formas creativas y originales (no formas geométricas básicas) que pudieran ser consumidas por `ILevelRepository`.
+- **Prompt (paráfrasis fiel):** > "Implementa 15 niveles con formas creativas y originales (corazón, estrella, mango, carro, nave espacial, dragón, castillo, robot, fénix, etc.). Easy: 10-20 flechas (5 niveles). Medium: 21-40 flechas (5 niveles). Hard: 41-70 flechas (5 niveles). Usa `LevelModel`, `BoardStateModel`, `ArrowModel`, `NodeModel` de Issue #1. Crea `LevelDefinitions` como registry central con `getById()`. Incluye tests de validación."
+- **Resultado obtenido:**
+  1. `lib/features/game/data/level_definitions/level_definitions.dart` — Registry central con `allLevels`, `getById(id)`.
+  2. `lib/features/game/data/level_definitions/easy_levels.dart` — 5 niveles Easy (Heart, Star, Arrow Up, House, Diamond).
+  3. `lib/features/game/data/level_definitions/medium_levels.dart` — 5 niveles Medium (Mango, Car, Spaceship, Tree, Butterfly).
+  4. `lib/features/game/data/level_definitions/hard_levels.dart` — 5 niveles Hard (Dragon, Castle, Robot, Phoenix, Geometric Pattern).
+  5. `test/data/level_definitions_test.dart` — Tests de validación (IDs únicos, rangos de flechas, direcciones válidas, round-trip).
+- **Modificaciones del equipo:** Se ajustaron los rangos de flechas según feedback del equipo: Easy (10-20), Medium (21-40), Hard (41-70) en lugar de los rangos originales del ROADMAP. Se enfatizó que las formas debían ser creativas y reconocibles, no formas geométricas básicas.
+- **Verificación:** Pendiente de ejecutar `flutter test` en entorno con Flutter disponible. El código fue validado con un script Python que verifica todas las aserciones de los tests.
+- **Lecciones / limitaciones:** Diseñar niveles con formas creativas requiere balancear reconocibilidad visual con jugabilidad. Las flechas deben tener direcciones que tengan sentido para el gameplay (mezcla de up/down/left/right), no solo seguir la silueta de la forma.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
@@ -327,6 +344,7 @@
 | Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring, Validaciones, Session) | 85% | 15% |
 | Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
 | Hive Repositories (2 repos, 5 adapters, 8 tests) | 95% | 5% |
+| Level Definitions (15 niveles creativos, 1 test) | 95% | 5% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
