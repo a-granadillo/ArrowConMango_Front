@@ -335,6 +335,29 @@
 - **Verificación:** Pendiente de ejecutar `flutter test` en entorno con Flutter disponible. El código fue validado con un script Python que verifica todas las aserciones de los tests.
 - **Lecciones / limitaciones:** Diseñar niveles con formas creativas requiere balancear reconocibilidad visual con jugabilidad. Las flechas deben tener direcciones que tengan sentido para el gameplay (mezcla de up/down/left/right), no solo seguir la silueta de la forma.
 
+### Entrada #22 — Refactor: Integración de Grafos en Level Definitions
+
+- **Fecha / autor:** 24-06-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Qwen 3.7 Max + sub-agent sdd-apply)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Capa de Datos — Refactor de Modelos).
+- **Tarea/problema:** Las definiciones de niveles usaban tuples `(int, int)` que no compilaban y no incluían dimensiones del tablero, impidiendo la integración con el sistema de grafos (`Graph<V>`, `GridGraph`, `Grid2DNodeId`). Se necesitaba agregar `boardSize` explícito y corregir la sintaxis para habilitar validación de posiciones y cálculo de trayectorias.
+- **Prompt (paráfrasis fiel):** > "Refactoriza las definiciones de niveles para integrar con el sistema de grafos. Crea `BoardSizeModel` con rows/cols. Agrega `boardSize` a `LevelModel` y actualiza mappers/adapters. Reemplaza todos los tuples `(int, int)` con listas `[int, int]` en los 15 niveles. Agrega boardSize explícito a cada nivel (Easy: 6x7/7x7, Medium: 9x9, Hard: 11x10/12x12). Actualiza tests para validar boardSize y prevenir out-of-bounds."
+- **Resultado obtenido:**
+  1. `lib/features/game/data/models/board_size_model.dart` — Nuevo modelo con rows/cols y serialización JSON.
+  2. `lib/features/game/data/models/adapters/board_size_model_adapter.dart` — Adapter para Hive (typeId: 5).
+  3. `lib/features/game/data/models/level_model.dart` — Agregado campo `boardSize`, actualizado JSON y props.
+  4. `lib/features/game/data/models/mappers/level_mapper.dart` — Mapea boardSize (con inferencia desde nodos del dominio).
+  5. `lib/features/game/data/models/adapters/level_model_adapter.dart` — Lee/escribe boardSize para Hive.
+  6. `lib/core/database/hive_config.dart` — Registra `BoardSizeModelAdapter`.
+  7. `lib/features/game/data/level_definitions/*.dart` — Tuples → lists + boardSize en los 15 niveles.
+  8. `test/data/level_definitions_test.dart` — Valida boardSize y previene out-of-bounds.
+  9. `test/data/models/json_round_trip_test.dart` — Incluye boardSize en round-trip.
+  10. `test/data/models/mappers/level_mapper_test.dart` — Test de derivación de board-size.
+  11. `test/data/repositories/hive_level_repository_test.dart` — Fixtures actualizados con boardSize.
+- **Modificaciones del equipo:** Se identificó que los archivos de niveles usaban sintaxis de tuples Dart `(int, int)` en lugar de listas `[int, int]`, causando errores de compilación. Se corrigió con sed y se agregó boardSize explícito a cada nivel según sus dimensiones reales.
+- **Verificación:** 105 tests pasando (100 existentes + 5 nuevos). `dart analyze` sin errores. `flutter test` pendiente en entorno con Flutter disponible.
+- **Lecciones / limitaciones:** La integración con el sistema de grafos requiere dimensiones explícitas del tablero para validar posiciones y calcular trayectorias. El refactor fue necesario antes de implementar el BLoC y la lógica de movimientos. Los tuples de Dart no son serializables directamente, las listas son más compatibles con JSON y Hive.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
@@ -342,9 +365,9 @@
 | Componente | % IA | % Equipo (correcciones) |
 |---|---|---|
 | Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring, Validaciones, Session) | 85% | 15% |
-| Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
-| Hive Repositories (2 repos, 5 adapters, 8 tests) | 95% | 5% |
-| Level Definitions (15 niveles creativos, 1 test) | 95% | 5% |
+| Data Models & Mappers (6 modelos, 4 mappers, 27 tests) | 90% | 10% |
+| Hive Repositories (2 repos, 6 adapters, 8 tests) | 95% | 5% |
+| Level Definitions (15 niveles creativos, 1 test, boardSize integration) | 95% | 5% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
@@ -360,6 +383,7 @@
 5. **Constructor const con expresiones no constantes:** En `OverlappingArrowsFailure`, la IA generó un constructor `const` que usaba `arrowIds.join(", ")` en el `super()` call. Dart no permite invocaciones de método en expresiones constantes. Se corrigió eliminando el modificador `const` del constructor.
 6. **Imports relativos frágiles en Data Models:** La IA generó imports relativos (`../../domain/entities/...`) en los mappers de la capa de datos. Con estructuras de carpetas profundas en Flutter, estos imports se rompen fácilmente al reorganizar archivos. Se corrigió manualmente usando package imports (`package:arrowconmango_front/features/game/domain/...`) para mayor robustez.
 7. **Conflicto de dependencias con hive_generator:** La IA sugirió usar `hive_generator` con `build_runner` para generar TypeAdapters automáticamente, pero `hive_generator: ^2.0.1` requiere `analyzer <7.0.0` mientras que Flutter 3.44+ requiere `analyzer ^12.0.0`. Las constraints son mutuamente excluyentes. Se resolvió escribiendo los adapters manualmente y agregando `dependency_overrides: analyzer: ^12.0.0` en `pubspec.yaml`.
+8. **Tuples de Dart no serializables:** La IA generó definiciones de niveles usando tuples `(int, int)` en lugar de listas `[int, int]`, causando errores de compilación. Los tuples de Dart no son serializables directamente con JSON/Hive. Se corrigió reemplazando todos los tuples con listas y agregando `boardSize` explícito para integración con grafos.
 
 ### Reflexión del equipo
 
