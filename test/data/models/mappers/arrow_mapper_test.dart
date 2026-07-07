@@ -1,6 +1,8 @@
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/arrow_trajectory.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/arrow_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/trajectory_segment.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
@@ -15,8 +17,12 @@ void main() {
       // Arrange
       final model = ArrowModel(
         id: 'arrow-1',
-        direction: 'right',
-        nodes: const [NodeModel(row: 0, col: 0), NodeModel(row: 0, col: 1)],
+        startNode: const NodeModel(row: 0, col: 0),
+        trajectory: const ArrowTrajectory(
+          segments: [
+            TrajectorySegment(direction: CardinalDirection.right, length: 2),
+          ],
+        ),
       );
 
       // Act
@@ -27,7 +33,11 @@ void main() {
       expect(entity.direction, equals(CardinalDirection.right));
       expect(
         entity.occupiedNodes,
-        equals(const [Grid2DNodeId(row: 0, col: 0), Grid2DNodeId(row: 0, col: 1)]),
+        equals(const [
+          Grid2DNodeId(row: 0, col: 0),
+          Grid2DNodeId(row: 0, col: 1),
+          Grid2DNodeId(row: 0, col: 2),
+        ]),
       );
     });
 
@@ -44,16 +54,25 @@ void main() {
 
       // Assert
       expect(model.id, equals('arrow-2'));
-      expect(model.direction, equals('down'));
-      expect(model.nodes, equals(const [NodeModel(row: 2, col: 3)]));
+      expect(model.startNode, equals(const NodeModel(row: 2, col: 3)));
+      expect(
+        model.trajectory.segments,
+        equals(const [
+          TrajectorySegment(direction: CardinalDirection.down, length: 1),
+        ]),
+      );
     });
 
     test('should_round_trip_model_through_entity', () {
       // Arrange
       final original = ArrowModel(
         id: 'arrow-3',
-        direction: 'left',
-        nodes: const [NodeModel(row: 1, col: 2), NodeModel(row: 1, col: 1)],
+        startNode: const NodeModel(row: 1, col: 2),
+        trajectory: const ArrowTrajectory(
+          segments: [
+            TrajectorySegment(direction: CardinalDirection.left, length: 2),
+          ],
+        ),
       );
 
       // Act
@@ -67,8 +86,12 @@ void main() {
       // Arrange
       final original = ArrowModel(
         id: 'arrow-4',
-        direction: 'up',
-        nodes: const [NodeModel(row: 0, col: 0)],
+        startNode: const NodeModel(row: 0, col: 0),
+        trajectory: const ArrowTrajectory(
+          segments: [
+            TrajectorySegment(direction: CardinalDirection.up, length: 1),
+          ],
+        ),
       );
 
       // Act
@@ -79,12 +102,16 @@ void main() {
       expect(restored, equals(original));
     });
 
-    test('should_handle_empty_occupied_nodes', () {
+    test('should_handle_single_node_arrow', () {
       // Arrange
       final model = ArrowModel(
         id: 'arrow-5',
-        direction: 'up',
-        nodes: const [],
+        startNode: const NodeModel(row: 0, col: 0),
+        trajectory: const ArrowTrajectory(
+          segments: [
+            TrajectorySegment(direction: CardinalDirection.up, length: 1),
+          ],
+        ),
       );
 
       // Act
@@ -92,21 +119,39 @@ void main() {
       final roundTripped = mapper.toModel(entity);
 
       // Assert
-      expect(entity.occupiedNodes, isEmpty);
-      expect(roundTripped.nodes, isEmpty);
+      expect(entity.occupiedNodes.length, equals(2)); // start + 1 segment
       expect(roundTripped, equals(model));
     });
 
-    test('should_throw_when_direction_label_is_unknown', () {
-      // Arrange
+    test('should_handle_multi_segment_trajectory', () {
+      // Arrange - L-shaped arrow: right 2, then down 2
       final model = ArrowModel(
         id: 'arrow-6',
-        direction: 'diagonal',
-        nodes: const [NodeModel(row: 0, col: 0)],
+        startNode: const NodeModel(row: 0, col: 0),
+        trajectory: const ArrowTrajectory(
+          segments: [
+            TrajectorySegment(direction: CardinalDirection.right, length: 2),
+            TrajectorySegment(direction: CardinalDirection.down, length: 2),
+          ],
+        ),
       );
 
-      // Act / Assert
-      expect(() => mapper.toEntity(model), throwsArgumentError);
+      // Act
+      final entity = mapper.toEntity(model);
+
+      // Assert
+      expect(entity.occupiedNodes.length, equals(5)); // start + 2 + 2
+      expect(entity.direction, equals(CardinalDirection.down)); // final direction
+      expect(
+        entity.occupiedNodes,
+        equals(const [
+          Grid2DNodeId(row: 0, col: 0), // start
+          Grid2DNodeId(row: 0, col: 1), // right 1
+          Grid2DNodeId(row: 0, col: 2), // right 2
+          Grid2DNodeId(row: 1, col: 2), // down 1
+          Grid2DNodeId(row: 2, col: 2), // down 2
+        ]),
+      );
     });
 
     test('should_throw_with_clear_message_when_node_is_not_Grid2DNodeId', () {
