@@ -16,21 +16,31 @@ class FakeProgressRepository implements IProgressRepository {
 
   @override
   Future<Result<AppProgress>> loadProgress() async {
-    if (loadExceptionToThrow != null) {
-      throw loadExceptionToThrow!;
+    final exception = loadExceptionToThrow;
+    if (exception != null) {
+      throw exception;
     }
 
-    return loadResult!;
+    final result = loadResult;
+    if (result == null) {
+      throw StateError('Debes configurar loadResult en el Arrange del test');
+    }
+    return result;
   }
 
   @override
   Future<Result<void>> saveProgress(AppProgress progress) async {
     savedProgress = progress;
 
-    if (saveExceptionToThrow != null) {
-      throw saveExceptionToThrow!;
+    final exception = saveExceptionToThrow;
+    if (exception != null) {
+      throw exception;
     }
 
-    return saveResult!;
+    final result = saveResult;
+    if (result == null) {
+      throw StateError('Debes configurar saveResult en el Arrange del test');
+    }
+    return result;
   }
 }
