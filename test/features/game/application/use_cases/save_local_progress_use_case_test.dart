@@ -1,37 +1,10 @@
 import 'package:arrowconmango_front/features/game/application/use_cases/save_local_progress_use_case.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
-import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Manual fake for [IProgressRepository].
-///
-/// Allows tests to configure the result returned by [saveProgress] or to
-/// simulate an unhandled exception. The progress entity passed to
-/// [saveProgress] is captured so tests can verify the use case forwards
-/// the correct value.
-class FakeProgressRepository implements IProgressRepository {
-  Result<void>? saveResult;
-  Object? exceptionToThrow;
-  AppProgress? savedProgress;
-
-  @override
-  Future<Result<AppProgress>> loadProgress() async {
-    throw UnimplementedError('loadProgress() should not be called');
-  }
-
-  @override
-  Future<Result<void>> saveProgress(AppProgress progress) async {
-    savedProgress = progress;
-
-    if (exceptionToThrow != null) {
-      throw exceptionToThrow!;
-    }
-
-    return saveResult!;
-  }
-}
+import '../../../../helpers/fakes/fake_progress_repository.dart';
 
 void main() {
   group('SaveLocalProgressUseCase', () {
@@ -57,8 +30,12 @@ void main() {
         final result = await useCase(progress: progress);
 
         // Assert
-        expect(result, isA<Success<void>>());
-        expect(fakeRepository.savedProgress, equals(progress));
+        switch (result) {
+          case Success<void>():
+            expect(fakeRepository.savedProgress, equals(progress));
+          case Error(:final failure):
+            fail('Expected Success, got Error: $failure');
+        }
       },
     );
 
@@ -66,8 +43,8 @@ void main() {
       'should_return_error_when_repository_returns_a_failure',
       () async {
         // Arrange
-        const failure = GenericFailure('Failed to write progress');
-        fakeRepository.saveResult = const Error<void>(failure);
+        const expectedFailure = GenericFailure('Failed to write progress');
+        fakeRepository.saveResult = const Error<void>(expectedFailure);
         const progress = AppProgress(
           unlockedLevels: [3],
           currentToken: 'another-token',
@@ -77,8 +54,12 @@ void main() {
         final result = await useCase(progress: progress);
 
         // Assert
-        expect(result, isA<Error<void>>());
-        expect((result as Error<void>).failure, equals(failure));
+        switch (result) {
+          case Success<void>():
+            fail('Expected Error, got Success');
+          case Error(:final failure):
+            expect(failure, equals(expectedFailure));
+        }
         expect(fakeRepository.savedProgress, equals(progress));
       },
     );
@@ -87,17 +68,20 @@ void main() {
       'should_return_generic_failure_when_repository_throws_unhandled_exception',
       () async {
         // Arrange
-        fakeRepository.exceptionToThrow = Exception('Unexpected storage error');
+        fakeRepository.saveExceptionToThrow = Exception('Unexpected storage error');
         const progress = AppProgress();
 
         // Act
         final result = await useCase(progress: progress);
 
         // Assert
-        expect(result, isA<Error<void>>());
-        final failure = (result as Error<void>).failure;
-        expect(failure, isA<GenericFailure>());
-        expect(failure.message, contains('Unexpected storage error'));
+        switch (result) {
+          case Success<void>():
+            fail('Expected Error, got Success');
+          case Error(:final failure):
+            expect(failure, isA<GenericFailure>());
+            expect(failure.message, contains('Unexpected storage error'));
+        }
       },
     );
   });

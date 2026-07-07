@@ -48,8 +48,12 @@ void main() {
         final result = useCase(moves: 10, elapsedSeconds: 30);
 
         // Assert
-        expect(result, isA<Success<Score>>());
-        expect((result as Success<Score>).value, equals(expectedScore));
+        switch (result) {
+          case Success(:final value):
+            expect(value, equals(expectedScore));
+          case Error(:final failure):
+            fail('Expected Success, got Error: $failure');
+        }
       },
     );
 
@@ -64,11 +68,12 @@ void main() {
         final result = useCase(moves: moves, elapsedSeconds: elapsedSeconds);
 
         // Assert
-        expect(result, isA<Error<Score>>());
-        expect(
-          (result as Error<Score>).failure,
-          isA<GenericFailure>(),
-        );
+        switch (result) {
+          case Success(:final value):
+            fail('Expected Error, got Success: $value');
+          case Error(:final failure):
+            expect(failure, isA<GenericFailure>());
+        }
       },
     );
 
@@ -83,11 +88,32 @@ void main() {
         final result = useCase(moves: moves, elapsedSeconds: elapsedSeconds);
 
         // Assert
-        expect(result, isA<Error<Score>>());
-        expect(
-          (result as Error<Score>).failure,
-          isA<GenericFailure>(),
-        );
+        switch (result) {
+          case Success(:final value):
+            fail('Expected Error, got Success: $value');
+          case Error(:final failure):
+            expect(failure, isA<GenericFailure>());
+        }
+      },
+    );
+
+    test(
+      'should_return_error_when_both_params_are_negative',
+      () {
+        // Arrange
+        const moves = -3;
+        const elapsedSeconds = -7;
+
+        // Act
+        final result = useCase(moves: moves, elapsedSeconds: elapsedSeconds);
+
+        // Assert
+        switch (result) {
+          case Success(:final value):
+            fail('Expected Error, got Success: $value');
+          case Error(:final failure):
+            expect(failure, isA<GenericFailure>());
+        }
       },
     );
 
@@ -101,10 +127,13 @@ void main() {
         final result = useCase(moves: 5, elapsedSeconds: 15);
 
         // Assert
-        expect(result, isA<Error<Score>>());
-        final failure = (result as Error<Score>).failure;
-        expect(failure, isA<GenericFailure>());
-        expect(failure.message, contains('Unexpected scoring error'));
+        switch (result) {
+          case Success(:final value):
+            fail('Expected Error, got Success: $value');
+          case Error(:final failure):
+            expect(failure, isA<GenericFailure>());
+            expect(failure.message, contains('Unexpected scoring error'));
+        }
       },
     );
   });
