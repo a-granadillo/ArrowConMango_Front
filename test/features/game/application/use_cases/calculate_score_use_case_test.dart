@@ -15,11 +15,18 @@ class FakeScoringStrategy implements ScoringStrategy {
 
   @override
   Score calculateScore(int moves, int seconds) {
-    if (exceptionToThrow != null) {
-      throw exceptionToThrow!;
+    final exception = exceptionToThrow;
+    if (exception != null) {
+      throw exception;
     }
 
-    return scoreToReturn!;
+    final result = scoreToReturn;
+    if (result == null) {
+      throw StateError(
+        'Debes configurar scoreToReturn en el Arrange del test',
+      );
+    }
+    return result;
   }
 }
 
