@@ -1,0 +1,308 @@
+import 'package:arrowconmango_front/features/game/application/dtos/game_evaluation.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/calculate_score_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/evaluate_game_state_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/load_level_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/save_local_progress_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/start_game_session_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/trigger_arrow_exit_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/undo_move_use_case.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
+
+import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
+import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
+import 'package:arrowconmango_front/features/game/presentation/bloc/mappers/game_state_mapper.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// {@template game_bloc}
+/// BLoC that orchestrates the game presentation layer.
+///
+/// It receives [GameEvent]s from the UI, delegates domain work to the
+/// injected use cases, and emits immutable [GameState]s.
+/// {@endtemplate}
+class GameBloc extends Bloc<GameEvent, GameState> {
+  /// {@macro game_bloc}
+  GameBloc({
+    required this._loadLevelUseCase,
+    required this._startGameSessionUseCase,
+    required this._evaluateGameStateUseCase,
+    required this._triggerArrowExitUseCase,
+    required this._undoMoveUseCase,
+    required this._calculateScoreUseCase,
+    required this._saveLocalProgressUseCase,
+    int Function()? clock,
+    this._timeLimitInSeconds = 60,
+  })  : _clock = clock ?? _defaultClock,
+        super(const GameInitial()) {
+    on<LoadLevel>(_onLoadLevel);
+    on<TriggerArrowExit>(_onTriggerArrowExit);
+    on<UndoMove>(_onUndoMove);
+    on<Tick>(_onTick);
+    on<RetryLevel>(_onRetryLevel);
+  }
+
+  final LoadLevelUseCase _loadLevelUseCase;
+  final StartGameSessionUseCase _startGameSessionUseCase;
+  final EvaluateGameStateUseCase _evaluateGameStateUseCase;
+  final TriggerArrowExitUseCase _triggerArrowExitUseCase;
+  final UndoMoveUseCase _undoMoveUseCase;
+  final CalculateScoreUseCase _calculateScoreUseCase;
+  final SaveLocalProgressUseCase _saveLocalProgressUseCase;
+  final int Function() _clock;
+  final int _timeLimitInSeconds;
+
+  GameSession? _session;
+  Level? _level;
+
+  static int _defaultClock() => DateTime.now().millisecondsSinceEpoch;
+
+  Level _levelForState(GamePlaying state) {
+    return _level ??
+        Level(
+          levelId: state.levelId,
+          templateBoard: state.boardState,
+        );
+  }
+
+  GameSession _ensureSession(GamePlaying state) {
+    return _session ??
+        GameSession(
+          sessionId: 'seeded-session',
+          boardState: state.boardState,
+          moveCount: state.moveCount,
+          startedAtMs: state.startedAtMs,
+        );
+  }
+
+  Future<void> _onLoadLevel(LoadLevel event, Emitter<GameState> emit) async {
+    emit(GameLoading(levelId: event.levelId));
+
+    final levelResult = await _loadLevelUseCase(levelId: event.levelId);
+
+    switch (levelResult) {
+      case Success(value: final level):
+        _level = level;
+        final nowMs = _clock();
+        final sessionResult = _startGameSessionUseCase(
+          level: level,
+          sessionId: 'session-${event.levelId}',
+          startedAtMs: nowMs,
+        );
+
+        switch (sessionResult) {
+          case Success(value: final session):
+            _session = session;
+            await _emitPlayingState(session, level, emit);
+          case Error(failure: final failure):
+            emit(GameError(message: failure.message, levelId: event.levelId));
+        }
+      case Error(failure: final failure):
+        emit(GameError(message: failure.message, levelId: event.levelId));
+    }
+  }
+
+  Future<void> _onTriggerArrowExit(
+    TriggerArrowExit event,
+    Emitter<GameState> emit,
+  ) async {
+    final state = this.state;
+    if (state is! GamePlaying) return;
+
+    final session = _ensureSession(state);
+    final result = _triggerArrowExitUseCase(
+      session: session,
+      arrowId: event.arrowId,
+    );
+
+    switch (result) {
+      case Success(value: final newSession):
+        _session = newSession;
+        final evaluation = _evaluateGameStateUseCase(
+          session: newSession,
+          nowMs: _clock(),
+        );
+
+        if (evaluation.status == GameStatus.victory) {
+          await _emitVictoryState(newSession, evaluation, emit);
+        } else {
+          _emitPlayingStateFromEvaluation(
+            newSession,
+            _levelForState(state),
+            evaluation,
+            emit,
+          );
+        }
+      case Error():
+        // Absorb expected domain errors silently; the UI stays in GamePlaying.
+        break;
+    }
+  }
+
+  Future<void> _onUndoMove(UndoMove event, Emitter<GameState> emit) async {
+    final state = this.state;
+    if (state is! GamePlaying) return;
+
+    final session = _ensureSession(state);
+    final result = _undoMoveUseCase(session: session);
+
+    switch (result) {
+      case Success(value: final newSession):
+        _session = newSession;
+        final evaluation = _evaluateGameStateUseCase(
+          session: newSession,
+          nowMs: _clock(),
+        );
+        _emitPlayingStateFromEvaluation(
+          newSession,
+          _levelForState(state),
+          evaluation,
+          emit,
+        );
+      case Error():
+        // No moves to undo: keep the current state unchanged.
+        break;
+    }
+  }
+
+  Future<void> _onTick(Tick event, Emitter<GameState> emit) async {
+    final state = this.state;
+    if (state is! GamePlaying) return;
+
+    final session = _ensureSession(state);
+    final evaluation = _evaluateGameStateUseCase(
+      session: session,
+      nowMs: event.nowMs,
+    );
+
+    if (evaluation.elapsedSeconds == state.elapsedSeconds) {
+      // Same second: skip emitting to avoid unnecessary re-renders.
+      return;
+    }
+
+    if (evaluation.elapsedSeconds >= _timeLimitInSeconds) {
+      emit(
+        GameStateMapper.mapToDefeatState(
+          session: session,
+          level: _levelForState(state),
+          reason: DefeatReason.timeExpired,
+          nowMs: event.nowMs,
+        ),
+      );
+      return;
+    }
+
+    _emitPlayingStateFromEvaluation(
+      session,
+      _levelForState(state),
+      evaluation,
+      emit,
+    );
+  }
+
+  Future<void> _onRetryLevel(RetryLevel event, Emitter<GameState> emit) async {
+    final state = this.state;
+    final levelId = switch (state) {
+      GamePlaying(:final levelId) => levelId,
+      GameDefeat(:final levelId) => levelId,
+      GameVictory(:final levelId) => levelId,
+      _ => null,
+    };
+
+    if (levelId == null) return;
+
+    emit(GameLoading(levelId: levelId));
+
+    final levelResult = await _loadLevelUseCase(levelId: levelId);
+
+    switch (levelResult) {
+      case Success(value: final level):
+        _level = level;
+        final nowMs = _clock();
+        final sessionResult = _startGameSessionUseCase(
+          level: level,
+          sessionId: 'session-$levelId',
+          startedAtMs: nowMs,
+        );
+
+        switch (sessionResult) {
+          case Success(value: final session):
+            _session = session;
+            await _emitPlayingState(session, level, emit);
+          case Error(failure: final failure):
+            emit(GameError(message: failure.message, levelId: levelId));
+        }
+      case Error(failure: final failure):
+        emit(GameError(message: failure.message, levelId: levelId));
+    }
+  }
+
+  Future<void> _emitPlayingState(
+    GameSession session,
+    Level level,
+    Emitter<GameState> emit,
+  ) async {
+    final nowMs = _clock();
+    final evaluation = _evaluateGameStateUseCase(
+      session: session,
+      nowMs: nowMs,
+    );
+    _emitPlayingStateFromEvaluation(session, level, evaluation, emit);
+  }
+
+  void _emitPlayingStateFromEvaluation(
+    GameSession session,
+    Level level,
+    GameEvaluation evaluation,
+    Emitter<GameState> emit,
+  ) {
+    // Align the mapper clock with the elapsed time reported by the evaluation
+    // so the emitted state reflects the evaluated elapsed seconds.
+    final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
+    emit(
+      GameStateMapper.mapToPlayingState(
+        session: session,
+        level: level,
+        score: evaluation.score,
+        nowMs: nowMs,
+      ),
+    );
+  }
+
+  Future<void> _emitVictoryState(
+    GameSession session,
+    GameEvaluation evaluation,
+    Emitter<GameState> emit,
+  ) async {
+    final scoreResult = _calculateScoreUseCase(
+      moves: evaluation.moveCount,
+      elapsedSeconds: evaluation.elapsedSeconds,
+    );
+
+    switch (scoreResult) {
+      case Success(value: final score):
+        await _saveLocalProgressUseCase(
+          progress: AppProgress(
+            unlockedLevels: [session.moveCount > 0 ? 2 : 1],
+          ),
+        );
+        final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
+        final level = _level ??
+            Level(
+              levelId: (state as GamePlaying).levelId,
+              templateBoard: session.boardState,
+            );
+        emit(
+          GameStateMapper.mapToVictoryState(
+            session: session,
+            level: level,
+            score: score,
+            nowMs: nowMs,
+          ),
+        );
+      case Error(failure: final failure):
+        emit(GameError(message: failure.message));
+    }
+  }
+}
