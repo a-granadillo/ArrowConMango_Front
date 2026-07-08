@@ -27,7 +27,7 @@ void main() {
             ArrowModel(
               id: 'a',
               startNode: const NodeModel(row: 0, col: 0),
-              trajectory: const ArrowTrajectory(
+              trajectory: ArrowTrajectory(
                 segments: [
                   TrajectorySegment(direction: CardinalDirection.right, length: 1),
                 ],
@@ -72,7 +72,7 @@ void main() {
             ArrowModel(
               id: 'x',
               startNode: const NodeModel(row: 0, col: 0),
-              trajectory: const ArrowTrajectory(
+              trajectory: ArrowTrajectory(
                 segments: [
                   TrajectorySegment(direction: CardinalDirection.up, length: 1),
                 ],

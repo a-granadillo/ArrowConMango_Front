@@ -1,7 +1,6 @@
 import 'package:arrowconmango_front/features/game/data/models/adapters/app_progress_model_adapter.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/arrow_model_adapter.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/arrow_trajectory_adapter.dart';
-import 'package:arrowconmango_front/features/game/data/models/adapters/board_size_model_adapter.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/board_state_model_adapter.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/level_model_adapter.dart';
 import 'package:arrowconmango_front/features/game/data/models/adapters/node_model_adapter.dart';
@@ -44,9 +43,6 @@ class HiveConfig {
     }
     if (!Hive.isAdapterRegistered(4)) {
       Hive.registerAdapter(AppProgressModelAdapter());
-    }
-    if (!Hive.isAdapterRegistered(5)) {
-      Hive.registerAdapter(BoardSizeModelAdapter());
     }
     if (!Hive.isAdapterRegistered(6)) {
       Hive.registerAdapter(TrajectorySegmentAdapter());

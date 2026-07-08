@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../domain/entities/cardinal_direction.dart';
+import '../../domain/entities/cardinal_direction.dart';
 
 /// Represents a single straight segment of an arrow's trajectory.
 ///

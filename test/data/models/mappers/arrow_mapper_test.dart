@@ -18,7 +18,7 @@ void main() {
       final model = ArrowModel(
         id: 'arrow-1',
         startNode: const NodeModel(row: 0, col: 0),
-        trajectory: const ArrowTrajectory(
+        trajectory: ArrowTrajectory(
           segments: [
             TrajectorySegment(direction: CardinalDirection.right, length: 2),
           ],
@@ -68,7 +68,7 @@ void main() {
       final original = ArrowModel(
         id: 'arrow-3',
         startNode: const NodeModel(row: 1, col: 2),
-        trajectory: const ArrowTrajectory(
+        trajectory: ArrowTrajectory(
           segments: [
             TrajectorySegment(direction: CardinalDirection.left, length: 2),
           ],
@@ -87,7 +87,7 @@ void main() {
       final original = ArrowModel(
         id: 'arrow-4',
         startNode: const NodeModel(row: 0, col: 0),
-        trajectory: const ArrowTrajectory(
+        trajectory: ArrowTrajectory(
           segments: [
             TrajectorySegment(direction: CardinalDirection.up, length: 1),
           ],
@@ -107,7 +107,7 @@ void main() {
       final model = ArrowModel(
         id: 'arrow-5',
         startNode: const NodeModel(row: 0, col: 0),
-        trajectory: const ArrowTrajectory(
+        trajectory: ArrowTrajectory(
           segments: [
             TrajectorySegment(direction: CardinalDirection.up, length: 1),
           ],
@@ -128,7 +128,7 @@ void main() {
       final model = ArrowModel(
         id: 'arrow-6',
         startNode: const NodeModel(row: 0, col: 0),
-        trajectory: const ArrowTrajectory(
+        trajectory: ArrowTrajectory(
           segments: [
             TrajectorySegment(direction: CardinalDirection.right, length: 2),
             TrajectorySegment(direction: CardinalDirection.down, length: 2),

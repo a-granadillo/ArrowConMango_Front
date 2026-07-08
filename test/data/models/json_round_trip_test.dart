@@ -63,7 +63,7 @@ void main() {
   group('ArrowTrajectory JSON round-trip', () {
     test('should_preserve_segments_through_serialization', () {
       // Arrange
-      const original = ArrowTrajectory(
+      final original = ArrowTrajectory(
         segments: [
           TrajectorySegment(direction: CardinalDirection.right, length: 2),
           TrajectorySegment(direction: CardinalDirection.down, length: 3),
@@ -83,11 +83,11 @@ void main() {
   group('BoardStateModel JSON round-trip', () {
     test('should_preserve_arrows_list_through_serialization', () {
       // Arrange
-      const original = BoardStateModel(
+      final original = BoardStateModel(
         arrows: [
           ArrowModel(
             id: 'a1',
-            startNode: NodeModel(row: 0, col: 0),
+            startNode: const NodeModel(row: 0, col: 0),
             trajectory: ArrowTrajectory(
               segments: [
                 TrajectorySegment(direction: CardinalDirection.right, length: 2),
@@ -96,7 +96,7 @@ void main() {
           ),
           ArrowModel(
             id: 'a2',
-            startNode: NodeModel(row: 1, col: 2),
+            startNode: const NodeModel(row: 1, col: 2),
             trajectory: ArrowTrajectory(
               segments: [
                 TrajectorySegment(direction: CardinalDirection.down, length: 1),
@@ -131,7 +131,7 @@ void main() {
   group('LevelModel JSON round-trip', () {
     test('should_preserve_all_fields_through_serialization', () {
       // Arrange
-      const original = LevelModel(
+      final original = LevelModel(
         id: 5,
         name: 'Level 5',
         difficulty: 'Medium',
@@ -139,7 +139,7 @@ void main() {
           arrows: [
             ArrowModel(
               id: 'arrow-x',
-              startNode: NodeModel(row: 2, col: 3),
+              startNode: const NodeModel(row: 2, col: 3),
               trajectory: ArrowTrajectory(
                 segments: [
                   TrajectorySegment(direction: CardinalDirection.up, length: 1),

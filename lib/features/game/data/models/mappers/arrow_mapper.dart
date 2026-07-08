@@ -40,27 +40,30 @@ class ArrowMapper {
       return node;
     }).toList();
 
-    // Reconstruct trajectory from nodes
     final segments = <TrajectorySegment>[];
-    var currentDirection = _inferDirection(gridNodes[0], gridNodes[1]);
-    var currentLength = 1;
 
-    for (var i = 1; i < gridNodes.length; i++) {
-      final nextDirection = (i < gridNodes.length - 1)
-          ? _inferDirection(gridNodes[i], gridNodes[i + 1])
-          : currentDirection;
-
-      if (nextDirection == currentDirection) {
-        currentLength++;
-      } else {
-        segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
-        currentDirection = nextDirection;
-        currentLength = 1;
+    if (gridNodes.length < 2) {
+      segments.add(TrajectorySegment(direction: entity.direction as CardinalDirection, length: 1));
+    } else {
+      final directions = <CardinalDirection>[];
+      for (var i = 0; i < gridNodes.length - 1; i++) {
+        directions.add(_inferDirection(gridNodes[i], gridNodes[i + 1]));
       }
-    }
 
-    // Add the last segment
-    segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
+      var currentDirection = directions[0];
+      var currentLength = 1;
+
+      for (var i = 1; i < directions.length; i++) {
+        if (directions[i] == currentDirection) {
+          currentLength++;
+        } else {
+          segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
+          currentDirection = directions[i];
+          currentLength = 1;
+        }
+      }
+      segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
+    }
 
     final startNode = NodeModel(row: gridNodes.first.row, col: gridNodes.first.col);
     final trajectory = ArrowTrajectory(segments: segments);
