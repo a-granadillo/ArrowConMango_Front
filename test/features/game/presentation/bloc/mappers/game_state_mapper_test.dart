@@ -13,7 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   // Helper factories used across all groups.
-  BoardState _dummyBoardState({String arrowId = 'arrow_1'}) {
+  BoardState dummyBoardState({String arrowId = 'arrow_1'}) {
     return BoardState(
       arrows: [
         ArrowEntity(
@@ -30,7 +30,7 @@ void main() {
 
   const dummyScore = Score(moves: 5, timeElapsed: 10, totalPoints: 1200);
 
-  GameSession _dummySession({
+  GameSession dummySession({
     BoardState? boardState,
     CommandHistory? history,
     int moveCount = 7,
@@ -38,17 +38,17 @@ void main() {
   }) {
     return GameSession(
       sessionId: 'session-1',
-      boardState: boardState ?? _dummyBoardState(),
+      boardState: boardState ?? dummyBoardState(),
       history: history ?? const CommandHistory(),
       moveCount: moveCount,
       startedAtMs: startedAtMs,
     );
   }
 
-  Level _dummyLevel({int levelId = 3, BoardState? templateBoard}) {
+  Level dummyLevel({int levelId = 3, BoardState? templateBoard}) {
     return Level(
       levelId: levelId,
-      templateBoard: templateBoard ?? _dummyBoardState(),
+      templateBoard: templateBoard ?? dummyBoardState(),
     );
   }
 
@@ -57,8 +57,8 @@ void main() {
       'should map session, level, score and elapsedSeconds correctly',
       () {
         // Arrange
-        final session = _dummySession(startedAtMs: 10_000);
-        final level = _dummyLevel(levelId: 3);
+        final session = dummySession(startedAtMs: 10_000);
+        final level = dummyLevel(levelId: 3);
         const nowMs = 25_000;
 
         // Act
@@ -87,7 +87,7 @@ void main() {
       'should reflect canUndo true when history is not empty',
       () {
         // Arrange
-        final previousBoard = _dummyBoardState();
+        final previousBoard = dummyBoardState();
         final exitedArrow = previousBoard.arrows.first;
         final history = const CommandHistory().push(
           ArrowExitCommand(
@@ -95,8 +95,8 @@ void main() {
             previousState: previousBoard,
           ),
         );
-        final session = _dummySession(history: history);
-        final level = _dummyLevel();
+        final session = dummySession(history: history);
+        final level = dummyLevel();
 
         // Act
         final result = GameStateMapper.mapToPlayingState(
@@ -115,8 +115,8 @@ void main() {
       'should protect against clock skew returning elapsedSeconds = 0',
       () {
         // Arrange
-        final session = _dummySession(startedAtMs: 10_000);
-        final level = _dummyLevel();
+        final session = dummySession(startedAtMs: 10_000);
+        final level = dummyLevel();
         const nowMs = 5_000; // before startedAtMs
 
         // Act
@@ -138,12 +138,12 @@ void main() {
       'should map session, level, score and elapsedSeconds correctly',
       () {
         // Arrange
-        final session = _dummySession(
+        final session = dummySession(
           boardState: BoardState(arrows: const []),
           moveCount: 12,
           startedAtMs: 5_000,
         );
-        final level = _dummyLevel(levelId: 7);
+        final level = dummyLevel(levelId: 7);
         const score = Score(moves: 12, timeElapsed: 8, totalPoints: 3000);
         const nowMs = 18_000;
 
@@ -168,11 +168,11 @@ void main() {
       'should protect against clock skew returning elapsedSeconds = 0',
       () {
         // Arrange
-        final session = _dummySession(
+        final session = dummySession(
           boardState: BoardState(arrows: const []),
           startedAtMs: 10_000,
         );
-        final level = _dummyLevel();
+        final level = dummyLevel();
         const nowMs = 2_000; // before startedAtMs
 
         // Act
@@ -194,11 +194,11 @@ void main() {
       'should map session, level, reason and elapsedSeconds correctly',
       () {
         // Arrange
-        final session = _dummySession(
+        final session = dummySession(
           moveCount: 20,
           startedAtMs: 0,
         );
-        final level = _dummyLevel(levelId: 11);
+        final level = dummyLevel(levelId: 11);
         const reason = DefeatReason.timeExpired;
         const nowMs = 60_000;
 
@@ -223,8 +223,8 @@ void main() {
       'should protect against clock skew returning elapsedSeconds = 0',
       () {
         // Arrange
-        final session = _dummySession(startedAtMs: 10_000);
-        final level = _dummyLevel();
+        final session = dummySession(startedAtMs: 10_000);
+        final level = dummyLevel();
         const reason = DefeatReason.noMovesAvailable;
         const nowMs = 1_000; // before startedAtMs
 

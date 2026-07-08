@@ -1,4 +1,5 @@
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/command_history.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/score.dart';
 import 'package:equatable/equatable.dart';
 
@@ -48,7 +49,7 @@ final class GamePlaying extends GameState {
     required this.difficulty,
     required this.boardState,
     required this.moveCount,
-    required this.canUndo,
+    required this.history,
     required this.score,
     required this.arrowsRemaining,
     required this.elapsedSeconds,
@@ -67,8 +68,14 @@ final class GamePlaying extends GameState {
   /// Number of moves performed so far.
   final int moveCount;
 
+  /// Ordered history of applied moves that backs the undo feature.
+  ///
+  /// This is the source of truth for the UI; the BLoC rebuilds the
+  /// domain session from this history on demand.
+  final CommandHistory history;
+
   /// Whether there is at least one move that can be undone.
-  final bool canUndo;
+  bool get canUndo => history.canUndo;
 
   /// Current score for the active session.
   final Score score;
@@ -88,7 +95,7 @@ final class GamePlaying extends GameState {
         difficulty,
         boardState,
         moveCount,
-        canUndo,
+        history,
         score,
         arrowsRemaining,
         elapsedSeconds,

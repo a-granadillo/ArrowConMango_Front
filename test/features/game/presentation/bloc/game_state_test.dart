@@ -2,13 +2,15 @@ import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topolo
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/command_history.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/move_command.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/score.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('GameState', () {
-    BoardState _dummyBoardState() {
+    BoardState dummyBoardState() {
       return BoardState(
         arrows: [
           const ArrowEntity(
@@ -20,6 +22,16 @@ void main() {
             ],
           ),
         ],
+      );
+    }
+
+    CommandHistory nonEmptyHistory() {
+      final board = dummyBoardState();
+      return const CommandHistory().push(
+        ArrowExitCommand(
+          exitedArrow: board.arrows.first,
+          previousState: board,
+        ),
       );
     }
 
@@ -47,9 +59,9 @@ void main() {
       final state = GamePlaying(
         levelId: 1,
         difficulty: 'easy',
-        boardState: _dummyBoardState(),
+        boardState: dummyBoardState(),
         moveCount: 5,
-        canUndo: true,
+        history: nonEmptyHistory(),
         score: dummyScore,
         arrowsRemaining: 3,
         elapsedSeconds: 20,
@@ -63,9 +75,9 @@ void main() {
       final base = GamePlaying(
         levelId: 1,
         difficulty: 'easy',
-        boardState: _dummyBoardState(),
+        boardState: dummyBoardState(),
         moveCount: 5,
-        canUndo: true,
+        history: nonEmptyHistory(),
         score: dummyScore,
         arrowsRemaining: 3,
         elapsedSeconds: 20,
@@ -79,9 +91,9 @@ void main() {
             GamePlaying(
               levelId: 2,
               difficulty: 'easy',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 5,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: dummyScore,
               arrowsRemaining: 3,
               elapsedSeconds: 20,
@@ -98,9 +110,9 @@ void main() {
             GamePlaying(
               levelId: 1,
               difficulty: 'hard',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 5,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: dummyScore,
               arrowsRemaining: 3,
               elapsedSeconds: 20,
@@ -131,7 +143,7 @@ void main() {
               difficulty: 'easy',
               boardState: differentBoard,
               moveCount: 5,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: dummyScore,
               arrowsRemaining: 3,
               elapsedSeconds: 20,
@@ -148,9 +160,9 @@ void main() {
             GamePlaying(
               levelId: 1,
               difficulty: 'easy',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 99,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: dummyScore,
               arrowsRemaining: 3,
               elapsedSeconds: 20,
@@ -167,9 +179,9 @@ void main() {
             GamePlaying(
               levelId: 1,
               difficulty: 'easy',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 5,
-              canUndo: false,
+              history: const CommandHistory(),
               score: dummyScore,
               arrowsRemaining: 3,
               elapsedSeconds: 20,
@@ -186,9 +198,9 @@ void main() {
             GamePlaying(
               levelId: 1,
               difficulty: 'easy',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 5,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: const Score(moves: 99, timeElapsed: 30, totalPoints: 2500),
               arrowsRemaining: 3,
               elapsedSeconds: 20,
@@ -205,9 +217,9 @@ void main() {
             GamePlaying(
               levelId: 1,
               difficulty: 'easy',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 5,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: dummyScore,
               arrowsRemaining: 99,
               elapsedSeconds: 20,
@@ -224,9 +236,9 @@ void main() {
             GamePlaying(
               levelId: 1,
               difficulty: 'easy',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 5,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: dummyScore,
               arrowsRemaining: 3,
               elapsedSeconds: 99,
@@ -243,9 +255,9 @@ void main() {
             GamePlaying(
               levelId: 1,
               difficulty: 'easy',
-              boardState: _dummyBoardState(),
+              boardState: dummyBoardState(),
               moveCount: 5,
-              canUndo: true,
+              history: nonEmptyHistory(),
               score: dummyScore,
               arrowsRemaining: 3,
               elapsedSeconds: 20,

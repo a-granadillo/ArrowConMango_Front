@@ -2,12 +2,11 @@ import 'package:arrowconmango_front/features/game/application/dtos/game_evaluati
 import 'package:arrowconmango_front/features/game/application/use_cases/calculate_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/evaluate_game_state_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/load_level_use_case.dart';
-import 'package:arrowconmango_front/features/game/application/use_cases/save_local_progress_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/start_game_session_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/trigger_arrow_exit_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/undo_move_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
-import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
@@ -16,10 +15,12 @@ import 'package:arrowconmango_front/features/game/domain/entities/game_session.d
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/move_command.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/score.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/exit_check_result.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/arrow_not_found_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_bloc.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
@@ -130,21 +131,37 @@ class FakeCalculateScoreUseCase implements CalculateScoreUseCase {
   }
 }
 
-class FakeSaveLocalProgressUseCase implements SaveLocalProgressUseCase {
+class FakeUnlockNextLevelUseCase implements UnlockNextLevelUseCase {
   Result<void>? result;
-  AppProgress? calledProgress;
+  int? calledCurrentLevelId;
 
   @override
-  Future<Result<void>> call({required AppProgress progress}) async {
-    calledProgress = progress;
+  Future<Result<void>> call({required int currentLevelId}) async {
+    calledCurrentLevelId = currentLevelId;
     final configured = result;
     if (configured == null) {
       throw StateError(
-        'Configure FakeSaveLocalProgressUseCase.result in Arrange',
+        'Configure FakeUnlockNextLevelUseCase.result in Arrange',
       );
     }
     return configured;
   }
+}
+
+class FakeCollisionValidator implements CollisionValidator {
+  bool allowExit = true;
+
+  @override
+  ExitCheckResult checkExit(arrow, board) {
+    return ExitCheckResult(
+      canExit: allowExit,
+      blockingArrowId: allowExit ? null : 'arrow_blocker',
+      clearPath: const [],
+    );
+  }
+
+  @override
+  bool canSlide(arrow, board, steps) => true;
 }
 
 class FakeUndoMoveUseCase implements UndoMoveUseCase {
@@ -189,7 +206,8 @@ void main() {
   late FakeEvaluateGameStateUseCase fakeEvaluateState;
   late FakeTriggerArrowExitUseCase fakeTriggerExit;
   late FakeCalculateScoreUseCase fakeCalculateScore;
-  late FakeSaveLocalProgressUseCase fakeSaveProgress;
+  late FakeUnlockNextLevelUseCase fakeUnlockNextLevel;
+  late FakeCollisionValidator fakeCollisionValidator;
   late FakeUndoMoveUseCase fakeUndoMove;
 
   setUp(() {
@@ -198,7 +216,8 @@ void main() {
     fakeEvaluateState = FakeEvaluateGameStateUseCase();
     fakeTriggerExit = FakeTriggerArrowExitUseCase();
     fakeCalculateScore = FakeCalculateScoreUseCase();
-    fakeSaveProgress = FakeSaveLocalProgressUseCase();
+    fakeUnlockNextLevel = FakeUnlockNextLevelUseCase();
+    fakeCollisionValidator = FakeCollisionValidator();
     fakeUndoMove = FakeUndoMoveUseCase();
   });
 
@@ -210,7 +229,8 @@ void main() {
       triggerArrowExitUseCase: fakeTriggerExit,
       undoMoveUseCase: fakeUndoMove,
       calculateScoreUseCase: fakeCalculateScore,
-      saveLocalProgressUseCase: fakeSaveProgress,
+      unlockNextLevelUseCase: fakeUnlockNextLevel,
+      collisionValidator: fakeCollisionValidator,
       clock: () => clockValue,
     );
   }
@@ -251,7 +271,7 @@ void main() {
           difficulty: 'Easy',
           boardState: singleArrowBoard(),
           moveCount: 0,
-          canUndo: false,
+          history: const CommandHistory(),
           score: initialScore,
           arrowsRemaining: 1,
           elapsedSeconds: 0,
@@ -309,7 +329,7 @@ void main() {
         difficulty: 'Easy',
         boardState: singleArrowBoard(),
         moveCount: 0,
-        canUndo: false,
+        history: const CommandHistory(),
         score: initialScore,
         arrowsRemaining: 1,
         elapsedSeconds: 0,
@@ -358,7 +378,7 @@ void main() {
           difficulty: 'Easy',
           boardState: BoardState(arrows: const []),
           moveCount: 1,
-          canUndo: true,
+          history: sessionAfterExit().history,
           score: evalScore,
           arrowsRemaining: 0,
           elapsedSeconds: 5,
@@ -380,7 +400,7 @@ void main() {
           arrowsRemaining: 0,
         );
         fakeCalculateScore.result = const Success(finalScore);
-        fakeSaveProgress.result = const Success<void>(null);
+        fakeUnlockNextLevel.result = const Success<void>(null);
       },
       build: buildBloc,
       seed: playingSeed,
@@ -398,8 +418,50 @@ void main() {
       verify: (bloc) {
         expect(fakeCalculateScore.calledMoves, equals(1));
         expect(fakeCalculateScore.calledElapsedSeconds, equals(5));
-        expect(fakeSaveProgress.calledProgress, isNotNull);
+        expect(fakeUnlockNextLevel.calledCurrentLevelId, equals(1));
       },
+    );
+
+    blocTest<GameBloc, GameState>(
+      'should emit [GameDefeat] when no arrows can exit after a move',
+      // Arrange
+      setUp: () {
+        fakeCollisionValidator.allowExit = false;
+        fakeTriggerExit.result = Success(
+          GameSession(
+            sessionId: 'session-1',
+            boardState: singleArrowBoard(),
+            history: const CommandHistory().push(
+              ArrowExitCommand(
+                exitedArrow: singleArrowBoard().arrows.first,
+                previousState: BoardState(arrows: const []),
+              ),
+            ),
+            moveCount: 1,
+            startedAtMs: clockValue,
+          ),
+        );
+        fakeEvaluateState.result = const GameEvaluation(
+          status: GameStatus.ongoing,
+          score: evalScore,
+          moveCount: 1,
+          elapsedSeconds: 5,
+          arrowsRemaining: 1,
+        );
+      },
+      build: buildBloc,
+      seed: playingSeed,
+      // Act
+      act: (bloc) => bloc.add(const TriggerArrowExit(arrowId: 'arrow_1')),
+      // Assert
+      expect: () => [
+        const GameDefeat(
+          levelId: 1,
+          reason: DefeatReason.noMovesAvailable,
+          moveCount: 1,
+          elapsedSeconds: 0,
+        ),
+      ],
     );
 
     blocTest<GameBloc, GameState>(
@@ -445,7 +507,12 @@ void main() {
         difficulty: 'Easy',
         boardState: singleArrowBoard(),
         moveCount: 3,
-        canUndo: true,
+        history: const CommandHistory().push(
+          ArrowExitCommand(
+            exitedArrow: singleArrowBoard().arrows.first,
+            previousState: BoardState(arrows: const []),
+          ),
+        ),
         score: initialScore,
         arrowsRemaining: 1,
         elapsedSeconds: 0,
@@ -486,7 +553,7 @@ void main() {
           difficulty: 'Easy',
           boardState: singleArrowBoard(),
           moveCount: 2,
-          canUndo: false,
+          history: const CommandHistory(),
           score: initialScore,
           arrowsRemaining: 1,
           elapsedSeconds: 0,
@@ -519,7 +586,7 @@ void main() {
         difficulty: 'Easy',
         boardState: singleArrowBoard(),
         moveCount: 0,
-        canUndo: false,
+        history: const CommandHistory(),
         score: initialScore,
         arrowsRemaining: 1,
         elapsedSeconds: 0,
@@ -552,7 +619,7 @@ void main() {
           difficulty: 'Easy',
           boardState: singleArrowBoard(),
           moveCount: 0,
-          canUndo: false,
+          history: const CommandHistory(),
           score: tickScore,
           arrowsRemaining: 1,
           elapsedSeconds: 5,
@@ -643,7 +710,7 @@ void main() {
         difficulty: 'Easy',
         boardState: singleArrowBoard(),
         moveCount: 0,
-        canUndo: false,
+        history: const CommandHistory(),
         score: initialScore,
         arrowsRemaining: 1,
         elapsedSeconds: 0,
@@ -661,7 +728,12 @@ void main() {
         difficulty: 'Easy',
         boardState: singleArrowBoard(),
         moveCount: 5,
-        canUndo: true,
+        history: const CommandHistory().push(
+          ArrowExitCommand(
+            exitedArrow: singleArrowBoard().arrows.first,
+            previousState: BoardState(arrows: const []),
+          ),
+        ),
         score: initialScore,
         arrowsRemaining: 1,
         elapsedSeconds: 10,

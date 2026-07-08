@@ -2,15 +2,15 @@ import 'package:arrowconmango_front/features/game/application/dtos/game_evaluati
 import 'package:arrowconmango_front/features/game/application/use_cases/calculate_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/evaluate_game_state_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/load_level_use_case.dart';
-import 'package:arrowconmango_front/features/game/application/use_cases/save_local_progress_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/start_game_session_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/trigger_arrow_exit_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/undo_move_use_case.dart';
-import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
-
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/mappers/game_state_mapper.dart';
@@ -31,7 +31,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     required this._triggerArrowExitUseCase,
     required this._undoMoveUseCase,
     required this._calculateScoreUseCase,
-    required this._saveLocalProgressUseCase,
+    required this._unlockNextLevelUseCase,
+    required this._collisionValidator,
     int Function()? clock,
     this._timeLimitInSeconds = 60,
   })  : _clock = clock ?? _defaultClock,
@@ -49,31 +50,44 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   final TriggerArrowExitUseCase _triggerArrowExitUseCase;
   final UndoMoveUseCase _undoMoveUseCase;
   final CalculateScoreUseCase _calculateScoreUseCase;
-  final SaveLocalProgressUseCase _saveLocalProgressUseCase;
+  final UnlockNextLevelUseCase _unlockNextLevelUseCase;
+  final CollisionValidator _collisionValidator;
   final int Function() _clock;
   final int _timeLimitInSeconds;
 
-  GameSession? _session;
-  Level? _level;
-
   static int _defaultClock() => DateTime.now().millisecondsSinceEpoch;
 
+  /// Builds a [Level] from a playing state so the mapper can resolve the
+  /// difficulty and level id without relying on mutable bloc fields.
   Level _levelForState(GamePlaying state) {
-    return _level ??
-        Level(
-          levelId: state.levelId,
-          templateBoard: state.boardState,
-        );
+    return Level(
+      levelId: state.levelId,
+      templateBoard: state.boardState,
+    );
   }
 
-  GameSession _ensureSession(GamePlaying state) {
-    return _session ??
-        GameSession(
-          sessionId: 'seeded-session',
-          boardState: state.boardState,
-          moveCount: state.moveCount,
-          startedAtMs: state.startedAtMs,
-        );
+  /// Reconstructs a [GameSession] from the current playing state.
+  ///
+  /// The presentation state is the single source of truth; the session is
+  /// rebuilt on demand using the real [CommandHistory] carried by the state.
+  GameSession _sessionFromState(GamePlaying state) {
+    return GameSession(
+      sessionId: 'seeded-session',
+      boardState: state.boardState,
+      history: state.history,
+      moveCount: state.moveCount,
+      startedAtMs: state.startedAtMs,
+    );
+  }
+
+  /// Returns `true` if at least one arrow on the board can exit.
+  bool _hasAvailableMoves(BoardState board) {
+    if (board.isEmpty) return false;
+    for (final arrow in board.arrows) {
+      final check = _collisionValidator.checkExit(arrow, board);
+      if (check.canExit) return true;
+    }
+    return false;
   }
 
   Future<void> _onLoadLevel(LoadLevel event, Emitter<GameState> emit) async {
@@ -83,7 +97,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (levelResult) {
       case Success(value: final level):
-        _level = level;
         final nowMs = _clock();
         final sessionResult = _startGameSessionUseCase(
           level: level,
@@ -93,7 +106,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         switch (sessionResult) {
           case Success(value: final session):
-            _session = session;
             await _emitPlayingState(session, level, emit);
           case Error(failure: final failure):
             emit(GameError(message: failure.message, levelId: event.levelId));
@@ -110,7 +122,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final state = this.state;
     if (state is! GamePlaying) return;
 
-    final session = _ensureSession(state);
+    final session = _sessionFromState(state);
     final result = _triggerArrowExitUseCase(
       session: session,
       arrowId: event.arrowId,
@@ -118,22 +130,31 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (result) {
       case Success(value: final newSession):
-        _session = newSession;
         final evaluation = _evaluateGameStateUseCase(
           session: newSession,
           nowMs: _clock(),
         );
+        final level = _levelForState(state);
 
         if (evaluation.status == GameStatus.victory) {
-          await _emitVictoryState(newSession, evaluation, emit);
-        } else {
-          _emitPlayingStateFromEvaluation(
-            newSession,
-            _levelForState(state),
-            evaluation,
-            emit,
-          );
+          await _emitVictoryState(newSession, evaluation, level, emit);
+          return;
         }
+
+        if (!newSession.boardState.isEmpty &&
+            !_hasAvailableMoves(newSession.boardState)) {
+          emit(
+            GameStateMapper.mapToDefeatState(
+              session: newSession,
+              level: level,
+              reason: DefeatReason.noMovesAvailable,
+              nowMs: _clock(),
+            ),
+          );
+          return;
+        }
+
+        _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
       case Error():
         // Absorb expected domain errors silently; the UI stays in GamePlaying.
         break;
@@ -144,12 +165,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final state = this.state;
     if (state is! GamePlaying) return;
 
-    final session = _ensureSession(state);
+    final session = _sessionFromState(state);
     final result = _undoMoveUseCase(session: session);
 
     switch (result) {
       case Success(value: final newSession):
-        _session = newSession;
         final evaluation = _evaluateGameStateUseCase(
           session: newSession,
           nowMs: _clock(),
@@ -170,7 +190,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final state = this.state;
     if (state is! GamePlaying) return;
 
-    final session = _ensureSession(state);
+    final session = _sessionFromState(state);
     final evaluation = _evaluateGameStateUseCase(
       session: session,
       nowMs: event.nowMs,
@@ -218,7 +238,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (levelResult) {
       case Success(value: final level):
-        _level = level;
         final nowMs = _clock();
         final sessionResult = _startGameSessionUseCase(
           level: level,
@@ -228,7 +247,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         switch (sessionResult) {
           case Success(value: final session):
-            _session = session;
             await _emitPlayingState(session, level, emit);
           case Error(failure: final failure):
             emit(GameError(message: failure.message, levelId: levelId));
@@ -273,6 +291,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   Future<void> _emitVictoryState(
     GameSession session,
     GameEvaluation evaluation,
+    Level level,
     Emitter<GameState> emit,
   ) async {
     final scoreResult = _calculateScoreUseCase(
@@ -282,17 +301,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (scoreResult) {
       case Success(value: final score):
-        await _saveLocalProgressUseCase(
-          progress: AppProgress(
-            unlockedLevels: [session.moveCount > 0 ? 2 : 1],
-          ),
-        );
+        await _unlockNextLevelUseCase(currentLevelId: level.levelId);
         final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
-        final level = _level ??
-            Level(
-              levelId: (state as GamePlaying).levelId,
-              templateBoard: session.boardState,
-            );
         emit(
           GameStateMapper.mapToVictoryState(
             session: session,

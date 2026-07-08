@@ -19,7 +19,7 @@ class GameStateMapper {
       difficulty: level.difficulty(),
       boardState: session.boardState,
       moveCount: session.moveCount,
-      canUndo: session.history.canUndo,
+      history: session.history,
       score: score,
       arrowsRemaining: session.boardState.arrowCount,
       elapsedSeconds: session.elapsedSeconds(nowMs),
