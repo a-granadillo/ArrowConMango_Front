@@ -19,12 +19,22 @@ class TrajectorySegment extends Equatable {
   }) : assert(length >= 1, 'Segment length must be at least 1');
 
   factory TrajectorySegment.fromJson(Map<String, dynamic> json) {
+    final directionRaw = json['direction'];
+    if (directionRaw is! String) {
+      throw ArgumentError.value(directionRaw, 'direction', 'Direction must be a string');
+    }
+
+    final lengthRaw = json['length'];
+    if (lengthRaw is! int || lengthRaw < 1) {
+      throw ArgumentError.value(lengthRaw, 'length', 'Segment length must be an int >= 1');
+    }
+
     return TrajectorySegment(
       direction: CardinalDirection.values.firstWhere(
-        (d) => d.name == json['direction'],
-        orElse: () => throw ArgumentError('Invalid direction: ${json['direction']}'),
+        (d) => d.name == directionRaw,
+        orElse: () => throw ArgumentError('Invalid direction: $directionRaw'),
       ),
-      length: json['length'] as int,
+      length: lengthRaw,
     );
   }
 
