@@ -1,3 +1,7 @@
+// ignore_for_file: prefer_initializing_formals
+// Public named parameters are intentionally assigned to private fields
+// in the initializer list so the BLoC exposes a clean constructor API.
+
 import 'package:arrowconmango_front/features/game/application/dtos/game_evaluation.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/calculate_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/evaluate_game_state_use_case.dart';
@@ -9,9 +13,12 @@ import 'package:arrowconmango_front/features/game/application/use_cases/unlock_n
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
+import 'package:arrowconmango_front/features/game/domain/errors/arrow_not_found_failure.dart';
+import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
+import 'package:flutter/foundation.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/mappers/game_state_mapper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,17 +32,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class GameBloc extends Bloc<GameEvent, GameState> {
   /// {@macro game_bloc}
   GameBloc({
-    required this._loadLevelUseCase,
-    required this._startGameSessionUseCase,
-    required this._evaluateGameStateUseCase,
-    required this._triggerArrowExitUseCase,
-    required this._undoMoveUseCase,
-    required this._calculateScoreUseCase,
-    required this._unlockNextLevelUseCase,
-    required this._collisionValidator,
+    required LoadLevelUseCase loadLevelUseCase,
+    required StartGameSessionUseCase startGameSessionUseCase,
+    required EvaluateGameStateUseCase evaluateGameStateUseCase,
+    required TriggerArrowExitUseCase triggerArrowExitUseCase,
+    required UndoMoveUseCase undoMoveUseCase,
+    required CalculateScoreUseCase calculateScoreUseCase,
+    required UnlockNextLevelUseCase unlockNextLevelUseCase,
+    required CollisionValidator collisionValidator,
     int Function()? clock,
-    this._timeLimitInSeconds = 60,
-  })  : _clock = clock ?? _defaultClock,
+    int timeLimitInSeconds = 60,
+  })  : _loadLevelUseCase = loadLevelUseCase,
+        _startGameSessionUseCase = startGameSessionUseCase,
+        _evaluateGameStateUseCase = evaluateGameStateUseCase,
+        _triggerArrowExitUseCase = triggerArrowExitUseCase,
+        _undoMoveUseCase = undoMoveUseCase,
+        _calculateScoreUseCase = calculateScoreUseCase,
+        _unlockNextLevelUseCase = unlockNextLevelUseCase,
+        _collisionValidator = collisionValidator,
+        _clock = clock ?? _defaultClock,
+        _timeLimitInSeconds = timeLimitInSeconds,
         super(const GameInitial()) {
     on<LoadLevel>(_onLoadLevel);
     on<TriggerArrowExit>(_onTriggerArrowExit);
@@ -155,9 +171,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         }
 
         _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
-      case Error():
-        // Absorb expected domain errors silently; the UI stays in GamePlaying.
-        break;
+      case Error(failure: final failure):
+        if (failure is ArrowNotFoundFailure || failure is PathBlockedFailure) {
+          // Expected domain errors: keep the UI in GamePlaying.
+          break;
+        }
+        emit(GameError(message: failure.message));
     }
   }
 
@@ -301,7 +320,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (scoreResult) {
       case Success(value: final score):
-        await _unlockNextLevelUseCase(currentLevelId: level.levelId);
+        final unlockResult = await _unlockNextLevelUseCase(
+          currentLevelId: level.levelId,
+        );
         final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
         emit(
           GameStateMapper.mapToVictoryState(
@@ -311,6 +332,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
             nowMs: nowMs,
           ),
         );
+        if (unlockResult case Error(failure: final failure)) {
+          debugPrint('Warning: Failed to unlock next level: ${failure.message}');
+        }
       case Error(failure: final failure):
         emit(GameError(message: failure.message));
     }
