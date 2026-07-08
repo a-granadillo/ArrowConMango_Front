@@ -1,11 +1,14 @@
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/arrow_trajectory.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/arrow_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/board_state_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/level_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/trajectory_segment.dart';
 import 'package:arrowconmango_front/features/game/data/repositories/hive_level_repository.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
@@ -68,8 +71,12 @@ void main() {
               arrows: [
                 ArrowModel(
                   id: 'a1',
-                  direction: 'right',
-                  nodes: const [NodeModel(row: 0, col: 0)],
+                  startNode: const NodeModel(row: 0, col: 0),
+                  trajectory: ArrowTrajectory(
+                    segments: [
+                      TrajectorySegment(direction: CardinalDirection.right, length: 1),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -118,8 +125,12 @@ void main() {
               arrows: [
                 ArrowModel(
                   id: 'a1',
-                  direction: 'up',
-                  nodes: const [NodeModel(row: 1, col: 1)],
+                  startNode: const NodeModel(row: 1, col: 1),
+                  trajectory: ArrowTrajectory(
+                    segments: [
+                      TrajectorySegment(direction: CardinalDirection.up, length: 1),
+                    ],
+                  ),
                 ),
               ],
             ),
