@@ -7,6 +7,7 @@ import 'package:arrowconmango_front/features/game/application/use_cases/trigger_
 import 'package:arrowconmango_front/features/game/application/use_cases/undo_move_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
@@ -132,11 +133,11 @@ class FakeCalculateScoreUseCase implements CalculateScoreUseCase {
 }
 
 class FakeUnlockNextLevelUseCase implements UnlockNextLevelUseCase {
-  Result<void>? result;
+  Result<AppProgress>? result;
   int? calledCurrentLevelId;
 
   @override
-  Future<Result<void>> call({required int currentLevelId}) async {
+  Future<Result<AppProgress>> call({required int currentLevelId}) async {
     calledCurrentLevelId = currentLevelId;
     final configured = result;
     if (configured == null) {
@@ -400,7 +401,7 @@ void main() {
           arrowsRemaining: 0,
         );
         fakeCalculateScore.result = const Success(finalScore);
-        fakeUnlockNextLevel.result = const Success<void>(null);
+        fakeUnlockNextLevel.result = const Success<AppProgress>(AppProgress());
       },
       build: buildBloc,
       seed: playingSeed,
