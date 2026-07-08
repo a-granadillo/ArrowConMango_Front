@@ -21,8 +21,7 @@ class ArrowTrajectory extends Equatable {
   /// Ordered list of segments that form this trajectory.
   final List<TrajectorySegment> segments;
 
-  ArrowTrajectory({required this.segments})
-      : assert(segments.length > 0, 'Trajectory must have at least one segment');
+  const ArrowTrajectory({required this.segments});
 
   factory ArrowTrajectory.fromJson(Map<String, dynamic> json) {
     return ArrowTrajectory(
