@@ -1,9 +1,12 @@
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/arrow_trajectory.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/arrow_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/board_state_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/trajectory_segment.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -16,8 +19,12 @@ void main() {
         arrows: [
           ArrowModel(
             id: 'a',
-            direction: 'right',
-            nodes: const [NodeModel(row: 0, col: 0), NodeModel(row: 0, col: 1)],
+            startNode: const NodeModel(row: 0, col: 0),
+            trajectory: ArrowTrajectory(
+              segments: [
+                TrajectorySegment(direction: CardinalDirection.right, length: 2),
+              ],
+            ),
           ),
         ],
       );
@@ -47,13 +54,21 @@ void main() {
         arrows: [
           ArrowModel(
             id: 'b',
-            direction: 'down',
-            nodes: const [NodeModel(row: 1, col: 1)],
+            startNode: const NodeModel(row: 1, col: 1),
+            trajectory: ArrowTrajectory(
+              segments: [
+                TrajectorySegment(direction: CardinalDirection.down, length: 1),
+              ],
+            ),
           ),
           ArrowModel(
             id: 'c',
-            direction: 'left',
-            nodes: const [NodeModel(row: 2, col: 2), NodeModel(row: 2, col: 1)],
+            startNode: const NodeModel(row: 3, col: 2),
+            trajectory: ArrowTrajectory(
+              segments: [
+                TrajectorySegment(direction: CardinalDirection.left, length: 2),
+              ],
+            ),
           ),
         ],
       );

@@ -1,8 +1,11 @@
 import 'package:arrowconmango_front/features/game/data/models/app_progress_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/arrow_trajectory.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/trajectory_segment.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:test/test.dart';
 
 /// JSON round-trip tests for all data models.
@@ -38,20 +41,67 @@ void main() {
     });
   });
 
+  group('TrajectorySegment JSON round-trip', () {
+    test('should_preserve_direction_and_length_through_serialization', () {
+      // Arrange
+      const original = TrajectorySegment(
+        direction: CardinalDirection.right,
+        length: 3,
+      );
+
+      // Act
+      final json = original.toJson();
+      final restored = TrajectorySegment.fromJson(json);
+
+      // Assert
+      expect(restored, equals(original));
+      expect(json['direction'], equals('right'));
+      expect(json['length'], equals(3));
+    });
+  });
+
+  group('ArrowTrajectory JSON round-trip', () {
+    test('should_preserve_segments_through_serialization', () {
+      // Arrange
+      final original = ArrowTrajectory(
+        segments: [
+          TrajectorySegment(direction: CardinalDirection.right, length: 2),
+          TrajectorySegment(direction: CardinalDirection.down, length: 3),
+        ],
+      );
+
+      // Act
+      final json = original.toJson();
+      final restored = ArrowTrajectory.fromJson(json);
+
+      // Assert
+      expect(restored, equals(original));
+      expect(restored.segments.length, equals(2));
+    });
+  });
+
   group('BoardStateModel JSON round-trip', () {
     test('should_preserve_arrows_list_through_serialization', () {
       // Arrange
-      const original = BoardStateModel(
+      final original = BoardStateModel(
         arrows: [
           ArrowModel(
             id: 'a1',
-            direction: 'right',
-            nodes: [NodeModel(row: 0, col: 0), NodeModel(row: 0, col: 1)],
+            startNode: const NodeModel(row: 0, col: 0),
+            trajectory: ArrowTrajectory(
+              segments: [
+                TrajectorySegment(direction: CardinalDirection.right, length: 2),
+              ],
+            ),
           ),
           ArrowModel(
             id: 'a2',
-            direction: 'down',
-            nodes: [NodeModel(row: 1, col: 2)],
+            startNode: const NodeModel(row: 1, col: 2),
+            trajectory: ArrowTrajectory(
+              segments: [
+                TrajectorySegment(direction: CardinalDirection.down, length: 1),
+              ],
+            ),
           ),
         ],
       );
@@ -81,7 +131,7 @@ void main() {
   group('LevelModel JSON round-trip', () {
     test('should_preserve_all_fields_through_serialization', () {
       // Arrange
-      const original = LevelModel(
+      final original = LevelModel(
         id: 5,
         name: 'Level 5',
         difficulty: 'Medium',
@@ -89,8 +139,12 @@ void main() {
           arrows: [
             ArrowModel(
               id: 'arrow-x',
-              direction: 'up',
-              nodes: [NodeModel(row: 2, col: 3)],
+              startNode: const NodeModel(row: 2, col: 3),
+              trajectory: ArrowTrajectory(
+                segments: [
+                  TrajectorySegment(direction: CardinalDirection.up, length: 1),
+                ],
+              ),
             ),
           ],
         ),
