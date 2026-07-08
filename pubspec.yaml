@@ -37,6 +37,7 @@ dependencies:
 
   # Value equality for entities (needed by BLoC for state comparison)
   equatable: ^2.0.7
+  flutter_bloc: ^8.1.6
   lib: ^0.3.0
 
   # Lightweight key-value database for local persistence.
@@ -49,6 +50,9 @@ dev_dependencies:
 
   # Pure Dart test package for domain-layer unit tests (no Flutter imports).
   test: ^1.25.0
+
+  # BLoC testing helpers.
+  bloc_test: ^9.1.7
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
