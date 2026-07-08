@@ -42,8 +42,8 @@ void main() {
       );
     });
 
-    test('should_convert_arrow_entity_to_model', () {
-      // Arrange
+    test('should_throw_when_entity_has_single_node', () {
+      // Arrange — single-node arrow is not supported by the trajectory model
       final entity = ArrowEntity(
         id: 'arrow-2',
         direction: CardinalDirection.down,
@@ -53,17 +53,16 @@ void main() {
         ],
       );
 
-      // Act
-      final model = mapper.toModel(entity);
-
-      // Assert
-      expect(model.id, equals('arrow-2'));
-      expect(model.startNode, equals(const NodeModel(row: 2, col: 3)));
+      // Act / Assert
       expect(
-        model.trajectory.segments,
-        equals(const [
-          TrajectorySegment(direction: CardinalDirection.down, length: 1),
-        ]),
+        () => mapper.toModel(entity),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('at least 2 occupied nodes'),
+          ),
+        ),
       );
     });
 

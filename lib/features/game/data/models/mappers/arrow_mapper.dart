@@ -28,13 +28,14 @@ class ArrowMapper {
     if (entity.occupiedNodes.isEmpty) {
       throw ArgumentError('ArrowEntity must have at least one occupied node');
     }
+
     if (entity.direction is! CardinalDirection) {
       throw ArgumentError(
         'ArrowMapper only supports CardinalDirection, got ${entity.direction.runtimeType}. '
         'Use a topology-specific mapper for other directions.',
       );
     }
-    // Convert nodes to Grid2DNodeId
+
     final gridNodes = entity.occupiedNodes.map((node) {
       if (node is! Grid2DNodeId) {
         throw ArgumentError(
@@ -45,32 +46,32 @@ class ArrowMapper {
       return node;
     }).toList();
 
-    final segments = <TrajectorySegment>[];
-
     if (gridNodes.length < 2) {
       throw ArgumentError(
-        'ArrowMapper cannot convert single-node arrows to ArrowModel without changing occupied nodes.',
+        'ArrowMapper requires at least 2 occupied nodes to reconstruct a trajectory. '
+        'Got ${gridNodes.length}. Single-node arrows are not supported.',
       );
-    } else {
-      final directions = <CardinalDirection>[];
-      for (var i = 0; i < gridNodes.length - 1; i++) {
-        directions.add(_inferDirection(gridNodes[i], gridNodes[i + 1]));
-      }
-
-      var currentDirection = directions[0];
-      var currentLength = 1;
-
-      for (var i = 1; i < directions.length; i++) {
-        if (directions[i] == currentDirection) {
-          currentLength++;
-        } else {
-          segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
-          currentDirection = directions[i];
-          currentLength = 1;
-        }
-      }
-      segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
     }
+
+    final segments = <TrajectorySegment>[];
+    final directions = <CardinalDirection>[];
+    for (var i = 0; i < gridNodes.length - 1; i++) {
+      directions.add(_inferDirection(gridNodes[i], gridNodes[i + 1]));
+    }
+
+    var currentDirection = directions[0];
+    var currentLength = 1;
+
+    for (var i = 1; i < directions.length; i++) {
+      if (directions[i] == currentDirection) {
+        currentLength++;
+      } else {
+        segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
+        currentDirection = directions[i];
+        currentLength = 1;
+      }
+    }
+    segments.add(TrajectorySegment(direction: currentDirection, length: currentLength));
 
     final startNode = NodeModel(row: gridNodes.first.row, col: gridNodes.first.col);
     final trajectory = ArrowTrajectory(segments: segments);
