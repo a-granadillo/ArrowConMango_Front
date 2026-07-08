@@ -6,6 +6,7 @@ import 'package:arrowconmango_front/features/game/data/models/trajectory_segment
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/node_id.dart';
 import 'package:test/test.dart';
 
@@ -46,7 +47,10 @@ void main() {
       final entity = ArrowEntity(
         id: 'arrow-2',
         direction: CardinalDirection.down,
-        occupiedNodes: const [Grid2DNodeId(row: 2, col: 3)],
+        occupiedNodes: const [
+          Grid2DNodeId(row: 2, col: 3),
+          Grid2DNodeId(row: 3, col: 3),
+        ],
       );
 
       // Act
@@ -60,6 +64,27 @@ void main() {
         equals(const [
           TrajectorySegment(direction: CardinalDirection.down, length: 1),
         ]),
+      );
+    });
+
+    test('should_throw_when_arrow_entity_has_single_node', () {
+      // Arrange
+      final entity = ArrowEntity(
+        id: 'arrow-2-single',
+        direction: CardinalDirection.down,
+        occupiedNodes: const [Grid2DNodeId(row: 2, col: 3)],
+      );
+
+      // Act / Assert
+      expect(
+        () => mapper.toModel(entity),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('cannot convert single-node arrows'),
+          ),
+        ),
       );
     });
 
@@ -176,6 +201,30 @@ void main() {
         ),
       );
     });
+
+    test('should_throw_with_clear_message_when_direction_is_not_cardinal', () {
+      // Arrange
+      final entity = ArrowEntity(
+        id: 'arrow-8',
+        direction: const _FakeDirection('hex-ne'),
+        occupiedNodes: const [
+          Grid2DNodeId(row: 0, col: 0),
+          Grid2DNodeId(row: 0, col: 1),
+        ],
+      );
+
+      // Act / Assert
+      expect(
+        () => mapper.toModel(entity),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('ArrowMapper only supports CardinalDirection'),
+          ),
+        ),
+      );
+    });
   });
 }
 
@@ -192,4 +241,12 @@ class _FakeNodeId implements NodeId {
 
   @override
   bool get stringify => true;
+}
+
+class _FakeDirection implements Direction {
+  final String value;
+  const _FakeDirection(this.value);
+
+  @override
+  String get label => value;
 }

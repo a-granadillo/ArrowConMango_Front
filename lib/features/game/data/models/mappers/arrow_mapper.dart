@@ -28,7 +28,12 @@ class ArrowMapper {
     if (entity.occupiedNodes.isEmpty) {
       throw ArgumentError('ArrowEntity must have at least one occupied node');
     }
-
+    if (entity.direction is! CardinalDirection) {
+      throw ArgumentError(
+        'ArrowMapper only supports CardinalDirection, got ${entity.direction.runtimeType}. '
+        'Use a topology-specific mapper for other directions.',
+      );
+    }
     // Convert nodes to Grid2DNodeId
     final gridNodes = entity.occupiedNodes.map((node) {
       if (node is! Grid2DNodeId) {
@@ -43,7 +48,9 @@ class ArrowMapper {
     final segments = <TrajectorySegment>[];
 
     if (gridNodes.length < 2) {
-      segments.add(TrajectorySegment(direction: entity.direction as CardinalDirection, length: 1));
+      throw ArgumentError(
+        'ArrowMapper cannot convert single-node arrows to ArrowModel without changing occupied nodes.',
+      );
     } else {
       final directions = <CardinalDirection>[];
       for (var i = 0; i < gridNodes.length - 1; i++) {
