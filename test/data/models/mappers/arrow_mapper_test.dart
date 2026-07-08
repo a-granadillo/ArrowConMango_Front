@@ -49,7 +49,6 @@ void main() {
         direction: CardinalDirection.down,
         occupiedNodes: const [
           Grid2DNodeId(row: 2, col: 3),
-          Grid2DNodeId(row: 3, col: 3),
         ],
       );
 
@@ -81,7 +80,7 @@ void main() {
           isA<ArgumentError>().having(
             (e) => e.message,
             'message',
-            contains('cannot convert single-node arrows'),
+            contains('Single-node arrows are not supported'),
           ),
         ),
       );
