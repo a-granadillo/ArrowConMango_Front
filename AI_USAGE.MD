@@ -318,6 +318,32 @@
 - **Verificación:** 103/103 tests pasando (95 existentes + 8 nuevos). `flutter analyze` sin errores.
 - **Lecciones / limitaciones:** `hive_generator` no es compatible con versiones recientes de `analyzer`. Los adapters manuales son una alternativa válida que además evita modificar los modelos de Issue #1. Cuando `hive_generator` actualice sus constraints, se puede migrar a adapters generados. Las revisiones automáticas de Copilot detectaron bugs de compilación y problemas de consistencia que mejoraron la calidad del código.
 
+### Entrada #21 — Level Definitions v2: BoardSizeModel, TrajectorySegment length≥0, 15 niveles portados
+
+- **Fecha / autor:** 08-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: big-pickle)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Capa de Datos — Modelos, Mappers y Definiciones de Niveles).
+- **Tarea/problema:** Los 15 niveles existentes estaban en un formato antiguo (`nodes` + `direction`) que quedó obsoleto tras la introducción del modelo `ArrowTrajectory` con multi-segmento. Además, el `Level` entity no contenía información del tamaño del tablero, y `TrajectorySegment` rechazaba `length: 0` (imposibilitando flechas de un solo nodo). Se necesitaba portear todos los niveles al nuevo formato, agregar `BoardSizeModel` al modelo de datos, y relajar la validación de trayectorias.
+- **Prompt (paráfrasis fiel):** > "Necesitamos portear los 15 niveles del branch `feat/level-definitions` al nuevo formato ArrowModel con ArrowTrajectory. Creá un helper compartido `arrowHelper(id, dir, cells)` que convierta `List<List<int>>` a `NodeModel` + `List<TrajectorySegment>`. Agregá `BoardSizeModel(rows, cols)` con adapter Hive (typeId 8). Modificá `TrajectorySegment` para que `length` pueda ser 0. Modificá `ArrowMapper.toModel` para soportar entidades con un solo nodo. Agregá `boardSize` a `LevelModel` y `rows`/`cols` a la entidad `Level`. Creá los archivos `easy_levels.dart`, `medium_levels.dart`, `hard_levels.dart` y `level_definitions.dart` con los 15 niveles. Actualizá todos los tests existentes. Creá `docs/level_design_rules.md` documentando las reglas estructurales."
+- **Resultado obtenido:**
+  1. `lib/features/game/data/models/board_size_model.dart` + `board_size_model_adapter.dart` — Nuevo modelo con Hive adapter (typeId 8).
+  2. `TrajectorySegment` — Assert relajado de `>=1` a `>=0`; validación en `fromJson` usa `length < 0`.
+  3. `ArrowMapper.toModel` — Soporte para entidades single-node (produce `TrajectorySegment` con `length: 0`).
+  4. `LevelModel` — Nuevo campo `boardSize: BoardSizeModel` con serialización y adapter Hive.
+  5. `Level` entity — Nuevos campos `rows: int` y `cols: int`.
+  6. `LevelMapper` — Round-trip de `boardSize` ↔ `rows`/`cols`.
+  7. `HiveConfig` — Registro de `BoardSizeModelAdapter`.
+  8. `arrow_helper.dart` — Función `arrowHelper(id, direction, cells)` compartida.
+  9. 15 niveles portados al nuevo formato en `easy_levels.dart` (5), `medium_levels.dart` (5), `hard_levels.dart` (5).
+  10. `level_definitions.dart` — Aggregator con `allLevels`, `easyLevels`, `mediumLevels`, `hardLevels`, `getById()`.
+  11. `test/data/level_definitions_test.dart` — 15 tests de validación estructural (counts, bounds, unicidad, JSON round-trip, domain mapping, budgets).
+  12. `docs/level_design_rules.md` — Documentación completa de reglas de diseño de niveles.
+  13. Corrección de 9 errores de compilación en archivos existentes que usaban `Level()` sin `rows`/`cols` y `GamePlaying()` sin `rows`/`cols`.
+  14. Corrección de 2 tests en `arrow_mapper_test.dart` que esperaban errores para single-node arrows (ahora verifican el nuevo comportamiento).
+- **Modificaciones del equipo:** Se agregaron defaults `rows: 8, cols: 8` a `GamePlaying` para minimizar el blast radius de los cambios en tests existentes. Se debuguearon y corrigieron test failures de `arrow_mapper_test.dart` que habían quedado del cambio de validación de single-node.
+- **Verificación:** `flutter analyze` sin errores. `flutter test` da todos verdes (195+ tests pasando).
+- **Lecciones / limitaciones:** Cambiar un modelo base como `Level` (agregar campos required) tiene efecto dominó en toda la base de código — 14 archivos modificados + tests. Usar defaults en estados de presentación (`GamePlaying.rows`/`cols`) reduce la cantidad de cambios necesarios en tests unitarios que no dependen del board size.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
