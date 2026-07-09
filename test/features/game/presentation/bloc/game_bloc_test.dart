@@ -243,6 +243,8 @@ void main() {
       setUp: () {
         final level = Level(
           levelId: 1,
+          rows: 7,
+          cols: 7,
           templateBoard: singleArrowBoard(),
         );
         final session = GameSession(
@@ -270,6 +272,8 @@ void main() {
         GamePlaying(
           levelId: 1,
           difficulty: 'Easy',
+          rows: 7,
+          cols: 7,
           boardState: singleArrowBoard(),
           moveCount: 0,
           history: const CommandHistory(),
@@ -305,6 +309,8 @@ void main() {
       setUp: () {
         final level = Level(
           levelId: 1,
+          rows: 7,
+          cols: 7,
           templateBoard: singleArrowBoard(),
         );
         fakeLoadLevel.result = Success(level);
@@ -681,6 +687,8 @@ void main() {
     Level retryLevel() {
       return Level(
         levelId: 1,
+        rows: 7,
+        cols: 7,
         templateBoard: singleArrowBoard(),
       );
     }
@@ -709,6 +717,8 @@ void main() {
       return GamePlaying(
         levelId: 1,
         difficulty: 'Easy',
+        rows: 7,
+        cols: 7,
         boardState: singleArrowBoard(),
         moveCount: 0,
         history: const CommandHistory(),

@@ -47,6 +47,8 @@ final class GamePlaying extends GameState {
   const GamePlaying({
     required this.levelId,
     required this.difficulty,
+    this.rows = 8,
+    this.cols = 8,
     required this.boardState,
     required this.moveCount,
     required this.history,
@@ -61,6 +63,12 @@ final class GamePlaying extends GameState {
 
   /// Difficulty label of the current level.
   final String difficulty;
+
+  /// Number of rows on the board.
+  final int rows;
+
+  /// Number of columns on the board.
+  final int cols;
 
   /// Current state of the board.
   final BoardState boardState;
@@ -93,6 +101,8 @@ final class GamePlaying extends GameState {
   List<Object?> get props => [
         levelId,
         difficulty,
+        rows,
+        cols,
         boardState,
         moveCount,
         history,
