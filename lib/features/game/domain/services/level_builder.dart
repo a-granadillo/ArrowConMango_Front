@@ -29,9 +29,17 @@ import '../entities/node_id.dart';
 class LevelBuilder {
   int? _levelId;
   final List<ArrowEntity> _arrows = [];
+  int _rows = 8;
+  int _cols = 8;
 
   /// Sets the level identifier.
   set levelId(int id) => _levelId = id;
+
+  /// Sets the number of rows on the board.
+  set rows(int v) => _rows = v;
+
+  /// Sets the number of columns on the board.
+  set cols(int v) => _cols = v;
 
   /// Adds an arrow to the level definition.
   ///
@@ -60,7 +68,7 @@ class LevelBuilder {
     }
 
     final board = BoardState(arrows: _arrows);
-    return Level(levelId: _levelId!, templateBoard: board);
+    return Level(levelId: _levelId!, rows: _rows, cols: _cols, templateBoard: board);
   }
 
   /// Resets the builder to its initial state for reuse.

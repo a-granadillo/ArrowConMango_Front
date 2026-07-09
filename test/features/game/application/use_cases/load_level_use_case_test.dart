@@ -46,6 +46,8 @@ void main() {
       useCase = LoadLevelUseCase(mockRepository);
       testLevel = Level(
         levelId: 1,
+        rows: 7,
+        cols: 7,
         templateBoard: BoardState(arrows: const []),
       );
     });

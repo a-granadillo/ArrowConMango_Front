@@ -23,6 +23,8 @@ class FakeLevel extends Level {
       _exceptionToThrow = exceptionToThrow,
       super(
         levelId: 1,
+        rows: 8,
+        cols: 8,
         templateBoard: BoardState(arrows: const []),
       );
 

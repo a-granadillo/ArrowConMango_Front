@@ -18,6 +18,8 @@ void main() {
       useCase = GetLevelDefinitionUseCase(fakeRepository);
       testLevel = Level(
         levelId: 1,
+        rows: 7,
+        cols: 7,
         templateBoard: BoardState(arrows: const []),
       );
     });

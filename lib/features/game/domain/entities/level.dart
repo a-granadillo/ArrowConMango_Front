@@ -8,15 +8,18 @@ import 'game_session.dart';
 /// The [templateBoard] serves as the starting configuration.  The
 /// [GameSession] clones it to produce the mutable [boardState].
 class Level extends Equatable {
-  /// Unique numeric identifier for this level.
   final int levelId;
 
-  /// The board template from which game sessions are initialised.
+  final int rows;
+
+  final int cols;
+
   final BoardState templateBoard;
 
-  // ignore: prefer_const_constructors_in_immutables
-  Level({
+  const Level({
     required this.levelId,
+    required this.rows,
+    required this.cols,
     required this.templateBoard,
   });
 
@@ -47,7 +50,7 @@ class Level extends Equatable {
   }
 
   @override
-  List<Object?> get props => [levelId, templateBoard];
+  List<Object?> get props => [levelId, rows, cols, templateBoard];
 
   @override
   String toString() =>

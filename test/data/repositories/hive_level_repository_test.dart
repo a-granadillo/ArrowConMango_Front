@@ -1,5 +1,6 @@
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/arrow_trajectory.dart';
+import 'package:arrowconmango_front/features/game/data/models/board_size_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/arrow_mapper.dart';
@@ -63,10 +64,11 @@ void main() {
       final box = _FakeLevelBox()
         ..seed(
           1,
-          LevelModel(
+           LevelModel(
             id: 1,
             name: 'Level 1',
             difficulty: 'Easy',
+            boardSize: const BoardSizeModel(rows: 7, cols: 7),
             boardState: BoardStateModel(
               arrows: [
                 ArrowModel(
@@ -117,10 +119,11 @@ void main() {
       final box = _FakeLevelBox()
         ..seed(
           2,
-          LevelModel(
+           LevelModel(
             id: 2,
             name: 'Level 2',
             difficulty: 'Easy',
+            boardSize: const BoardSizeModel(rows: 7, cols: 7),
             boardState: BoardStateModel(
               arrows: [
                 ArrowModel(
