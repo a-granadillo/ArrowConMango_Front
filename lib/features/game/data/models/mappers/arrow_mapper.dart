@@ -47,9 +47,13 @@ class ArrowMapper {
     }).toList();
 
     if (gridNodes.length < 2) {
-      throw ArgumentError(
-        'ArrowMapper requires at least 2 occupied nodes to reconstruct a trajectory. '
-        'Got ${gridNodes.length}. Single-node arrows are not supported.',
+      final direction = entity.direction as CardinalDirection;
+      return ArrowModel(
+        id: entity.id,
+        startNode: NodeModel(row: gridNodes.first.row, col: gridNodes.first.col),
+        trajectory: ArrowTrajectory(
+          segments: [TrajectorySegment(direction: direction, length: 0)],
+        ),
       );
     }
 
