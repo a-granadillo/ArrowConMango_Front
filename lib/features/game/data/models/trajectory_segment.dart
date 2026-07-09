@@ -16,13 +16,13 @@ class TrajectorySegment extends Equatable {
   const TrajectorySegment({
     required this.direction,
     required this.length,
-  }) : assert(length >= 1, 'Segment length must be at least 1');
+  }) : assert(length >= 0, 'Segment length must be non-negative');
 
   factory TrajectorySegment.fromJson(Map<String, dynamic> json) {
     final rawLength = json['length'];
-    if (rawLength is! int || rawLength < 1) {
+    if (rawLength is! int || rawLength < 0) {
       throw ArgumentError(
-        'Invalid trajectory segment length: $rawLength (must be a positive int)',
+        'Invalid trajectory segment length: $rawLength (must be a non-negative int)',
       );
     }
 
