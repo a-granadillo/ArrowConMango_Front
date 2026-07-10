@@ -39,11 +39,17 @@ ArrowModel arrowHelper(String id, String direction, List<List<int>> cells) {
     final dCol = next[1] - curr[1];
 
     CardinalDirection stepDir;
-    if (dRow == -1 && dCol == 0) stepDir = CardinalDirection.up;
-    else if (dRow == 1 && dCol == 0) stepDir = CardinalDirection.down;
-    else if (dRow == 0 && dCol == -1) stepDir = CardinalDirection.left;
-    else if (dRow == 0 && dCol == 1) stepDir = CardinalDirection.right;
-    else throw ArgumentError('Cells must be adjacent orthogonally. Got jump from [${curr[0]},${curr[1]}] to [${next[0]},${next[1]}]');
+    if (dRow == -1 && dCol == 0) {
+      stepDir = CardinalDirection.up;
+    } else if (dRow == 1 && dCol == 0) {
+      stepDir = CardinalDirection.down;
+    } else if (dRow == 0 && dCol == -1) {
+      stepDir = CardinalDirection.left;
+    } else if (dRow == 0 && dCol == 1) {
+      stepDir = CardinalDirection.right;
+    } else {
+      throw ArgumentError('Cells must be adjacent orthogonally. Got jump from [${curr[0]},${curr[1]}] to [${next[0]},${next[1]}]');
+    }
 
     if (currentSegmentDir == stepDir) {
       currentLength++;
