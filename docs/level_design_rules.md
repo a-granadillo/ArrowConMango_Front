@@ -27,13 +27,7 @@ Each file exports a `List<LevelModel>`. The aggregator re-exports them as `allLe
 
 ## 2. Board size by difficulty
 
-| Difficulty | Level IDs | Board size |
-|---|---|---|
-| Easy | 1-5 | 8 × 8 |
-| Medium | 6-10 | 10 × 10 |
-| Hard | 11-15 | 12 × 12 |
-
-Defined via `BoardSizeModel(rows: N, cols: N)` on each `LevelModel`.
+While there are recommended guidelines, the actual board size can vary by level. For example, some Easy levels might be 6×7 or 7×7, while Hard levels might be 11×10. The `BoardSizeModel` on each `LevelModel` defines the exact size for that specific level.
 
 ---
 
@@ -42,7 +36,7 @@ Defined via `BoardSizeModel(rows: N, cols: N)` on each `LevelModel`.
 ### 3.1 Helper signature
 
 ```dart
-ArrowModel arrowHelper(String id, Direction direction, List<List<int>> cells);
+ArrowModel arrowHelper(String id, String direction, List<List<int>> cells);
 ```
 
 - `id` — unique identifier within the level (e.g. `'a1'`, `'a2'`)
@@ -65,13 +59,13 @@ A single-node arrow (length = 0) is **valid** and represents an arrow that occup
 
 ## 4. Arrow budget (max arrows per level)
 
-| Difficulty | Max arrows |
+| Difficulty | Arrow range |
 |---|---|
-| Easy | 8 |
-| Medium | 12 |
-| Hard | 16 |
+| Easy | 10 – 20 |
+| Medium | 21 – 40 |
+| Hard | 41 – 70 |
 
-These limits are enforced by `level_definitions_test.dart`.
+These limits are enforced by `level_definitions_test.dart` to ensure a consistent progression.
 
 ---
 
@@ -93,9 +87,11 @@ These limits are enforced by `level_definitions_test.dart`.
 // Helper: each inner list is [row, col]
 final _myLevel = (
   id: 16,
-  boardSize: BoardSizeModel(rows: 8, cols: 8),
+  name: 'New Level',
+  difficulty: 'Hard',
+  boardSize: const BoardSizeModel(rows: 8, cols: 8),
   arrows: [
-    (id: 'a1', direction: CardinalDirection.right, cells: [
+    (id: 'a1', direction: 'right', cells: [
       [0, 0], [0, 1], [0, 2],
     ]),
     // ...
@@ -107,11 +103,15 @@ final _myLevel = (
 
 ```dart
 LevelModel(
-  levelId: _myLevel.id,
+  id: _myLevel.id,
+  name: _myLevel.name,
+  difficulty: _myLevel.difficulty,
   boardSize: _myLevel.boardSize,
-  arrows: _myLevel.arrows.map((a) =>
-    arrowHelper(a.id, a.direction, a.cells)
-  ).toList(),
+  boardState: BoardStateModel(
+    arrows: _myLevel.arrows.map((a) =>
+      arrowHelper(a.id, a.direction, a.cells)
+    ).toList(),
+  ),
 )
 ```
 
@@ -125,7 +125,7 @@ LevelModel(
 
 ### 6.4 Update tests
 
-If you add a level, update the expected count in `level_definitions_test.dart` (the `totalLevels`, `easyCount`, `mediumCount`, `hardCount` constants).
+If you add a level, update the hard-coded `hasLength(15)` expectation in `level_definitions_test.dart` to match the new total number of levels.
 
 ---
 

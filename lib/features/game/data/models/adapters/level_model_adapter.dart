@@ -13,8 +13,20 @@ class LevelModelAdapter extends TypeAdapter<LevelModel> {
     final id = reader.readInt();
     final name = reader.readString();
     final difficulty = reader.readString();
-    final boardSize = reader.read() as BoardSizeModel;
-    final boardState = reader.read() as BoardStateModel;
+    final nextValue = reader.read();
+    BoardSizeModel boardSize;
+    BoardStateModel boardState;
+
+    if (nextValue is BoardSizeModel) {
+      boardSize = nextValue;
+      boardState = reader.read() as BoardStateModel;
+    } else {
+      // Backward compatibility for levels persisted before boardSize was added.
+      // Default to 8x8 which is a safe fallback for older levels.
+      boardSize = const BoardSizeModel(rows: 8, cols: 8);
+      boardState = nextValue as BoardStateModel;
+    }
+
     return LevelModel(
       id: id,
       name: name,
