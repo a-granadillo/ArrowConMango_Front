@@ -78,6 +78,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   Level _levelForState(GamePlaying state) {
     return Level(
       levelId: state.levelId,
+      rows: state.rows,
+      cols: state.cols,
       templateBoard: state.boardState,
     );
   }

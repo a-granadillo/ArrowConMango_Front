@@ -1,5 +1,6 @@
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/arrow_trajectory.dart';
+import 'package:arrowconmango_front/features/game/data/models/board_size_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/arrow_mapper.dart';
@@ -22,6 +23,7 @@ void main() {
         id: 1,
         name: 'Level 1',
         difficulty: 'Easy',
+        boardSize: const BoardSizeModel(rows: 7, cols: 7),
         boardState: BoardStateModel(
           arrows: [
             ArrowModel(
@@ -49,6 +51,8 @@ void main() {
       // Arrange
       final entity = Level(
         levelId: 5,
+        rows: 7,
+        cols: 7,
         templateBoard: BoardState(arrows: const []),
       );
 
@@ -59,6 +63,8 @@ void main() {
       expect(model.id, equals(5));
       expect(model.difficulty, equals('Easy'));
       expect(model.name, equals('Level 5'));
+      expect(model.boardSize.rows, equals(7));
+      expect(model.boardSize.cols, equals(7));
     });
 
     test('should_round_trip_model_through_entity', () {
@@ -67,6 +73,7 @@ void main() {
         id: 1,
         name: 'Level 1',
         difficulty: 'Easy',
+        boardSize: const BoardSizeModel(rows: 7, cols: 7),
         boardState: BoardStateModel(
           arrows: [
             ArrowModel(
@@ -98,6 +105,8 @@ void main() {
       // Arrange
       final entity = Level(
         levelId: 12,
+        rows: 7,
+        cols: 7,
         templateBoard: BoardState(arrows: const []),
       );
 

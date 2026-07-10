@@ -42,8 +42,8 @@ void main() {
       );
     });
 
-    test('should_throw_when_entity_has_single_node', () {
-      // Arrange — single-node arrow is not supported by the trajectory model
+    test('should_map_single_node_entity_to_model_with_zero_length', () {
+      // Arrange
       final entity = ArrowEntity(
         id: 'arrow-2',
         direction: CardinalDirection.down,
@@ -52,20 +52,22 @@ void main() {
         ],
       );
 
-      // Act / Assert
+      // Act
+      final model = mapper.toModel(entity);
+
+      // Assert
+      expect(model.id, equals('arrow-2'));
+      expect(model.startNode, equals(const NodeModel(row: 2, col: 3)));
+      expect(model.trajectory.segments, hasLength(1));
       expect(
-        () => mapper.toModel(entity),
-        throwsA(
-          isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('at least 2 occupied nodes'),
-          ),
+        model.trajectory.segments.first,
+        equals(
+          const TrajectorySegment(direction: CardinalDirection.down, length: 0),
         ),
       );
     });
 
-    test('should_throw_when_arrow_entity_has_single_node', () {
+    test('should_round_trip_single_node_arrow_through_model', () {
       // Arrange
       final entity = ArrowEntity(
         id: 'arrow-2-single',
@@ -73,16 +75,16 @@ void main() {
         occupiedNodes: const [Grid2DNodeId(row: 2, col: 3)],
       );
 
-      // Act / Assert
+      // Act
+      final model = mapper.toModel(entity);
+      final roundTripped = mapper.toEntity(model);
+
+      // Assert
+      expect(roundTripped.id, equals('arrow-2-single'));
+      expect(roundTripped.direction, equals(CardinalDirection.down));
       expect(
-        () => mapper.toModel(entity),
-        throwsA(
-          isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('Single-node arrows are not supported'),
-          ),
-        ),
+        roundTripped.occupiedNodes,
+        equals([const Grid2DNodeId(row: 2, col: 3)]),
       );
     });
 

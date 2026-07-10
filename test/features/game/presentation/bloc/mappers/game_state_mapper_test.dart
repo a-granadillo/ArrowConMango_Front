@@ -48,6 +48,8 @@ void main() {
   Level dummyLevel({int levelId = 3, BoardState? templateBoard}) {
     return Level(
       levelId: levelId,
+      rows: 7,
+      cols: 7,
       templateBoard: templateBoard ?? dummyBoardState(),
     );
   }

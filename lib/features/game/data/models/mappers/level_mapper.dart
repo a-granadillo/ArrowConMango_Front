@@ -1,15 +1,9 @@
+import 'package:arrowconmango_front/features/game/data/models/board_size_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 
 import 'board_state_mapper.dart';
 
-/// Converts [LevelModel] to/from [Level].
-///
-/// **Note:** This mapper is lossy in the `LevelModel → Level` direction.
-/// The domain [Level] entity only stores `levelId` and `templateBoard`,
-/// so `name` and `difficulty` from the model are not preserved on round-trips.
-/// When converting back (`Level → LevelModel`), `name` is derived as
-/// `'Level ${levelId}'` and `difficulty` is computed from `Level.difficulty()`.
 class LevelMapper {
   final BoardStateMapper _boardStateMapper;
 
@@ -18,6 +12,8 @@ class LevelMapper {
   Level toEntity(LevelModel model) {
     return Level(
       levelId: model.id,
+      rows: model.boardSize.rows,
+      cols: model.boardSize.cols,
       templateBoard: _boardStateMapper.toEntity(model.boardState),
     );
   }
@@ -27,6 +23,7 @@ class LevelMapper {
       id: entity.levelId,
       name: 'Level ${entity.levelId}',
       difficulty: entity.difficulty(),
+      boardSize: BoardSizeModel(rows: entity.rows, cols: entity.cols),
       boardState: _boardStateMapper.toModel(entity.templateBoard),
     );
   }

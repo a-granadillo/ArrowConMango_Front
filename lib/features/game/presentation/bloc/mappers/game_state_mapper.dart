@@ -17,6 +17,8 @@ class GameStateMapper {
     return GamePlaying(
       levelId: level.levelId,
       difficulty: level.difficulty(),
+      rows: level.rows,
+      cols: level.cols,
       boardState: session.boardState,
       moveCount: session.moveCount,
       history: session.history,
