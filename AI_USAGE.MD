@@ -344,6 +344,21 @@
 - **Verificación:** `flutter analyze` sin errores. `flutter test` da todos verdes (195+ tests pasando).
 - **Lecciones / limitaciones:** Cambiar un modelo base como `Level` (agregar campos required) tiene efecto dominó en toda la base de código — 14 archivos modificados + tests. Usar defaults en estados de presentación (`GamePlaying.rows`/`cols`) reduce la cantidad de cambios necesarios en tests unitarios que no dependen del board size.
 
+### Entrada #22 — BLoC: Progress & Menu State (Issue #11)
+
+- **Fecha / autor:** 10-07-2026 / Alberto Monasterio
+- **Herramienta:** Claude Code (Modelo: Claude Opus 4.8)
+- **Rol en el flujo:** Desarrollador Senior en Dart (Capa de Presentación — BLoC de progreso y menú).
+- **Tarea/problema:** El proyecto tenía completa la capa de aplicación (Issue #9: `GetLevelListUseCase`, `LoadProgressUseCase`, `SaveLocalProgressUseCase`, `UnlockNextLevelUseCase`) pero ningún puente reactivo entre esos casos de uso y la futura UI de menú/selección de niveles. Faltaban `ProgressBloc` y `MenuBloc` con sus eventos y estados.
+- **Prompt (paráfrasis fiel):** > "Implementa el Issue #11 (BLoC - Progress & Menu State): crea `MenuBloc` (carga la lista de niveles vía `GetLevelListUseCase`) y `ProgressBloc` (carga, desbloquea y persiste el progreso vía `LoadProgressUseCase`, `UnlockNextLevelUseCase` y `SaveLocalProgressUseCase`). Sigue las convenciones ya establecidas por `GameBloc` (Issue #10): `sealed class` con Equatable, `final class` por variante, patrón `{@template}`/`{@macro}`. Reutiliza los fakes manuales existentes en los tests, sin mocktail. Deja `ProgressLevelUnlocked` como evento público para que `GameBloc` lo dispare tras la victoria."
+- **Resultado obtenido:**
+  1. `lib/features/game/presentation/bloc/menu_event.dart`, `menu_state.dart`, `menu_bloc.dart` — `MenuBloc` con evento `MenuLevelsRequested` y estados `MenuInitial`/`MenuLoading`/`MenuLevelsLoaded`/`MenuLoadFailure`.
+  2. `lib/features/game/presentation/bloc/progress_event.dart`, `progress_state.dart`, `progress_bloc.dart` — `ProgressBloc` con eventos `ProgressRequested`/`ProgressLevelUnlocked`/`ProgressSaved` y estados `ProgressInitial`/`ProgressLoading`/`ProgressLoaded`/`ProgressFailure`.
+  3. `test/features/game/presentation/bloc/menu_bloc_test.dart` y `progress_bloc_test.dart` — 12 tests con `blocTest`, usando use cases reales alimentados por `FakeLevelRepository`/`FakeProgressRepository`.
+- **Modificaciones del equipo:** Se detectó que `UnlockNextLevelUseCase` ya persiste el progreso internamente (llama a `saveProgress`); se documentó explícitamente en `ProgressBloc._onLevelUnlocked` para evitar que una futura modificación encadene `SaveLocalProgressUseCase` y duplique la escritura. Se ajustó el `// ignore_for_file: prefer_initializing_formals` al patrón exacto usado en `game_bloc.dart` (el `// ignore:` de línea no suprimía el lint porque el parámetro se asigna en la lista de inicialización, no en la firma).
+- **Verificación:** `flutter analyze` sin errores. `flutter test` da 207/207 tests pasando (195 existentes + 12 nuevos).
+- **Lecciones / limitaciones:** `design.md` describe un `MenuBloc` orientado a sincronización con un backend remoto (leaderboard), pero el ROADMAP y el Issue #11 lo definen en torno a `GetLevelListUseCase`. Se siguió el ROADMAP/Issue por ser la fuente de verdad operativa y porque no existe cliente HTTP en el frontend. `flutter_bloc` y `bloc_test` ya habían sido agregados a `pubspec.yaml` por el Issue #10; no fue necesario modificar dependencias.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
@@ -354,7 +369,7 @@
 | Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
 | Hive Repositories (2 repos, 5 adapters, 8 tests) | 95% | 5% |
 | Casos de Uso y AOP Decorators | ~% | ~% |
-| BLoC (Events, States, Mappers) | ~% | ~% |
+| BLoC (Events, States, Mappers — GameBloc, ProgressBloc, MenuBloc) | 90% | 10% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
 | Configuración CI/CD (GitHub Actions) | 70% | 30% |
 | Pruebas Unitarias (Dominio v2 — 44 tests) | 90% | 10% |

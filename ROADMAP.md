@@ -667,7 +667,7 @@ gh pr merge [pr-number] --squash --delete-branch
 - [ ] GitHub #8: Use Cases - Progress & Scoring (AlbertoMonasterio)
 - [ ] GitHub #9: Use Cases - Level Management (AlbertoMonasterio)
 - [ ] GitHub #10: BLoC - Game State Management (AlbertoMonasterio)
-- [ ] GitHub #11: BLoC - Progress & Menu State (AlbertoMonasterio)
+- [x] GitHub #11: BLoC - Progress & Menu State (AlbertoMonasterio)
 - [ ] GitHub #12: UI - Result Screens (AlbertoMonasterio)
 - [ ] GitHub #13: Dependency Injection (ambos)
 - [ ] GitHub #14: AOP - Logging & Error Handling (ambos)
