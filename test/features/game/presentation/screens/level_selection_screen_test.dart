@@ -67,9 +67,8 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
-    // Locked levels render a lock icon (level 4+).
-    expect(find.byIcon(Icons.lock_rounded), findsWidgets);
-    // Locked levels do not show their number.
+    // Locked levels render as "Nivel N" (not a bare number).
+    expect(find.text('Nivel 4'), findsOneWidget);
     expect(find.text('4'), findsNothing);
   });
 }
