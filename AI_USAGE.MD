@@ -403,6 +403,27 @@
   2. **Extraer colores desde JS embebido requiere grep dirigido**: los ternarios `bg:`/`shadow:` de los tiles de nivel y filas del leaderboard sólo aparecen completos con suficiente contexto alrededor del match; hicieron falta varias pasadas de grep con ventanas de contexto crecientes para no perder literales partidos en el JSON del `.dc.html`.
   3. **Verificación de fidelidad visual sin capturas de pantalla:** ante la imposibilidad de comparar pixel a pixel, se usó una combinación de (a) build real corriendo en vivo para revisión humana, (b) consola sin errores por ruta, y (c) widget tests que verifican los textos/estructura exactos del nuevo layout.
 
+### Entrada #25 — UI: Pantalla de Juego (tablero, flechas, controles, timer) (Issue #5)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** Implementar el Issue #5 sobre la base de #4: renderizar el tablero desde `GamePlaying`, dibujar las flechas sobre sus celdas ocupadas, permitir sacarlas con un toque, controles (deshacer/reiniciar), HUD (nivel, flechas, toques, tiempo) y navegar a las pantallas de resultado en victoria/derrota.
+- **Prompt (paráfrasis fiel):** > "Continuemos con el issue #5 (Game Screen) ya, ramificando desde la rama local de #4."
+- **Resultado obtenido:**
+  1. Rama `5-game-screen` desde `4-menu-screens`.
+  2. Widgets: `board_grid_widget.dart` (grid `rows×cols`, posiciona cada flecha por su *bounding box* de nodos), `arrow_widget.dart` (cuerpo redondeado + chevron según dirección), `game_controls_widget.dart` (deshacer/reiniciar), y `animations/arrow_exit_animation.dart` (deslizamiento+desvanecido al salir).
+  3. `game_screen.dart`: enlaza `GameBloc`, despacha `LoadLevel`, **bombea `Tick` cada segundo** (el BLoC no tiene reloj), HUD, y `BlocConsumer` que navega a `/victory` `/defeat` en `GameVictory`/`GameDefeat`. La animación de salida se dispara *diffando* el tablero previo vs actual.
+  4. Se cableó la ruta `/game/:levelId` a la pantalla real (antes placeholder).
+  5. **Tests:** 7 nuevos (board, controles, animación con avance de reloj, y game screen con `MockBloc`/`mocktail`). Suite: **224/224**, `analyze` limpio. Se agregó `mocktail` a dev_dependencies.
+- **Modificaciones del equipo:** (pendiente de revisión por PR).
+- **Verificación:** `flutter analyze` (0), `flutter test` (224/224). Smoke en `web-server` navegando a `/#/game/1`: consola sin errores; el `GameBloc` real cargó el nivel sembrado y renderizó `GamePlaying` (valida seeding + repos + topología + render end-to-end).
+- **Lecciones / limitaciones:**
+  1. **`MockBloc` (bloc_test/mocktail)** es la vía limpia para widget-testear una pantalla ligada a un BLoC sin construir todo el grafo de casos de uso.
+  2. **Timers en `testWidgets`:** el `Timer.periodic` del `Tick` queda pendiente; se dispone la pantalla (`pumpWidget(SizedBox())`) al final del test para cancelarlo y evitar el fallo por "pending timer".
+  3. **Golden tests omitidos a propósito:** generar baselines en Windows rompería el CI de Linux (render de fuentes distinto); se cubre el comportamiento con widget/animation tests y se deja el golden para generarse en el entorno de CI.
+  4. **Último movimiento sin animación:** al sacar la última flecha el BLoC emite `GameVictory` directo (sin `GamePlaying` vacío), así que esa salida no se anima; la pantalla de victoria toma el relevo.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
