@@ -253,7 +253,7 @@ lib/features/game/presentation/bloc/
 **Dependencias:** GitHub #11 (MenuBloc)  
 **Estimación:** 6 horas  
 **Prioridad:** 🟡 ALTA  
-**Asignado:** a-granadillo
+**Asignado:** hetairoii
 
 **Incluye:**
 - `SplashScreen` - Pantalla de carga
@@ -281,7 +281,7 @@ lib/features/game/presentation/screens/
 **Dependencias:** GitHub #10 (GameBloc)  
 **Estimación:** 15 horas  
 **Prioridad:** 🔴 CRÍTICA  
-**Asignado:** a-granadillo
+**Asignado:** hetairoii
 
 **Incluye:**
 - `GameScreen` - Pantalla de juego
@@ -312,7 +312,7 @@ lib/features/game/presentation/widgets/
 **Dependencias:** GitHub #10 (GameBloc)  
 **Estimación:** 4 horas  
 **Prioridad:** 🟡 ALTA  
-**Asignado:** AlbertoMonasterio
+**Asignado:** hetairoii
 
 **Incluye:**
 - `VictoryScreen` - Pantalla de victoria
@@ -332,7 +332,29 @@ lib/features/game/presentation/screens/
 
 ---
 
-### **CAPA 1: Core (Transversales)**
+#### GitHub #18: UI - Global Leaderboard (Guest-First)
+**Scope:** Pantalla de ranking mundial e integración de cuenta opcional  
+**Dependencias:** Ninguna (puede mockearse la data inicialmente)  
+**Estimación:** 6 horas  
+**Prioridad:** 🟢 MEDIA  
+**Asignado:** hetairoii
+
+**Incluye:**
+- `LeaderboardScreen` - Pantalla de ranking
+- Integración de UUID anónimo (Guest-First)
+- Opcional: `SignInButton` (Google/Apple) para vincular cuenta
+
+**Archivos:**
+```
+lib/features/game/presentation/screens/
+└── leaderboard_screen.dart
+```
+
+**Tests:** Widget tests
+
+**GitHub Issue:** [#18](https://github.com/a-granadillo/ArrowConMango_Front/issues/18)
+
+---
 
 #### GitHub #13: Dependency Injection (get_it + injectable)
 **Scope:** Configuración de inyección de dependencias con get_it  
@@ -541,19 +563,17 @@ GitHub #17 (README) ◄───────────────────
 
 ## 👥 División de Trabajo Sugerida
 
-### **Persona A (a-granadillo): Data Layer & UI**
-**Features asignadas:** GitHub #1, #2, #3, #4, #5, #6  
-**Horas estimadas:** 34 horas  
+### **Persona A (a-granadillo): Data Layer & Core**
+**Features asignadas:** GitHub #1, #2, #3, #6  
+**Horas estimadas:** 28 horas  
 **Ramas:**
 - `feat/data-models` (GitHub #1)
 - `feat/hive-repositories` (GitHub #2)
 - `feat/level-definitions` (GitHub #3)
-- `feat/menu-ui` (GitHub #4)
-- `feat/game-ui` (GitHub #5)
 - `feat/audio` (GitHub #6)
 
 ### **Persona B (AlbertoMonasterio): Use Cases & BLoC**
-**Features asignadas:** GitHub #7, #8, #9, #10, #11, #12  
+**Features asignadas:** GitHub #7, #8, #9, #10, #11  
 **Horas estimadas:** 35 horas  
 **Ramas:**
 - `feat/game-use-cases` (GitHub #7)
@@ -561,9 +581,17 @@ GitHub #17 (README) ◄───────────────────
 - `feat/level-use-cases` (GitHub #9)
 - `feat/game-bloc` (GitHub #10)
 - `feat/progress-bloc` (GitHub #11)
-- `feat/result-ui` (GitHub #12)
 
-### **Compartido (ambos):**
+### **Persona C (hetairoii): UI & Presentation**
+**Features asignadas:** GitHub #4, #5, #12, #18  
+**Horas estimadas:** 31 horas  
+**Ramas:**
+- `feat/menu-ui` (GitHub #4)
+- `feat/game-ui` (GitHub #5)
+- `feat/result-ui` (GitHub #12)
+- `feat/leaderboard-ui` (GitHub #18)
+
+### **Compartido (todos):**
 **Features:** GitHub #13, #14, #15, #16, #17  
 **Horas estimadas:** 24 horas
 
@@ -668,7 +696,8 @@ gh pr merge [pr-number] --squash --delete-branch
 - [ ] GitHub #9: Use Cases - Level Management (AlbertoMonasterio)
 - [ ] GitHub #10: BLoC - Game State Management (AlbertoMonasterio)
 - [ ] GitHub #11: BLoC - Progress & Menu State (AlbertoMonasterio)
-- [ ] GitHub #12: UI - Result Screens (AlbertoMonasterio)
+- [ ] GitHub #12: UI - Result Screens (hetairoii)
+- [ ] GitHub #18: UI - Global Leaderboard (hetairoii)
 - [ ] GitHub #13: Dependency Injection (ambos)
 - [ ] GitHub #14: AOP - Logging & Error Handling (ambos)
 - [ ] GitHub #15: Internationalization (ambos)
@@ -677,4 +706,4 @@ gh pr merge [pr-number] --squash --delete-branch
 
 ---
 
-**Total: 17 features | ~112 horas | 8 semanas**
+**Total: 18 features | ~118 horas | 8 semanas**
