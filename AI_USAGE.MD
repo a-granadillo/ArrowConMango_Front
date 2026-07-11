@@ -540,6 +540,24 @@
   3. **SnackBar deja un timer pendiente:** se avanza el reloj (`pump(5s)`) para que se auto-cierre y no falle el test por "pending timer".
   4. **Guest-First real:** el leaderboard funciona desde el primer segundo con el UUID anónimo; el backend (`GET /leaderboard`) puede implementar la misma interfaz sin tocar la UI.
 
+### Entrada #30 — Rediseño fiel al mockup: Leaderboard con podio (Issue #36)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** Rediseñar la pantalla de Leaderboard fiel al `.dc.html`: el diseño la modela con un **header verde con podio de los top-3** (1° al centro, más grande y con aro dorado; 2° y 3° a los lados con barras más bajas) seguido de una lista de los ranks 4+; la primera versión era una lista plana genérica.
+- **Prompt (paráfrasis fiel):** > (continuación del rediseño rama por rama) "aplica el rediseño fiel en cada rama… pasa al issue 36".
+- **Resultado obtenido:**
+  1. `leaderboard_screen.dart` reescrito: header verde (radio 30) con back, título "Clasificación", subtítulo, trofeo dorado; **podio** ordenado 2°-1°-3° con avatares/aros/barras de tamaños exactos del diseño; lista inferior de ranks 4+ con avatar de color, nombre + subtítulo ("N niveles"), chip de mangos, y la fila del invitado resaltada (borde/sombra naranja). El botón de vincular cuenta (que el diseño NO tiene en ninguna pantalla, pero el issue #36 pide) se degradó a un link de texto discreto.
+  2. `mock_leaderboard_repository.dart`: los **8 jugadores exactos del diseño** (MangoMaster, Luisa_G, PulpaFan, Karo22, DulceVerde, ElHuertero, Flechita + el invitado) con sus colores.
+  3. Nuevos SVG `trophyFilled` y `mangoDot` en `app_svgs.dart`.
+  4. **Tests:** actualizados (podio + resaltado del invitado en la lista + snackbar). Suite: **234/234**, `analyze` limpio. Sin dependencias nuevas.
+- **Modificaciones del equipo:** el usuario aprobó el rediseño en vivo.
+- **Verificación:** `flutter analyze` (0), `flutter test` (234/234); `/ranking` en build release sin errores de consola.
+- **Lecciones / limitaciones:**
+  1. **Casi contamino el dominio (otra vez):** al mapear el color por jugador estuve a punto de meter `Color` de Flutter en la entidad `LeaderboardEntry` — exactamente la falla ya documentada en este archivo ("Contaminación del Dominio"). Se guardó como `int` (ARGB, `colorValue`) en el dominio y se convierte a `Color` solo en la capa de presentación.
+  2. **El diseño no tiene login social en ninguna pantalla**; la funcionalidad requerida por el issue se añadió como extensión mínima y discreta, no como elemento protagónico.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
