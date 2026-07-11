@@ -16,16 +16,43 @@ import '../../helpers/player_test_setup.dart';
 class MockLeaderboardCubit extends MockCubit<LeaderboardState>
     implements LeaderboardCubit {}
 
+// Ranks 1-3 land in the podium; the current player at rank 4 lands in the
+// scrollable list, where the "(Tú)" highlight is applied.
 const _loaded = LeaderboardLoaded(
   entries: [
-    LeaderboardEntry(rank: 1, uuid: 's1', displayName: 'MangoReina_88', mangos: 1580),
     LeaderboardEntry(
-        rank: 2,
-        uuid: 'me',
-        displayName: 'MangoLoco_10',
-        mangos: 640,
-        isCurrentPlayer: true),
-    LeaderboardEntry(rank: 3, uuid: 's2', displayName: 'PixelHero_09', mangos: 610),
+      rank: 1,
+      uuid: 's1',
+      displayName: 'MangoReina_88',
+      mangos: 1580,
+      sub: '15 niveles',
+      colorValue: 0xFFF4843D,
+    ),
+    LeaderboardEntry(
+      rank: 2,
+      uuid: 's2',
+      displayName: 'ArrowKing_07',
+      mangos: 1420,
+      sub: '13 niveles',
+      colorValue: 0xFF4CAF50,
+    ),
+    LeaderboardEntry(
+      rank: 3,
+      uuid: 's3',
+      displayName: 'PixelHero_09',
+      mangos: 610,
+      sub: '12 niveles',
+      colorValue: 0xFF9B6BC7,
+    ),
+    LeaderboardEntry(
+      rank: 4,
+      uuid: 'me',
+      displayName: 'MangoLoco_10',
+      mangos: 400,
+      sub: '1 nivel',
+      colorValue: 0xFFF9C74F,
+      isCurrentPlayer: true,
+    ),
   ],
 );
 
@@ -65,7 +92,7 @@ void main() {
     );
   }
 
-  testWidgets('should_render_ranking_and_highlight_current_player',
+  testWidgets('should_render_podium_and_highlight_current_player_in_the_list',
       (tester) async {
     // Act
     await pumpScreen(tester);
@@ -74,7 +101,11 @@ void main() {
     // Assert
     expect(find.text('Clasificación'), findsOneWidget);
     expect(find.text('Los mejores cosechadores'), findsOneWidget);
+    // Top 3 render in the podium.
     expect(find.text('MangoReina_88'), findsOneWidget);
+    expect(find.text('ArrowKing_07'), findsOneWidget);
+    expect(find.text('PixelHero_09'), findsOneWidget);
+    // Rank 4 (the guest) renders in the list, highlighted with "(Tú)".
     expect(find.textContaining('MangoLoco_10 (Tú)'), findsOneWidget);
     expect(find.text('Vincular cuenta (Google / Apple)'), findsOneWidget);
     // The screen requested a load on entry.
