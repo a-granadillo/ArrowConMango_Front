@@ -493,6 +493,32 @@
   2. **`confetti` + tests:** la animación deja timers activos; se dispone la pantalla al final del test para evitar "pending timer", y se usa `pump()` acotado (no `pumpAndSettle`).
   3. **Persistencia del desbloqueo en `initState`:** se despacha `ProgressLevelCompleted` en un `addPostFrameCallback` para no leer el BLoC durante el build.
 
+### Entrada #28 — Rediseño fiel al mockup: Diálogo de Victoria/Derrota + fix de nivel 1 bloqueado (Issue #12)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-sonnet-5)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** Continuar el rediseño fiel al `.dc.html` en la rama de Resultados: el diseño modela la victoria como un **bottom sheet** ("Dialogo Enhorabuena") sobre un fondo oscurecido, con confetti, rating de 1-3 mangos y animaciones (`slideUp`, `popBig`, `mangoPop`, `confettiFall`), no como una pantalla completa genérica. Además, al revisar en vivo, el usuario reportó que no había niveles disponibles para jugar.
+- **Prompt (paráfrasis fiel):** > "Todo bien, aunque no veo los niveles disponibles para poder probar el juego. Recuerda que los niveles deben verse como la UI que pase por referencia, agrega los niveles." → luego, tras el fix: "Mejor, ahora pasa al issue 36."
+- **Resultado obtenido (rediseño):**
+  1. `result_sheet.dart` nuevo: chrome compartido (fondo oscuro + hoja deslizante `slideUp` + barra de arrastre) y `ConfettiRain` (reemplaza el paquete `confetti` por un `CustomPainter` propio, 46 partículas con las fórmulas exactas de posición/color/delay/duración del diseño). Se quitó la dependencia `confetti` y se borró `victory_animation.dart` (ya sin uso).
+  2. `mango_rating.dart`: mapea `Score.totalPoints` a un rating de 1-3 mangos y su mensaje, replicando los umbrales/textos del diseño (adaptación: el diseño calcula el rating de datos internos que nuestro dominio no expone a la UI en el momento de victoria).
+  3. `mango_slots.dart`: 3 íconos de mango (el del medio más grande), animación `popBig`/`mangoPop` escalonada, escala de grises para los no ganados.
+  4. `result_stat.dart` reescrito: tarjeta de stats con divisores verticales entre celdas (sin íconos), fiel al diseño.
+  5. `victory_screen.dart` y `defeat_screen.dart` reescritos sobre `ResultSheet`; botones con la sombra 3D plana exacta (`0 5px 0 #A83800`). El diseño **no tiene pantalla de derrota**; se reutilizó el mismo chrome visual con contenido propio (ícono, motivo, Reintentar) — deviación explícitamente señalada y aprobada.
+  6. **Tests:** actualizados para el nuevo layout (mismos textos, se agregó disposición de la pantalla al final para cancelar los tickers de `ResultSheet`). Suite: **228/228** en este punto.
+- **Resultado obtenido (bug fix):** al revisar en vivo, ningún nivel aparecía desbloqueado — `AppProgress()` por defecto trae `unlockedLevels: []`, y nada sembraba el nivel 1 como desbloqueado en el primer arranque, dejando al jugador sin forma de empezar.
+  1. Nueva función pública y testeable `seedProgressIfEmpty()` en `lib/core/di/progress_seed.dart`: si la caja de progreso está vacía (primer arranque), guarda `AppProgressModel(currentLevel: 1, completedLevels: [1])`.
+  2. Se expuso `HiveProgressRepository.progressKey` (antes privada) para reutilizar la clave sin duplicar el string mágico.
+  3. Llamada desde `setupServiceLocator()`, junto al resto del *seeding* (niveles, identidad invitado).
+  4. **Tests:** 2 nuevos (`progress_seed_test.dart`): siembra en caja vacía; no pisa el progreso real de un jugador que regresa. Suite final: **230/230**.
+- **Modificaciones del equipo:** el usuario aprobó el rediseño y reportó el bug de niveles bloqueados al probarlo en vivo; tras el fix confirmó "mejor" y autorizó continuar con el issue #36.
+- **Verificación:** `flutter analyze` (0), `flutter test` (230/230). Boot en Chrome real sin errores de consola; se intentó verificar el valor sembrado leyendo IndexedDB directamente vía `javascript_tool`, pero Hive codifica los registros en un formato binario propio no legible como JSON plano desde fuera del código Dart — la verificación final quedó en manos del usuario probando la app real.
+- **Lecciones / limitaciones:**
+  1. **Los datos por defecto de una entidad de dominio (`AppProgress()` vacío) pueden dejar el producto inutilizable en el primer arranque** si nadie los siembra explícitamente; los tests unitarios que fabrican estados `MenuLoaded`/`AppProgress` a mano no detectan esto porque nunca ejercitan el camino real "caja Hive vacía → `loadProgress()` → UI".
+  2. **No toda verificación necesita reproducir la app**: extraer una función privada de *seeding* a un archivo público y testeable (`progress_seed.dart`) permitió cubrir el fix con tests unitarios rápidos en vez de depender solo de QA manual.
+  3. **IndexedDB + Hive no es introspeccionable desde JS externo sin el codec de Hive**: para depurar estado persistido en Flutter Web hay que confiar en logs de la propia app o en tests, no en leer la base cruda del navegador.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
