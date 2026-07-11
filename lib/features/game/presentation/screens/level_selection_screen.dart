@@ -1,45 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/mango_background.dart';
+import '../../../../core/widgets/app_svgs.dart';
+import '../../../../core/widgets/mango_logo.dart';
 import '../../application/dtos/level_summary.dart';
 import '../bloc/menu_bloc.dart';
 import '../bloc/menu_event.dart';
 import '../bloc/menu_state.dart';
 import '../widgets/level_card.dart';
 
-/// Grid of levels with their unlock state. Bound to [MenuBloc].
+/// Level selection — faithful reproduction of the design.
 class LevelSelectionScreen extends StatelessWidget {
   const LevelSelectionScreen({super.key});
 
-  /// Difficulty label for a level id, mirroring `Level.difficulty()`.
+  /// Spanish difficulty label matching the design.
   static String difficultyFor(int levelId) {
-    if (levelId <= 5) return 'Easy';
-    if (levelId <= 10) return 'Medium';
-    return 'Hard';
+    if (levelId <= 5) return 'Fácil';
+    if (levelId <= 10) return 'Medio';
+    return 'Difícil';
   }
 
   @override
   Widget build(BuildContext context) {
-    return MangoBackground(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Scaffold(
+      backgroundColor: AppColors.cream,
+      body: Column(
         children: [
-          _Header(),
-          const SizedBox(height: 16),
+          const _Header(),
           Expanded(
             child: BlocBuilder<MenuBloc, MenuState>(
               builder: (context, state) => switch (state) {
                 MenuLoaded(:final levels) => _LevelGrid(levels: levels),
                 MenuError(:final message) => _ErrorView(message: message),
                 _ => const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.textOnPrimary,
-                    ),
+                    child: CircularProgressIndicator(color: AppColors.success),
                   ),
               },
             ),
@@ -51,47 +49,81 @@ class LevelSelectionScreen extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
+  const _Header();
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.textOnPrimary,
-          ),
+    final top = MediaQuery.of(context).padding.top;
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, top + 20, 20, 22),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment(-0.4, -1),
+          end: Alignment(0.4, 1),
+          colors: [AppColors.successDark, AppColors.success],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Seleccionar Nivel',
-                style: AppTypography.display(
-                  26,
-                  color: AppColors.textOnPrimary,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
+      child: Row(
+        children: [
+          _HeaderBackButton(onTap: () => context.pop()),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Seleccionar Nivel',
+                  style: GoogleFonts.fredoka(
+                    fontSize: 22,
+                    height: 1.1,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              BlocBuilder<MenuBloc, MenuState>(
-                builder: (context, state) {
-                  if (state is! MenuLoaded) return const SizedBox.shrink();
-                  final unlocked =
-                      state.levels.where((l) => l.isUnlocked).length;
-                  return Text(
-                    '$unlocked de ${state.levels.length} disponibles',
-                    style: AppTypography.body(
-                      14,
-                      color: AppColors.textOnPrimary,
-                    ),
-                  );
-                },
-              ),
-            ],
+                BlocBuilder<MenuBloc, MenuState>(
+                  builder: (context, state) {
+                    final unlocked = state is MenuLoaded
+                        ? state.levels.where((l) => l.isUnlocked).length
+                        : 0;
+                    final total = state is MenuLoaded ? state.levels.length : 15;
+                    return Text(
+                      '$unlocked de $total disponibles',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
+          const MangoLogo(size: 36, leaf: AppColors.mango),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderBackButton extends StatelessWidget {
+  const _HeaderBackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.22),
+          borderRadius: BorderRadius.circular(12),
         ),
-      ],
+        child: AppSvgs.icon(AppSvgs.backChevron, 20),
+      ),
     );
   }
 }
@@ -101,20 +133,30 @@ class _LevelGrid extends StatelessWidget {
 
   final List<LevelSummary> levels;
 
+  LevelTileState _stateFor(int index) {
+    final level = levels[index];
+    if (!level.isUnlocked) return LevelTileState.locked;
+    final hasNextUnlocked =
+        index + 1 < levels.length && levels[index + 1].isUnlocked;
+    return hasNextUnlocked ? LevelTileState.completed : LevelTileState.unlocked;
+  }
+
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
+      padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 3,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        mainAxisExtent: 102,
       ),
       itemCount: levels.length,
       itemBuilder: (context, index) {
         final level = levels[index];
         return LevelCard(
           levelId: level.levelId,
-          isUnlocked: level.isUnlocked,
+          state: _stateFor(index),
           difficulty: LevelSelectionScreen.difficultyFor(level.levelId),
           onTap: () => context.push(AppRoutes.gameFor(level.levelId)),
         );
@@ -134,12 +176,11 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, color: AppColors.textOnPrimary, size: 40),
+          const Icon(Icons.error_outline, color: AppColors.primary, size: 40),
           const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTypography.body(16, color: AppColors.textOnPrimary),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(message, textAlign: TextAlign.center),
           ),
           const SizedBox(height: 16),
           ElevatedButton(

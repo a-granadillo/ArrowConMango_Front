@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/mango_background.dart';
+import '../../../../core/widgets/app_svgs.dart';
+import '../../../../core/widgets/mango_logo.dart';
 import '../../../player/domain/guest_player.dart';
 import '../../../player/presentation/player_cubit.dart';
 
-/// App settings: guest name, audio and language.
-///
-/// Audio (#6) and language (#15) are visual stubs for now; the guest-name
-/// editor is fully wired through [PlayerCubit].
+/// Settings screen — styled consistently with the design system.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -56,75 +54,155 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MangoBackground(
-      child: Column(
+    return Scaffold(
+      backgroundColor: AppColors.cream,
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => context.pop(),
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: AppColors.textOnPrimary,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Ajustes',
-                style:
-                    AppTypography.display(26, color: AppColors.textOnPrimary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  BlocBuilder<PlayerCubit, GuestPlayer>(
-                    builder: (context, player) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.person_rounded,
-                          color: AppColors.primary),
-                      title: const Text('Nombre de jugador'),
-                      subtitle: Text(player.displayName),
-                      trailing: TextButton(
-                        onPressed: () => _editName(context),
-                        child: const Text('Editar'),
-                      ),
+          _Header(),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                BlocBuilder<PlayerCubit, GuestPlayer>(
+                  builder: (context, player) => _SettingCard(
+                    icon: Icons.person_rounded,
+                    title: 'Nombre de jugador',
+                    subtitle: player.displayName,
+                    trailing: TextButton(
+                      onPressed: () => _editName(context),
+                      child: const Text('Editar'),
                     ),
                   ),
-                  const Divider(),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    secondary: const Icon(Icons.volume_up_rounded,
-                        color: AppColors.primary),
-                    title: const Text('Sonido'),
+                ),
+                const SizedBox(height: 12),
+                _SettingCard(
+                  icon: Icons.volume_up_rounded,
+                  title: 'Sonido',
+                  trailing: Switch(
                     value: _audioOn,
+                    activeThumbColor: AppColors.success,
                     onChanged: (v) => setState(() => _audioOn = v),
                   ),
-                  const Divider(),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.language_rounded,
-                        color: AppColors.primary),
-                    title: const Text('Idioma'),
-                    trailing: DropdownButton<String>(
-                      value: _language,
-                      onChanged: (v) =>
-                          setState(() => _language = v ?? _language),
-                      items: const [
-                        DropdownMenuItem(value: 'es', child: Text('Español')),
-                        DropdownMenuItem(value: 'en', child: Text('English')),
-                      ],
-                    ),
+                ),
+                const SizedBox(height: 12),
+                _SettingCard(
+                  icon: Icons.language_rounded,
+                  title: 'Idioma',
+                  trailing: DropdownButton<String>(
+                    value: _language,
+                    underline: const SizedBox.shrink(),
+                    onChanged: (v) => setState(() => _language = v ?? _language),
+                    items: const [
+                      DropdownMenuItem(value: 'es', child: Text('Español')),
+                      DropdownMenuItem(value: 'en', child: Text('English')),
+                    ],
                   ),
-                ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, top + 20, 20, 22),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment(-0.4, -1),
+          end: Alignment(0.4, 1),
+          colors: [AppColors.successDark, AppColors.success],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => context.pop(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: AppSvgs.icon(AppSvgs.backChevron, 20),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Ajustes',
+              style: GoogleFonts.fredoka(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
           ),
+          const MangoLogo(size: 36, leaf: AppColors.mango),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingCard extends StatelessWidget {
+  const _SettingCard({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [BoxShadow(color: Color(0xFFE8D5C0), offset: Offset(0, 3))],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.primary),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          trailing,
         ],
       ),
     );

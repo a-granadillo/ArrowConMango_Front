@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/mango_background.dart';
+import '../../../../core/theme/app_gradients.dart';
+import '../../../../core/widgets/mango_logo.dart';
 
-/// Loading / branding screen shown at launch. Auto-navigates to the main menu.
+/// Brief branded loading screen, then navigates to the main menu.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
-  /// How long the splash stays before navigating.
   static const Duration displayDuration = Duration(milliseconds: 1800);
 
   @override
@@ -42,31 +42,47 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _goToMenu,
-      child: MangoBackground(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🥭', style: TextStyle(fontSize: 96)),
-              const SizedBox(height: 16),
-              Text(
-                'ARROW CON MANGO',
-                textAlign: TextAlign.center,
-                style: AppTypography.display(
-                  40,
-                  color: AppColors.textOnPrimary,
-                  weight: FontWeight.w700,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(gradient: AppGradients.brand),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const FloatingMango(size: 120, leaf: AppColors.mango),
+                const SizedBox(height: 16),
+                Text(
+                  'ARROW CON',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.fredoka(
+                    fontSize: 38,
+                    height: 1.05,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '¡El laberinto más sabroso!',
-                textAlign: TextAlign.center,
-                style: AppTypography.body(18, color: AppColors.textOnPrimary),
-              ),
-              const SizedBox(height: 40),
-              const CircularProgressIndicator(color: AppColors.textOnPrimary),
-            ],
+                Text(
+                  'MANGO',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.fredoka(
+                    fontSize: 46,
+                    height: 1,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 36),
+                const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: AppColors.textOnPrimary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
