@@ -21,8 +21,9 @@ class ExitingArrowData {
   final VoidCallback onComplete;
 }
 
-/// Renders the puzzle board: a grid of cells with the arrows positioned over
-/// the cells they occupy. Tapping an arrow reports its id via [onArrowTap].
+/// Renders the puzzle board exactly as designed: a dark-wood frame around a
+/// dotted board surface, with arrows positioned over the cells they occupy.
+/// Tapping an arrow reports its id via [onArrowTap].
 class BoardGridWidget extends StatelessWidget {
   const BoardGridWidget({
     super.key,
@@ -39,14 +40,15 @@ class BoardGridWidget extends StatelessWidget {
   final void Function(String arrowId) onArrowTap;
   final List<ExitingArrowData> exitingArrows;
 
-  /// Palette cycled across arrows so neighbours are visually distinct.
+  /// Arrow color palette, in the exact order used by the design.
   static const List<Color> _arrowColors = [
+    AppColors.mango,
+    AppColors.danger,
     AppColors.primary,
     AppColors.success,
     AppColors.difficultyMedium,
     AppColors.difficultyHard,
-    AppColors.textDark,
-    AppColors.danger,
+    AppColors.difficultyEasy,
   ];
 
   /// Stable color for the arrow at [index] in the board's arrow list.
@@ -80,53 +82,40 @@ class BoardGridWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: cols / rows,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final cell = constraints.maxWidth / cols;
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              color: AppColors.beige,
-              borderRadius: BorderRadius.circular(cell * 0.25),
-              border: Border.all(color: AppColors.textMuted, width: 3),
-            ),
-            child: Stack(
-              children: [
-                Positioned.fill(child: _grid()),
-                for (var i = 0; i < arrows.length; i++)
-                  _positionedArrow(arrows[i], i, cell),
-                for (final exiting in exitingArrows)
-                  _positionedExiting(exiting, cell),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _grid() {
-    return Column(
-      children: List.generate(
-        rows,
-        (r) => Expanded(
-          child: Row(
-            children: List.generate(
-              cols,
-              (c) => Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: (r + c).isEven ? AppColors.cream2 : AppColors.beige,
-                    border: Border.all(
-                      color: AppColors.cream,
-                      width: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+    // Design frame: dark wood #6D4C2A, radius 22, padding 9, matching shadow.
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: AppColors.textDark,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x526D4C2A),
+            blurRadius: 28,
+            offset: Offset(0, 8),
           ),
+        ],
+      ),
+      child: AspectRatio(
+        aspectRatio: cols / rows,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final cell = constraints.maxWidth / cols;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(13),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(painter: _BoardSurfacePainter(cell)),
+                  ),
+                  for (var i = 0; i < arrows.length; i++)
+                    _positionedArrow(arrows[i], i, cell),
+                  for (final exiting in exitingArrows)
+                    _positionedExiting(exiting, cell),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -166,4 +155,34 @@ class BoardGridWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Paints the board's dark backdrop with a subtle dotted pattern, matching
+/// the design's `rgba(0,0,0,0.16)` fill + dotted `rgba(255,248,238,0.13)`
+/// pattern (36px spacing at the design's reference scale).
+class _BoardSurfacePainter extends CustomPainter {
+  const _BoardSurfacePainter(this.cell);
+
+  final double cell;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = const Color(0x29000000),
+    );
+
+    final dotPaint = Paint()..color = const Color(0x21FFF8EE);
+    final spacing = cell;
+    final dotRadius = cell * 0.05;
+    for (var y = spacing / 2; y < size.height; y += spacing) {
+      for (var x = spacing / 2; x < size.width; x += spacing) {
+        canvas.drawCircle(Offset(x, y), dotRadius, dotPaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BoardSurfacePainter oldDelegate) =>
+      oldDelegate.cell != cell;
 }

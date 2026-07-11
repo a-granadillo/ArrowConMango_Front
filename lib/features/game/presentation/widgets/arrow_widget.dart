@@ -41,19 +41,17 @@ class ArrowWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inset = cellSize * 0.10;
+    final inset = cellSize * 0.14;
     return Padding(
       padding: EdgeInsets.all(inset),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(cellSize * 0.28),
+          borderRadius: BorderRadius.circular(cellSize * 0.34),
+          // Flat offset shadow (no blur), matching the design's
+          // drop-shadow(0 3px 0 rgba(0,0,0,0.28)).
           boxShadow: const [
-            BoxShadow(
-              color: Color(0x33000000),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
+            BoxShadow(color: Color(0x47000000), offset: Offset(0, 3)),
           ],
         ),
         child: Align(
