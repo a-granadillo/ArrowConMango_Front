@@ -1,64 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_svgs.dart';
 
-/// Undo + restart controls for the game screen.
+/// Undo control for the game screen.
+///
+/// Restart lives in the header (matching the design's icon layout); the
+/// design itself has no undo affordance, so this small pill extends it
+/// consistently with the app's visual language, shown only while a move
+/// can be undone.
 class GameControlsWidget extends StatelessWidget {
   const GameControlsWidget({
     super.key,
     required this.canUndo,
     required this.onUndo,
-    required this.onRestart,
   });
 
   final bool canUndo;
   final VoidCallback onUndo;
-  final VoidCallback onRestart;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _ControlButton(
-          icon: Icons.undo_rounded,
-          label: 'Deshacer',
-          onPressed: canUndo ? onUndo : null,
+    if (!canUndo) return const SizedBox(height: 40);
+    return GestureDetector(
+      onTap: onUndo,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(color: Color(0xFFE8D5C0), offset: Offset(0, 3)),
+          ],
         ),
-        const SizedBox(width: 16),
-        _ControlButton(
-          icon: Icons.refresh_rounded,
-          label: 'Reiniciar',
-          onPressed: onRestart,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSvgs.icon(AppSvgs.undo, 16),
+            const SizedBox(width: 6),
+            Text(
+              'Deshacer',
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+            ),
+          ],
         ),
-      ],
-    );
-  }
-}
-
-class _ControlButton extends StatelessWidget {
-  const _ControlButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.cream,
-        foregroundColor: AppColors.textDark,
-        disabledBackgroundColor: AppColors.beige,
-        disabledForegroundColor: AppColors.textMuted,
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
     );
   }

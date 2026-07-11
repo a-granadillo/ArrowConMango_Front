@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/mango_background.dart';
+import '../../../../core/widgets/app_svgs.dart';
 import '../../domain/entities/arrow_entity.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
@@ -17,6 +17,10 @@ import '../widgets/game_controls_widget.dart';
 
 /// The main gameplay screen. Loads a level into [GameBloc], drives the timer,
 /// renders the board and controls, and navigates to the result screens.
+///
+/// Faithful reproduction of the design's "Juego" screen: orange gradient
+/// header with home/restart icons and 3 translucent stat chips, dark-wood
+/// framed board, and the exact instruction copy below it.
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.levelId});
 
@@ -99,86 +103,107 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<GameBloc, GameState>(
-      listener: _onState,
-      builder: (context, state) => switch (state) {
-        GamePlaying() => _buildPlaying(context, state),
-        GameError(:final message) => _buildError(context, message),
-        _ => const MangoBackground(
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.textOnPrimary),
+    return Scaffold(
+      backgroundColor: AppColors.cream,
+      body: BlocConsumer<GameBloc, GameState>(
+        listener: _onState,
+        builder: (context, state) => switch (state) {
+          GamePlaying() => _buildPlaying(context, state),
+          GameError(:final message) => _buildError(context, message),
+          _ => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
             ),
-          ),
-      },
+        },
+      ),
     );
   }
 
   Widget _buildPlaying(BuildContext context, GamePlaying state) {
     final bloc = context.read<GameBloc>();
-    return MangoBackground(
-      child: Column(
-        children: [
-          _Hud(state: state),
-          const SizedBox(height: 12),
-          Text(
-            'Toca una flecha para sacarla del tablero.',
-            textAlign: TextAlign.center,
-            style: AppTypography.body(14, color: AppColors.textOnPrimary),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Center(
-              child: BoardGridWidget(
-                rows: state.rows,
-                cols: state.cols,
-                arrows: state.boardState.arrows,
-                exitingArrows: _exiting,
-                onArrowTap: (id) =>
-                    bloc.add(TriggerArrowExit(arrowId: id)),
+    return Column(
+      children: [
+        _Header(
+          state: state,
+          onHome: () => context.go(AppRoutes.menu),
+          onRestart: () => bloc.add(const RetryLevel()),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: BoardGridWidget(
+                      rows: state.rows,
+                      cols: state.cols,
+                      arrows: state.boardState.arrows,
+                      exitingArrows: _exiting,
+                      onArrowTap: (id) =>
+                          bloc.add(TriggerArrowExit(arrowId: id)),
+                    ),
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(height: 13),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Text(
+                  'Toca una flecha para sacarla del tablero.\n'
+                  'Solo queda bloqueada si otra flecha cruza su salida.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    height: 1.5,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              GameControlsWidget(
+                canUndo: state.canUndo,
+                onUndo: () => bloc.add(const UndoMove()),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildError(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.primary, size: 40),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(message, textAlign: TextAlign.center),
           ),
           const SizedBox(height: 16),
-          GameControlsWidget(
-            canUndo: state.canUndo,
-            onUndo: () => bloc.add(const UndoMove()),
-            onRestart: () => bloc.add(const RetryLevel()),
+          ElevatedButton(
+            onPressed: () => context.go(AppRoutes.menu),
+            child: const Text('Menú'),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildError(BuildContext context, String message) {
-    return MangoBackground(
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline,
-                color: AppColors.textOnPrimary, size: 40),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTypography.body(16, color: AppColors.textOnPrimary),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => context.go(AppRoutes.menu),
-              child: const Text('Menú'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-class _Hud extends StatelessWidget {
-  const _Hud({required this.state});
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.state,
+    required this.onHome,
+    required this.onRestart,
+  });
 
   final GamePlaying state;
+  final VoidCallback onHome;
+  final VoidCallback onRestart;
 
   static String _formatTime(int seconds) {
     final m = seconds ~/ 60;
@@ -188,73 +213,143 @@ class _Hud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            IconButton(
-              onPressed: () => context.go(AppRoutes.menu),
-              icon: const Icon(Icons.close_rounded,
-                  color: AppColors.textOnPrimary),
-            ),
-            Expanded(
-              child: Text(
-                'Nivel ${state.levelId} · ${state.difficulty}',
-                textAlign: TextAlign.center,
-                style:
-                    AppTypography.display(22, color: AppColors.textOnPrimary),
+    final top = MediaQuery.of(context).padding.top;
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, top + 20, 16, 14),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment(-0.4, -1),
+          end: Alignment(0.4, 1),
+          colors: [AppColors.primary, Color(0xFFF9A84D)],
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _HeaderIconButton(svg: AppSvgs.home, onTap: onHome),
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      'Nivel ${state.levelId}',
+                      style: GoogleFonts.fredoka(
+                        fontSize: 19,
+                        height: 1.1,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      state.difficulty,
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 48),
-          ],
+              _HeaderIconButton(svg: AppSvgs.restart, onTap: onRestart),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _StatChip(
+                  svg: AppSvgs.arrowsRemaining,
+                  value: '${state.arrowsRemaining}',
+                  label: 'flechas',
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _StatChip(
+                  svg: AppSvgs.taps,
+                  value: '${state.moveCount}',
+                  label: 'toques',
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _StatChip(
+                  svg: AppSvgs.timer,
+                  value: _formatTime(state.elapsedSeconds),
+                  label: '',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  const _HeaderIconButton({required this.svg, required this.onTap});
+
+  final String svg;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.22),
+          borderRadius: BorderRadius.circular(10),
         ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _StatChip(
-              icon: Icons.my_location_rounded,
-              label: '${state.arrowsRemaining} flechas',
-            ),
-            _StatChip(
-              icon: Icons.touch_app_rounded,
-              label: '${state.moveCount} toques',
-            ),
-            _StatChip(
-              icon: Icons.timer_outlined,
-              label: _formatTime(state.elapsedSeconds),
-            ),
-          ],
-        ),
-      ],
+        child: AppSvgs.icon(svg, 17),
+      ),
     );
   }
 }
 
 class _StatChip extends StatelessWidget {
-  const _StatChip({required this.icon, required this.label});
+  const _StatChip({
+    required this.svg,
+    required this.value,
+    required this.label,
+  });
 
-  final IconData icon;
+  final String svg;
+  final String value;
   final String label;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: AppColors.primary),
+          AppSvgs.icon(svg, 15),
           const SizedBox(width: 6),
           Text(
-            label,
-            style: AppTypography.body(15,
-                color: AppColors.textDark, weight: FontWeight.w700),
+            value,
+            style: GoogleFonts.fredoka(fontSize: 20, color: Colors.white),
           ),
+          if (label.isNotEmpty) ...[
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: GoogleFonts.nunito(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.75),
+              ),
+            ),
+          ],
         ],
       ),
     );
