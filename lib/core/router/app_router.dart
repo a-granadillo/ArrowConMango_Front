@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/game/presentation/bloc/game_bloc.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
 import '../../features/game/presentation/bloc/menu_event.dart';
+import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
 import '../../features/game/presentation/screens/main_menu_screen.dart';
 import '../../features/game/presentation/screens/ranking_placeholder_screen.dart';
@@ -44,14 +46,18 @@ GoRouter buildAppRouter() {
         path: AppRoutes.ranking,
         builder: (context, state) => const RankingPlaceholderScreen(),
       ),
-      // --- Placeholders (issues #5 / #12) ---
       GoRoute(
         path: AppRoutes.game,
-        builder: (context, state) => _Placeholder(
-          title: 'Nivel ${state.pathParameters['levelId']}',
-          message: 'Pantalla de juego — issue #5',
-        ),
+        builder: (context, state) {
+          final levelId =
+              int.tryParse(state.pathParameters['levelId'] ?? '') ?? 1;
+          return BlocProvider<GameBloc>(
+            create: (_) => sl<GameBloc>(),
+            child: GameScreen(levelId: levelId),
+          );
+        },
       ),
+      // --- Placeholders (issue #12) ---
       GoRoute(
         path: AppRoutes.victory,
         builder: (context, state) => const _Placeholder(
