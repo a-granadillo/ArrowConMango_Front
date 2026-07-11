@@ -381,6 +381,28 @@
   4. **`GridView` es perezoso:** sólo construye las tarjetas visibles, así que las aserciones de conteo exacto (15/12) fallan; se verifican el subtítulo y el mapeo de bloqueo por tarjetas concretas.
   5. **Topología de colisión única para tableros de tamaño variable:** los niveles miden 6×7…12×12 pero el `GameBloc` usa un solo `CollisionValidator`; se dimensiona la topología al máximo (12) para que las trayectorias de salida resuelvan bien en todos.
 
+### Entrada #24 — Rediseño fiel al mockup: Menú, Niveles, Ajustes, Splash (Issue #4)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8 / claude-sonnet-5)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** El primer pase de #4/#5/#12/#36 usaba la paleta y copys correctos pero un layout propio, no fiel al mockup de diseño. El usuario proporcionó el archivo fuente `Arrow con Mango.dc.html` (proyecto Claude Design) con el layout exacto, incluidas animaciones. Había que reconstruir cada pantalla para que fuera 100% fiel, rama por rama, con verificación intermedia antes de avanzar.
+- **Prompt (paráfrasis fiel):** > "Tenemos que aplicar el cambio para que sea fiel al mockup en cada rama. Analiza el html y, para cada rama correspondiente, modifica el layout visual para que sea 100% fiel al layout del html, incluyendo las animaciones. Muéstrame una prueba rápida por rama y consúltame antes de proceder con la siguiente."
+- **Resultado obtenido:**
+  1. Se importó el archivo de diseño vía `DesignSync` (`get_file` sobre el proyecto `abf968f7-...`), extrayendo el HTML/CSS inline exacto de cada pantalla (`data-screen-label`) y las `@keyframes` (`floatMango`, `sparkle`, `confettiFall`, `slideUp`, `popBig`, `mangoPop`).
+  2. Se agregó `flutter_svg` para reproducir los gráficos vectoriales del diseño tal cual (logo mango, hojas, íconos de botones).
+  3. Nuevos widgets base reutilizables: `core/widgets/mango_logo.dart` (`MangoLogo` + `FloatingMango`, animación de flotación + destellos fieles a `floatMango`/`sparkle`) y `core/widgets/app_svgs.dart` (íconos SVG copiados del diseño: trofeo, ranking, ajustes, chevron, candado, mini-mango).
+  4. **Menú principal:** header verde con borde curvo elíptico y hojas tenues, logo flotante, título de dos líneas (Fredoka 44/50), botón "¡ JUGAR !" con gradiente y sombra 3D, 3 botones de navegación con sus colores/sombras exactos del diseño, page-dots.
+  5. **Selección de nivel:** header verde con "N de 15 disponibles", grid 3-col con los 3 estados exactos de tile (completado con gradiente mango-naranja + mini-mangos, desbloqueado con dificultad, bloqueado con candado y opacity 0.6), colores/sombras extraídos literalmente del script del diseño (`bg`/`shadow` ternarios).
+  6. **Ajustes/Splash:** sin pantalla propia en el mockup; se mantuvieron consistentes con el sistema visual ya extraído (header verde, tarjetas, logo flotante).
+  7. **Tests:** actualizados 2 (menú: nuevo copy de dos líneas y botones; niveles: candado con etiqueta "Nivel N" en vez de icono suelto). Suite completa: **217/217**, `analyze` limpio.
+- **Modificaciones del equipo:** el usuario aprobó el rediseño de #4 tras revisarlo en vivo (build web servido localmente) antes de continuar con #5.
+- **Verificación:** `flutter analyze` (0), `flutter test` (217/217 incluyendo los 2 actualizados). Build `--release` servido localmente; rutas `/menu`, `/levels`, `/settings` cargadas sin errores de consola.
+- **Lecciones / limitaciones:**
+  1. **El archivo `.dc.html` es la fuente de verdad real**, no el bundle React empaquetado: contiene el layout/CSS inline exacto y las animaciones declaradas, mientras que el bundle sólo se podía leer como texto (sin poder renderizarlo/compararlo visualmente desde el navegador headless disponible).
+  2. **Extraer colores desde JS embebido requiere grep dirigido**: los ternarios `bg:`/`shadow:` de los tiles de nivel y filas del leaderboard sólo aparecen completos con suficiente contexto alrededor del match; hicieron falta varias pasadas de grep con ventanas de contexto crecientes para no perder literales partidos en el JSON del `.dc.html`.
+  3. **Verificación de fidelidad visual sin capturas de pantalla:** ante la imposibilidad de comparar pixel a pixel, se usó una combinación de (a) build real corriendo en vivo para revisión humana, (b) consola sin errores por ruta, y (c) widget tests que verifican los textos/estructura exactos del nuevo layout.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
