@@ -32,6 +32,9 @@ void main() {
     expect(find.text('1:00'), findsOneWidget);
     expect(find.text('Reintentar'), findsOneWidget);
     expect(find.text('Menú'), findsOneWidget);
+
+    // Dispose the screen so its ResultSheet animation tickers are cancelled.
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('should_show_no_moves_reason', (tester) async {
@@ -49,5 +52,7 @@ void main() {
     // Assert
     expect(find.text('No quedan movimientos posibles.'), findsOneWidget);
     expect(find.text('Reintentar'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
   });
 }
