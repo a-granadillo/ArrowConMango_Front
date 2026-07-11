@@ -344,6 +344,21 @@
 - **Verificación:** `flutter analyze` sin errores. `flutter test` da todos verdes (195+ tests pasando).
 - **Lecciones / limitaciones:** Cambiar un modelo base como `Level` (agregar campos required) tiene efecto dominó en toda la base de código — 14 archivos modificados + tests. Usar defaults en estados de presentación (`GamePlaying.rows`/`cols`) reduce la cantidad de cambios necesarios en tests unitarios que no dependen del board size.
 
+### Entrada #22 — Arquitectura de Leaderboard (Guest-First) y Actualización de ROADMAP
+
+- **Fecha / autor:** 10-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: gemini-3.1-pro-preview)
+- **Rol en el flujo:** Product Manager / Arquitecto de Software
+- **Tarea/problema:** El equipo sugirió añadir un Leaderboard y Login para registrar puntuaciones. Había preocupación genuina sobre la fricción que genera un muro de login en un juego casual de puzzles. Además, se necesitaba reorganizar el `ROADMAP.md` para incorporar al usuario `@hetairoii` como responsable exclusivo de la capa de Presentación/UI.
+- **Prompt (paráfrasis fiel):** > "Mis compañeros dicen que faltó incluir pantallas de leaderboard y login. El login no me convence para este tipo de juego, pero entiendo que es necesario para las puntuaciones. Analiza qué opinas. Luego, a mi equipo le gustó el enfoque, actualiza el ROADMAP.md para asignar los issues de UI (#4, #5, #12) y el nuevo del leaderboard al usuario hetairoii."
+- **Resultado obtenido:** 
+  1. Se diseñó y aprobó una arquitectura "Guest-First": juego inmediato con UUID anónimo desde el primer segundo y login social (Google/Apple) opcional y progresivo para vincular cuentas.
+  2. Modificación del `ROADMAP.md` para crear la "Persona C" (`@hetairoii`), asignándole ~31 horas de trabajo en las ramas de UI (Menu, Game, Result, Leaderboard).
+  3. Se formularon los comandos de la CLI de GitHub (`gh`) para crear el Issue #18 y reasignar los existentes sin fricciones.
+- **Modificaciones del equipo:** Se ejecutaron manualmente los comandos de `gh` en Windows, ya que el entorno WSL de OpenCode carece de autenticación HTTP/SSH de GitHub para operar directamente sobre el repositorio remoto.
+- **Verificación:** El documento `ROADMAP.md` refleja correctamente la división de tareas en 3 roles (Data, BLoC/UseCases, UI).
+- **Lecciones / limitaciones:** Utilizar la IA como *sparring* para debatir UX (User Experience) previene errores graves de producto. Un login forzado aniquila la retención inicial; la solución Guest-First ofreció un compromiso perfecto entre buena retención y los requerimientos técnicos del backend.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
