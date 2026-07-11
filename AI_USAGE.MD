@@ -473,6 +473,26 @@
   3. **`Path.computeMetrics()` en paths degenerados**: un `Path` con un solo `moveTo` (sin `lineTo`) produce métricas vacías y `.first` lanza `StateError`; las flechas de 1 celda necesitan un stub explícito de 2 puntos.
   4. **Hit-testing por bounding box es incorrecto para formas no rectangulares**: con flechas dobladas, la caja de una flecha en L puede cubrir celdas de otra flecha recta; el hit-test debe resolverse por ocupación de celda real, no por intersección de rectángulos.
 
+### Entrada #28 — UI: Pantallas de Resultado (Victoria / Derrota) (Issue #12)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** Implementar el Issue #12: pantallas de victoria (puntaje en "Mangos", toques, tiempo, siguiente nivel, celebración) y derrota (motivo, reintentar), leyendo el estado `GameVictory`/`GameDefeat` que la Game Screen pasa por navegación.
+- **Prompt (paráfrasis fiel):** > (continuación de "procede con la implementación del plan"): completar las 3 pantallas de UI (#4, #5, #12) siguiendo el mockup y el enfoque Guest-First.
+- **Resultado obtenido:**
+  1. Rama `12-result-screens` desde `5-game-screen`.
+  2. `victory_screen.dart`: lee `GameVictory` (por `GoRouterState.extra`), muestra Mangos/Toques/Tiempo, botón "Siguiente nivel" (oculto en el último nivel vía `AppInfo.totalLevels`) y "Menú", **persiste el desbloqueo** despachando `ProgressLevelCompleted` al `ProgressBloc` global en un post-frame; celebración con `confetti`.
+  3. `defeat_screen.dart`: mensaje según `DefeatReason` (tiempo/sin movimientos), Toques/Tiempo, "Reintentar" y "Menú".
+  4. Widgets compartidos `result_stat.dart` + `animations/victory_animation.dart`. Se cablearon las rutas `/victory` y `/defeat` a las pantallas reales (leyendo `extra`, con *fallback* si falta).
+  5. **Tests:** 4 nuevos (victoria: puntaje + verify de `ProgressLevelCompleted` + ocultar "Siguiente" en el último nivel; derrota: ambos motivos). Suite: **228/228**, `analyze` limpio. Se agregó `confetti` a dependencias.
+- **Modificaciones del equipo:** (pendiente de revisión por PR).
+- **Verificación:** `flutter analyze` (0), `flutter test` (228/228).
+- **Lecciones / limitaciones:**
+  1. **Paso de datos entre pantallas con go_router:** el resultado se pasa por `extra` (objeto tipado `GameVictory`/`GameDefeat`); las rutas validan el tipo y muestran un *fallback* si se navega sin datos (p. ej. recarga directa).
+  2. **`confetti` + tests:** la animación deja timers activos; se dispone la pantalla al final del test para evitar "pending timer", y se usa `pump()` acotado (no `pumpAndSettle`).
+  3. **Persistencia del desbloqueo en `initState`:** se despacha `ProgressLevelCompleted` en un `addPostFrameCallback` para no leer el BLoC durante el build.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
