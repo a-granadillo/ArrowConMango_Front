@@ -424,6 +424,28 @@
   3. **Golden tests omitidos a propósito:** generar baselines en Windows rompería el CI de Linux (render de fuentes distinto); se cubre el comportamiento con widget/animation tests y se deja el golden para generarse en el entorno de CI.
   4. **Último movimiento sin animación:** al sacar la última flecha el BLoC emite `GameVictory` directo (sin `GamePlaying` vacío), así que esa salida no se anima; la pantalla de victoria toma el relevo.
 
+### Entrada #26 — Rediseño fiel al mockup: Pantalla de Juego (Issue #5)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-sonnet-5)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** Continuar el rediseño fiel al `.dc.html` (tras la aprobación de #4) sobre la pantalla de Juego: header, HUD, tablero y controles debían replicar el layout exacto del diseño, no la versión funcional-pero-genérica del primer pase.
+- **Prompt (paráfrasis fiel):** > "Está bien esa extensión [del botón Deshacer]. Ahora continúa con lo demás." (confirmación tras revisar #4 y antes de esto: "aplica el rediseño fiel en cada rama, muéstrame prueba por rama, consúltame antes de seguir").
+- **Resultado obtenido:**
+  1. Rebase de `5-game-screen` sobre `4-menu-screens` actualizada (heredó el rediseño de #4); único conflicto en la numeración de `AI_USAGE.MD`, resuelto renumerando.
+  2. `board_grid_widget.dart`: marco de madera oscura exacto (`#6D4C2A`, radio 22, padding 9, sombra `0 8px 28px rgba(109,76,42,.32)`), superficie con patrón de puntos vía `CustomPainter`, paleta de flechas en el orden exacto del diseño.
+  3. `arrow_widget.dart`: sombra plana sin blur (`0 3px 0 rgba(0,0,0,.28)`) igual al diseño.
+  4. Nuevos íconos SVG en `app_svgs.dart` (home, restart, flechas, toques, timer, undo) copiados del `.dc.html`.
+  5. `game_screen.dart` reescrito: header con gradiente naranja exacto y botones home/reiniciar (el diseño no separa un control de "Reiniciar" del header), 3 chips de estadística translúcidos, texto de instrucción copiado literal.
+  6. `game_controls_widget.dart` simplificado a solo "Deshacer" (Reiniciar quedó en el header, fiel al diseño). El mockup **no tiene botón de Deshacer**; se agregó como chip discreto y consistente, solo visible con movimientos deshacibles — extensión explícitamente consultada y aprobada por el usuario.
+  7. **Bug real encontrado y corregido:** al anidar el header en una `Column`, el tablero perdió el `Expanded` que antes lo acotaba verticalmente; el `AspectRatio` intentaba crecer sin límite → `RenderFlex overflowed by 389 pixels`. Se corrigió envolviendo el tablero en `Expanded(child: Center(...))` dentro de la columna interna.
+  8. **Tests:** actualizados 2 (`game_screen_test.dart` con los nuevos textos separados del HUD; `game_controls_widget_test.dart` sin el botón de reiniciar). Suite completa: **224/224**, `analyze` limpio.
+- **Modificaciones del equipo:** el usuario aprobó explícitamente la extensión del botón Deshacer (ausente en el diseño original) tras revisarla en vivo.
+- **Verificación:** `flutter analyze` (0), `flutter test` (224/224). Build `--release` servido localmente; `/game/1` y `/game/6` (tableros de distinto tamaño) cargados sin errores de consola.
+- **Lecciones / limitaciones:**
+  1. **Reestructurar un `Column` para insertar un header rompe silenciosamente las restricciones de tamaño heredadas** de widgets internos (`Expanded`, `AspectRatio`): hay que re-verificar explícitamente que cada elemento que dependía de una restricción de altura acotada la siga recibiendo tras anidar.
+  2. **Clasificador de seguridad de comandos con caída temporal (~11 min) en esta sesión:** durante ese lapso se hizo únicamente revisión manual de código (imports, referencias a constantes existentes) sin poder compilar/testear; al recuperarse, esa revisión manual no detectó el bug de layout (solo visible en tiempo de ejecución), confirmando que la revisión estática no sustituye correr los tests.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
