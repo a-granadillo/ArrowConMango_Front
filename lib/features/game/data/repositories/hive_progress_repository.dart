@@ -11,7 +11,8 @@ import 'package:hive/hive.dart';
 /// Persists [AppProgressModel] objects in a [Box] under a single key
 /// and maps them to/from the domain [AppProgress] entity.
 class HiveProgressRepository implements IProgressRepository {
-  static const String _progressKey = 'app_progress';
+  /// Hive key the single [AppProgressModel] record is stored under.
+  static const String progressKey = 'app_progress';
 
   final Box<AppProgressModel> _progressBox;
   final AppProgressMapper _progressMapper;
@@ -24,7 +25,7 @@ class HiveProgressRepository implements IProgressRepository {
   @override
   Future<Result<AppProgress>> loadProgress() async {
     try {
-      final model = _progressBox.get(_progressKey);
+      final model = _progressBox.get(progressKey);
       if (model == null) {
         return const Success<AppProgress>(AppProgress());
       }
@@ -41,7 +42,7 @@ class HiveProgressRepository implements IProgressRepository {
   Future<Result<void>> saveProgress(AppProgress progress) async {
     try {
       final model = _progressMapper.toModel(progress);
-      await _progressBox.put(_progressKey, model);
+      await _progressBox.put(progressKey, model);
       return const Success<void>(null);
     } catch (e) {
       return Error<void>(
