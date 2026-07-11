@@ -359,6 +359,28 @@
 - **Verificación:** El documento `ROADMAP.md` refleja correctamente la división de tareas en 3 roles (Data, BLoC/UseCases, UI).
 - **Lecciones / limitaciones:** Utilizar la IA como *sparring* para debatir UX (User Experience) previene errores graves de producto. Un login forzado aniquila la retención inicial; la solución Guest-First ofreció un compromiso perfecto entre buena retención y los requerimientos técnicos del backend.
 
+### Entrada #23 — UI: Pantallas de Menú + Base de App + Identidad Invitado (Issue #4)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación) / Arquitecto de composición
+- **Tarea/problema:** Implementar el Issue #4 (Splash, Menú Principal, Selección de Nivel, Ajustes) sobre la app, que aún era el contador demo de Flutter. Como #4 es el punto de entrada, incluye la **base compartida** (tema, routing, DI, arranque de Hive) y una **identidad de invitado** mínima (Guest-First) usada por Ajustes. Se omiten las pantallas de Login/Registro del mockup.
+- **Prompt (paráfrasis fiel):** > "Trabajemos el frontend. Analiza los issues 4, 5 y 12 en el repo y la estructura, crea ramas por issue desde develop. El HTML adjunto es la UI deseada (omite el login). Usaremos usuarios Guest-First: UUID + nombre aleatorio, leaderboard opcional, cambio de nombre local. Planea paso a paso siguiendo la documentación del frontend."
+- **Resultado obtenido:**
+  1. Rama `4-menu-screens` desde `develop`.
+  2. **Base:** `core/theme` (paleta y gradientes extraídos del mockup, tipografías Fredoka/Nunito vía `google_fonts`), `core/di/service_locator.dart` (get_it cableando repos → use cases → BLoCs), `core/router` (go_router), `main.dart`/`app.dart` reescritos (init de Hive, `MultiBlocProvider`, `MaterialApp.router`).
+  3. **Identidad invitado:** `features/player/` con `GuestPlayer`, generador de UUID v4 + nombre aleatorio (`MangoLoco_99`), `PlayerLocalDataSource` (Hive) tras la interfaz `IPlayerRepository`, y `PlayerCubit` (editar nombre).
+  4. **Pantallas #4:** Splash, MainMenu (Jugar/Ranking/Ajustes), LevelSelection (bind a `MenuBloc`), Settings (editar nombre) y un placeholder de Ranking.
+  5. **Tests:** 10 pruebas nuevas (generador, persistencia/rename, y widget tests de las 3 pantallas). Suite completa: **217/217 en verde**, `flutter analyze` sin issues. Limpieza `pubspec` (eliminada la dependencia basura `lib`, corregido `description`).
+- **Modificaciones del equipo:** (pendiente de revisión por PR). Correcciones aplicadas durante el desarrollo por el propio flujo: ver "Verificación".
+- **Verificación:** `flutter analyze` (0 issues), `flutter test` (217/217). Arranque en `web-server`: la consola confirma `main()` ejecutado y Hive abriendo las cajas `levels`, `progress` y `player` sin errores. *Limitación:* el renderer CanvasKit de Flutter Web no permite capturas/lectura de accesibilidad desde el navegador headless, por lo que la verificación visual se apoya en los widget tests.
+- **Lecciones / limitaciones:**
+  1. **La caja Hive de niveles no se poblaba.** El `HiveLevelRepository` lee de una caja vacía; ningún componente la sembraba desde `LevelDefinitions`. Se añadió el *seeding* en el arranque (si no, el menú aparecería sin niveles). Hallazgo clave que la IA detectó al trazar la cadena DI.
+  2. **`testWidgets` + Hive real se cuelga.** El I/O asíncrono de Hive dentro de `testWidgets` provoca timeout; se resolvió introduciendo `IPlayerRepository` + un fake en memoria para los widget tests (y mejor arquitectura de paso).
+  3. **`pumpAndSettle` + spinner infinito.** El `CircularProgressIndicator` del estado de carga nunca "asienta"; se conduce el `MenuBloc` a `MenuLoaded` con `tester.runAsync` antes de construir la vista.
+  4. **`GridView` es perezoso:** sólo construye las tarjetas visibles, así que las aserciones de conteo exacto (15/12) fallan; se verifican el subtítulo y el mapeo de bloqueo por tarjetas concretas.
+  5. **Topología de colisión única para tableros de tamaño variable:** los niveles miden 6×7…12×12 pero el `GameBloc` usa un solo `CollisionValidator`; se dimensiona la topología al máximo (12) para que las trayectorias de salida resuelvan bien en todos.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
