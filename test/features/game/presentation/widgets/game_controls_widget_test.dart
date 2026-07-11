@@ -7,57 +7,39 @@ void main() {
     WidgetTester tester, {
     required bool canUndo,
     required VoidCallback onUndo,
-    required VoidCallback onRestart,
   }) {
     return tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: GameControlsWidget(
-            canUndo: canUndo,
-            onUndo: onUndo,
-            onRestart: onRestart,
-          ),
+          body: GameControlsWidget(canUndo: canUndo, onUndo: onUndo),
         ),
       ),
     );
   }
 
-  testWidgets('should_disable_undo_when_cannot_undo', (tester) async {
+  testWidgets('should_hide_undo_pill_when_cannot_undo', (tester) async {
     // Arrange
     var undoCalls = 0;
-    await pumpControls(
-      tester,
-      canUndo: false,
-      onUndo: () => undoCalls++,
-      onRestart: () {},
-    );
 
     // Act
-    await tester.tap(find.text('Deshacer'));
-    await tester.pump();
+    await pumpControls(tester, canUndo: false, onUndo: () => undoCalls++);
 
-    // Assert: disabled button ignores the tap.
+    // Assert: restart moved to the header (design), so only the undo pill
+    // is owned by this widget — and it is hidden while there's nothing to undo.
+    expect(find.text('Deshacer'), findsNothing);
     expect(undoCalls, 0);
   });
 
-  testWidgets('should_fire_callbacks_when_enabled', (tester) async {
+  testWidgets('should_fire_onUndo_when_the_pill_is_tapped', (tester) async {
     // Arrange
     var undoCalls = 0;
-    var restartCalls = 0;
-    await pumpControls(
-      tester,
-      canUndo: true,
-      onUndo: () => undoCalls++,
-      onRestart: () => restartCalls++,
-    );
+    await pumpControls(tester, canUndo: true, onUndo: () => undoCalls++);
 
     // Act
     await tester.tap(find.text('Deshacer'));
-    await tester.tap(find.text('Reiniciar'));
     await tester.pump();
 
     // Assert
     expect(undoCalls, 1);
-    expect(restartCalls, 1);
   });
 }

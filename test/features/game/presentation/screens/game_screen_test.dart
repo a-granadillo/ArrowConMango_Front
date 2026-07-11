@@ -47,10 +47,14 @@ void main() {
     // Act
     await pumpGame(tester);
 
-    // Assert
-    expect(find.text('Nivel 1 · Easy'), findsOneWidget);
-    expect(find.text('2 flechas'), findsOneWidget);
-    expect(find.text('0 toques'), findsOneWidget);
+    // Assert — faithful design HUD: separate level/difficulty lines and
+    // icon+value+label stat chips (value and label are distinct Text nodes).
+    expect(find.text('Nivel 1'), findsOneWidget);
+    expect(find.text('Easy'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget); // arrows remaining
+    expect(find.text('flechas'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget); // taps
+    expect(find.text('toques'), findsOneWidget);
     expect(find.text('1:05'), findsOneWidget); // 65s
     expect(find.textContaining('Toca una flecha'), findsOneWidget);
     expect(find.byType(ArrowWidget), findsNWidgets(2));
