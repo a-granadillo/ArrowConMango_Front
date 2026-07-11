@@ -32,6 +32,9 @@ import '../../features/game/domain/services/move_based_scoring.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
 import '../../features/game/presentation/bloc/progress_bloc.dart';
+import '../../features/leaderboard/data/mock_leaderboard_repository.dart';
+import '../../features/leaderboard/domain/i_leaderboard_repository.dart';
+import '../../features/leaderboard/presentation/leaderboard_cubit.dart';
 import '../../features/player/data/guest_name_generator.dart';
 import '../../features/player/data/player_local_data_source.dart';
 import '../../features/player/domain/guest_player.dart';
@@ -146,8 +149,16 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
+  // Leaderboard (Guest-First) — mock data source for now.
+  sl.registerLazySingleton<ILeaderboardRepository>(
+    MockLeaderboardRepository.new,
+  );
+
   // Per-screen instances.
   sl
+    ..registerFactory<LeaderboardCubit>(
+      () => LeaderboardCubit(repository: sl<ILeaderboardRepository>()),
+    )
     ..registerFactory<MenuBloc>(
       () => MenuBloc(getLevelListUseCase: sl<GetLevelListUseCase>()),
     )

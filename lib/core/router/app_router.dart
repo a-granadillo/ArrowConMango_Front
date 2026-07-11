@@ -11,9 +11,10 @@ import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
 import '../../features/game/presentation/screens/main_menu_screen.dart';
 import '../../features/game/presentation/screens/victory_screen.dart';
-import '../../features/game/presentation/screens/ranking_placeholder_screen.dart';
 import '../../features/game/presentation/screens/settings_screen.dart';
 import '../../features/game/presentation/screens/splash_screen.dart';
+import '../../features/leaderboard/presentation/leaderboard_cubit.dart';
+import '../../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../di/service_locator.dart';
 import '../widgets/mango_background.dart';
 import 'app_routes.dart';
@@ -47,7 +48,10 @@ GoRouter buildAppRouter() {
       ),
       GoRoute(
         path: AppRoutes.ranking,
-        builder: (context, state) => const RankingPlaceholderScreen(),
+        builder: (context, state) => BlocProvider<LeaderboardCubit>(
+          create: (_) => sl<LeaderboardCubit>(),
+          child: const LeaderboardScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.game,
