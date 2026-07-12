@@ -3,22 +3,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/game/presentation/bloc/game_bloc.dart';
+import '../../features/game/presentation/bloc/game_state.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
 import '../../features/game/presentation/bloc/menu_event.dart';
+import '../../features/game/presentation/screens/defeat_screen.dart';
 import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
 import '../../features/game/presentation/screens/main_menu_screen.dart';
 import '../../features/game/presentation/screens/ranking_placeholder_screen.dart';
 import '../../features/game/presentation/screens/settings_screen.dart';
 import '../../features/game/presentation/screens/splash_screen.dart';
+import '../../features/game/presentation/screens/victory_screen.dart';
 import '../di/service_locator.dart';
 import '../widgets/mango_background.dart';
 import 'app_routes.dart';
 
 /// Builds the application's [GoRouter].
-///
-/// NOTE: `/game`, `/victory` and `/defeat` currently render placeholders.
-/// They are replaced by the real screens in issues #5 (Game) and #12 (Results).
 GoRouter buildAppRouter() {
   return GoRouter(
     initialLocation: AppRoutes.splash,
@@ -57,20 +57,29 @@ GoRouter buildAppRouter() {
           );
         },
       ),
-      // --- Placeholders (issue #12) ---
       GoRoute(
         path: AppRoutes.victory,
-        builder: (context, state) => const _Placeholder(
-          title: '¡Enhorabuena!',
-          message: 'Pantalla de victoria — issue #12',
-        ),
+        builder: (context, state) {
+          final extra = state.extra;
+          return extra is GameVictory
+              ? VictoryScreen(result: extra)
+              : const _Placeholder(
+                  title: 'Sin datos',
+                  message: 'No hay un resultado que mostrar.',
+                );
+        },
       ),
       GoRoute(
         path: AppRoutes.defeat,
-        builder: (context, state) => const _Placeholder(
-          title: 'Derrota',
-          message: 'Pantalla de derrota — issue #12',
-        ),
+        builder: (context, state) {
+          final extra = state.extra;
+          return extra is GameDefeat
+              ? DefeatScreen(result: extra)
+              : const _Placeholder(
+                  title: 'Sin datos',
+                  message: 'No hay un resultado que mostrar.',
+                );
+        },
       ),
     ],
   );

@@ -37,6 +37,7 @@ import '../../features/player/data/player_local_data_source.dart';
 import '../../features/player/domain/guest_player.dart';
 import '../../features/player/presentation/player_cubit.dart';
 import '../database/hive_config.dart';
+import 'progress_seed.dart';
 
 /// Global service locator (composition root).
 final GetIt sl = GetIt.instance;
@@ -53,6 +54,7 @@ Future<void> setupServiceLocator() async {
   final playerBox = await Hive.openBox<dynamic>(PlayerLocalDataSource.boxName);
 
   _seedLevels(levelsBox);
+  seedProgressIfEmpty(progressBox);
 
   // --- Mappers ---
   sl
