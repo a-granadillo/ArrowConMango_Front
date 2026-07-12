@@ -446,6 +446,33 @@
   1. **Reestructurar un `Column` para insertar un header rompe silenciosamente las restricciones de tamaño heredadas** de widgets internos (`Expanded`, `AspectRatio`): hay que re-verificar explícitamente que cada elemento que dependía de una restricción de altura acotada la siga recibiendo tras anidar.
   2. **Clasificador de seguridad de comandos con caída temporal (~11 min) en esta sesión:** durante ese lapso se hizo únicamente revisión manual de código (imports, referencias a constantes existentes) sin poder compilar/testear; al recuperarse, esa revisión manual no detectó el bug de layout (solo visible en tiempo de ejecución), confirmando que la revisión estática no sustituye correr los tests.
 
+### Entrada #27 — Flechas "serpiente" con CustomPainter + niveles resolubles por construcción (Issue #5)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-sonnet-5)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación) / Autoría de contenido (niveles)
+- **Tarea/problema:** Tras jugar en vivo, el usuario reportó 3 problemas: (1) las flechas se veían como píldoras/cilindros, no como flechas delgadas tipo "serpiente" del juego de referencia; (2) el juego se quedaba sin movimientos tras 1-2 toques; (3) el tablero pegado al header y demasiado grande en desktop. Se investigó primero con un agente Explore + un agente Plan antes de tocar código.
+- **Prompt (paráfrasis fiel):** > "dejaron de tener forma de flecha (--->) y ahora tienen forma de cilindro... después de mover una flecha se me acaban los movimientos... el tablero está muy cerca del tope... quisiera que se viese... con flechas más delgadas y manteniendo esa animación de movimiento de serpiente cuando salen las flechas."
+- **Diagnóstico (verificado a mano, no asumido):** el problema de "sin movimientos" **no era un bug del motor de colisión** — la topología compartida 12×12 (mayor que cualquier tablero real) solo agrega celdas fantasma vacías, nunca crea bloqueos falsos. La causa real: **el nivel 1 original era matemáticamente irresoluble** (10 de sus 12 flechas se bloqueaban mutuamente para siempre; solo 2 podían salir, y tras esas dos `_hasAvailableMoves` legítimamente devolvía `false`).
+- **Resultado obtenido:**
+  1. **Geometría pura** (`painting/arrow_geometry.dart`): polilínea por centros de celda (tail→head, soporta giros de 90°), cabeza en V, stub para flechas de 1 celda (evita `Path` degenerado que rompe `computeMetrics()`), cálculo de celdas de salida hasta pasar el borde.
+  2. **Dos `CustomPainter`s**: `ArrowsLayerPainter` (todas las flechas vivas en una sola pasada, trazo delgado `stroke-width = cell·0.36` + sombra plana) y `ArrowExitPainter` (la "serpiente": ventana deslizante de longitud constante sobre `PathMetrics` del camino completo — cuerpo + extensión recta de salida — equivalente al `stroke-dashoffset` del diseño; sigue los giros de las flechas dobladas).
+  3. **Hit-test exacto por celda** en `board_grid_widget.dart` (reemplaza el hit-test por bounding-box, que fallaba con flechas dobladas cuyo rectángulo tapa otras flechas): un solo `GestureDetector` en el tablero mapea el tap a `(row,col)` y busca qué flecha ocupa esa celda.
+  4. **`ArrowColorAssigner`**: colores estables por id de flecha (primera vez vista = orden inicial del nivel), arregla un glitch preexistente donde los colores cambiaban al salir una flecha (antes se coloreaba por índice en la lista viva).
+  5. **`LevelGenerator`** (`level_generator.dart`): generador determinista **provably-solvable por construcción** — cada flecha candidata solo se acepta si su cuerpo y su trayectoria de salida completa están libres en el momento de insertarla; por lo tanto deshacer las inserciones en orden inverso es siempre una solución válida (la regla de salida es monótona: quitar una flecha nunca bloquea a otra). Se regeneraron los **15 niveles** (9×12, flechas delgadas con giros en L), con los ids 1/6/11 llevando los nombres del diseño (Mango Verde/Pulpa Dulce/Piel Dorada).
+  6. **Test de resolubilidad** (`test/data/level_solvability_test.dart`): drena cada uno de los 15 niveles con un algoritmo codicioso (sacar cualquier flecha con salida libre, repetir) y verifica que el tablero se vacía por completo — decide resolubilidad de forma exacta dado que la mecánica es monótona.
+  7. **Nombre de nivel end-to-end**: `Level.name` (antes se perdía en el mapeo) → `GamePlaying.levelName` (parámetro opcional, no rompe tests de bloc existentes) → título del header. Dificultad traducida al español en el subtítulo.
+  8. **Layout**: tablero acotado a `maxWidth: 400` y centrado, ya no pegado al header en pantallas grandes.
+  9. Se eliminó `arrow_widget.dart` (píldora + chevron) y los 3 archivos de niveles hand-authored del equipo (`easy/medium/hard_levels.dart`), reemplazados por el generador.
+  10. **Tests:** 4 archivos actualizados (board, screen, animación de salida) + 3 nuevos (geometría de flechas, color assigner, resolubilidad — 15 tests). Suite completa: **252/252**, `analyze` limpio.
+- **Modificaciones del equipo:** el usuario aprobó el rediseño de flechas tras revisarlo en vivo; se le señaló explícitamente la desviación de "portar los 3 niveles del diseño" a "regenerar los 15 en el mismo estilo" (los puzzles exactos del `.dc.html` no estaban garantizados resolubles bajo nuestra regla de salida).
+- **Verificación:** `flutter analyze` (0), `flutter test` (252/252, incluyendo 15/15 niveles resolubles por drenado codicioso). Build `--release` corrido en Chrome real para revisión del usuario.
+- **Lecciones / limitaciones:**
+  1. **No asumir que un reporte de "bug" es un bug de motor**: se verificó a mano contra `CollisionValidator`/`Grid2DTopology` antes de tocar código, y se confirmó que el problema era de *contenido* (datos de nivel), no de *lógica*. Cambiar la lógica hubiera sido el fix equivocado.
+  2. **Generación de contenido "correcto por construcción" > prueba y error manual**: en vez de diseñar 15 tableros a mano y validarlos uno por uno, se diseñó una regla de inserción que garantiza resolubilidad matemáticamente, y un test que lo verifica automáticamente para cualquier futura regeneración.
+  3. **`Path.computeMetrics()` en paths degenerados**: un `Path` con un solo `moveTo` (sin `lineTo`) produce métricas vacías y `.first` lanza `StateError`; las flechas de 1 celda necesitan un stub explícito de 2 puntos.
+  4. **Hit-testing por bounding box es incorrecto para formas no rectangulares**: con flechas dobladas, la caja de una flecha en L puede cubrir celdas de otra flecha recta; el hit-test debe resolverse por ocupación de celda real, no por intersección de rectángulos.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
