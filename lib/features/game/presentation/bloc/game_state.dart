@@ -46,6 +46,7 @@ final class GamePlaying extends GameState {
   /// Creates a [GamePlaying] state.
   const GamePlaying({
     required this.levelId,
+    this.levelName = '',
     required this.difficulty,
     this.rows = 8,
     this.cols = 8,
@@ -60,6 +61,9 @@ final class GamePlaying extends GameState {
 
   /// Identifier of the current level.
   final int levelId;
+
+  /// Human-readable name of the current level (e.g. "Mango Verde").
+  final String levelName;
 
   /// Difficulty label of the current level.
   final String difficulty;
@@ -100,6 +104,7 @@ final class GamePlaying extends GameState {
   @override
   List<Object?> get props => [
         levelId,
+        levelName,
         difficulty,
         rows,
         cols,

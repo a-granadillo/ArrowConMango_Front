@@ -12,6 +12,7 @@ import '../../domain/entities/arrow_entity.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
+import '../widgets/arrow_color_assigner.dart';
 import '../widgets/board_grid_widget.dart';
 import '../widgets/game_controls_widget.dart';
 
@@ -34,6 +35,7 @@ class _GameScreenState extends State<GameScreen> {
   Timer? _timer;
   List<ArrowEntity> _prevArrows = const [];
   final List<ExitingArrowData> _exiting = [];
+  final ArrowColorAssigner _colors = ArrowColorAssigner();
   int _seq = 0;
 
   @override
@@ -62,6 +64,7 @@ class _GameScreenState extends State<GameScreen> {
       case GameLoading():
       case GameInitial():
         _prevArrows = const [];
+        _colors.reset();
       case GameVictory():
         _timer?.cancel();
         context.pushReplacement(AppRoutes.victory, extra: state);
@@ -85,7 +88,7 @@ class _GameScreenState extends State<GameScreen> {
           ExitingArrowData(
             id: id,
             arrow: arrow,
-            color: BoardGridWidget.colorForIndex(i),
+            color: _colors.colorOf(arrow.id),
             onComplete: () => _removeExiting(id),
           ),
         );
@@ -132,15 +135,19 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Expanded(
                 child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: BoardGridWidget(
-                      rows: state.rows,
-                      cols: state.cols,
-                      arrows: state.boardState.arrows,
-                      exitingArrows: _exiting,
-                      onArrowTap: (id) =>
-                          bloc.add(TriggerArrowExit(arrowId: id)),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: BoardGridWidget(
+                        rows: state.rows,
+                        cols: state.cols,
+                        arrows: state.boardState.arrows,
+                        exitingArrows: _exiting,
+                        colorOf: _colors.colorOf,
+                        onArrowTap: (id) =>
+                            bloc.add(TriggerArrowExit(arrowId: id)),
+                      ),
                     ),
                   ),
                 ),
@@ -211,9 +218,19 @@ class _Header extends StatelessWidget {
     return '$m:$s';
   }
 
+  static String _difficultyEs(String difficulty) => switch (difficulty) {
+        'Easy' => 'Fácil',
+        'Medium' => 'Medio',
+        'Hard' => 'Difícil',
+        _ => difficulty,
+      };
+
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final title = state.levelName.isNotEmpty
+        ? state.levelName
+        : 'Nivel ${state.levelId}';
     return Container(
       padding: EdgeInsets.fromLTRB(16, top + 20, 16, 14),
       decoration: const BoxDecoration(
@@ -232,7 +249,7 @@ class _Header extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Nivel ${state.levelId}',
+                      title,
                       style: GoogleFonts.fredoka(
                         fontSize: 19,
                         height: 1.1,
@@ -241,7 +258,7 @@ class _Header extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      state.difficulty,
+                      'Nivel ${state.levelId} · ${_difficultyEs(state.difficulty)}',
                       style: GoogleFonts.nunito(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
