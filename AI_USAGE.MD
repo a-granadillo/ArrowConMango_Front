@@ -493,7 +493,7 @@
   2. **`confetti` + tests:** la animación deja timers activos; se dispone la pantalla al final del test para evitar "pending timer", y se usa `pump()` acotado (no `pumpAndSettle`).
   3. **Persistencia del desbloqueo en `initState`:** se despacha `ProgressLevelCompleted` en un `addPostFrameCallback` para no leer el BLoC durante el build.
 
-### Entrada #28 — Rediseño fiel al mockup: Diálogo de Victoria/Derrota + fix de nivel 1 bloqueado (Issue #12)
+### Entrada #29 — Rediseño fiel al mockup: Diálogo de Victoria/Derrota + fix de nivel 1 bloqueado (Issue #12)
 
 - **Fecha / autor:** 11-07-2026 / hetairoii
 - **Herramienta:** Claude Code (Modelo: claude-sonnet-5)
