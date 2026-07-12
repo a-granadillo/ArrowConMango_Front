@@ -10,6 +10,10 @@ import 'game_session.dart';
 class Level extends Equatable {
   final int levelId;
 
+  /// Human-readable level name (e.g. "Mango Verde"). Optional for backward
+  /// compatibility with tests that build a [Level] without one.
+  final String name;
+
   final int rows;
 
   final int cols;
@@ -18,6 +22,7 @@ class Level extends Equatable {
 
   const Level({
     required this.levelId,
+    this.name = '',
     required this.rows,
     required this.cols,
     required this.templateBoard,
@@ -50,7 +55,7 @@ class Level extends Equatable {
   }
 
   @override
-  List<Object?> get props => [levelId, rows, cols, templateBoard];
+  List<Object?> get props => [levelId, name, rows, cols, templateBoard];
 
   @override
   String toString() =>

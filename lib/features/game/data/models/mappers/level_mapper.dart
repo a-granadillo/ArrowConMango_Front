@@ -12,6 +12,7 @@ class LevelMapper {
   Level toEntity(LevelModel model) {
     return Level(
       levelId: model.id,
+      name: model.name,
       rows: model.boardSize.rows,
       cols: model.boardSize.cols,
       templateBoard: _boardStateMapper.toEntity(model.boardState),
@@ -21,7 +22,7 @@ class LevelMapper {
   LevelModel toModel(Level entity) {
     return LevelModel(
       id: entity.levelId,
-      name: 'Level ${entity.levelId}',
+      name: entity.name.isNotEmpty ? entity.name : 'Level ${entity.levelId}',
       difficulty: entity.difficulty(),
       boardSize: BoardSizeModel(rows: entity.rows, cols: entity.cols),
       boardState: _boardStateMapper.toModel(entity.templateBoard),

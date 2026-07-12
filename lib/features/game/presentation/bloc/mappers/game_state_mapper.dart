@@ -16,6 +16,7 @@ class GameStateMapper {
   }) {
     return GamePlaying(
       levelId: level.levelId,
+      levelName: level.name,
       difficulty: level.difficulty(),
       rows: level.rows,
       cols: level.cols,
