@@ -61,6 +61,15 @@ abstract final class AppSvgs {
   static const String timer =
       '<svg $_ns viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 
+  /// Filled trophy (Leaderboard header decoration).
+  static const String trophyFilled =
+      '<svg $_ns viewBox="0 0 24 24" fill="none" stroke="#F9C74F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+      '<path d="M6 3h12v6a6 6 0 0 1-12 0z" fill="#F9C74F" stroke="none"/><path d="M6 5H4a2 2 0 0 0 2 4"/><path d="M18 5h2a2 2 0 0 1-2 4"/><path d="M12 15v4"/><path d="M8 21h8"/></svg>';
+
+  /// Small mango icon used for score chips (leaderboard).
+  static const String mangoDot =
+      '<svg $_ns viewBox="0 0 24 24"><ellipse cx="12" cy="13.5" rx="8.5" ry="7" transform="rotate(-18 12 13.5)" fill="#F9C74F"/></svg>';
+
   static Widget icon(String svg, double size) =>
       SvgPicture.string(svg, width: size, height: size);
 }

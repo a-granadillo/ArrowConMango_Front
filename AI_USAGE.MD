@@ -519,6 +519,45 @@
   2. **No toda verificación necesita reproducir la app**: extraer una función privada de *seeding* a un archivo público y testeable (`progress_seed.dart`) permitió cubrir el fix con tests unitarios rápidos en vez de depender solo de QA manual.
   3. **IndexedDB + Hive no es introspeccionable desde JS externo sin el codec de Hive**: para depurar estado persistido en Flutter Web hay que confiar en logs de la propia app o en tests, no en leer la base cruda del navegador.
 
+### Entrada #30 — UI: Leaderboard Global (Guest-First) (Issue #36)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** Implementar el Issue #36: pantalla de clasificación global "Guest-First" — ranking con el invitado anónimo resaltado y un botón opcional de vincular cuenta (Google/Apple). Datos mock por ahora (sin backend).
+- **Prompt (paráfrasis fiel):** > "Existe ahora el issue #36 dedicado al leaderboard. Con base en la interfaz de leaderboard que ya definimos, resuélvelo en una rama nueva; y demuéstrame en vivo que la app funciona con la UI de cada issue."
+- **Resultado obtenido:**
+  1. Rama `36-leaderboard-guest-first` desde `12-result-screens`.
+  2. Feature `leaderboard/`: `LeaderboardEntry` (dominio), `ILeaderboardRepository` + `MockLeaderboardRepository` (10 cosechadores fijos + el invitado fusionado y ordenado por mangos), `LeaderboardCubit` (+ estados) y `leaderboard_screen.dart` (lista con avatar/inicial, resaltado "(Tú)", botón "Vincular cuenta").
+  3. DI: registrados `ILeaderboardRepository` (mock) y `LeaderboardCubit`. Ruta `/ranking` conectada a la pantalla real (se eliminó el placeholder del menú).
+  4. El botón de login social es un **stub** (SnackBar "próximamente"): no se ejecuta OAuth real.
+  5. **Tests:** 4 nuevos (repo mock: fusión/orden/rango/límite; pantalla: render + resaltado del invitado + snackbar). Suite: **232/232**, `analyze` limpio. Sin dependencias nuevas.
+- **Modificaciones del equipo:** (pendiente de revisión por PR).
+- **Verificación:** `flutter analyze` (0), `flutter test` (232/232); demo en vivo (build web release).
+- **Lecciones / limitaciones:**
+  1. **Carrera con `stream.firstWhere` en tests:** cuando el `load()` (mock rápido) completa antes de suscribirse al stream, `firstWhere` no ve el estado y el test cuelga hasta el timeout de 10 min. Solución: `MockCubit` (bloc_test/mocktail) con estado `LeaderboardLoaded` fijo — determinista, sin async.
+  2. **`ListView` perezoso en tests:** para verificar una fila fuera de pantalla se usa un viewport alto (`tester.view.physicalSize`) en vez de `scrollUntilVisible` (que puede colgar).
+  3. **SnackBar deja un timer pendiente:** se avanza el reloj (`pump(5s)`) para que se auto-cierre y no falle el test por "pending timer".
+  4. **Guest-First real:** el leaderboard funciona desde el primer segundo con el UUID anónimo; el backend (`GET /leaderboard`) puede implementar la misma interfaz sin tocar la UI.
+
+### Entrada #31 — Rediseño fiel al mockup: Leaderboard con podio (Issue #36)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** Rediseñar la pantalla de Leaderboard fiel al `.dc.html`: el diseño la modela con un **header verde con podio de los top-3** (1° al centro, más grande y con aro dorado; 2° y 3° a los lados con barras más bajas) seguido de una lista de los ranks 4+; la primera versión era una lista plana genérica.
+- **Prompt (paráfrasis fiel):** > (continuación del rediseño rama por rama) "aplica el rediseño fiel en cada rama… pasa al issue 36".
+- **Resultado obtenido:**
+  1. `leaderboard_screen.dart` reescrito: header verde (radio 30) con back, título "Clasificación", subtítulo, trofeo dorado; **podio** ordenado 2°-1°-3° con avatares/aros/barras de tamaños exactos del diseño; lista inferior de ranks 4+ con avatar de color, nombre + subtítulo ("N niveles"), chip de mangos, y la fila del invitado resaltada (borde/sombra naranja). El botón de vincular cuenta (que el diseño NO tiene en ninguna pantalla, pero el issue #36 pide) se degradó a un link de texto discreto.
+  2. `mock_leaderboard_repository.dart`: los **8 jugadores exactos del diseño** (MangoMaster, Luisa_G, PulpaFan, Karo22, DulceVerde, ElHuertero, Flechita + el invitado) con sus colores.
+  3. Nuevos SVG `trophyFilled` y `mangoDot` en `app_svgs.dart`.
+  4. **Tests:** actualizados (podio + resaltado del invitado en la lista + snackbar). Suite: **234/234**, `analyze` limpio. Sin dependencias nuevas.
+- **Modificaciones del equipo:** el usuario aprobó el rediseño en vivo.
+- **Verificación:** `flutter analyze` (0), `flutter test` (234/234); `/ranking` en build release sin errores de consola.
+- **Lecciones / limitaciones:**
+  1. **Casi contamino el dominio (otra vez):** al mapear el color por jugador estuve a punto de meter `Color` de Flutter en la entidad `LeaderboardEntry` — exactamente la falla ya documentada en este archivo ("Contaminación del Dominio"). Se guardó como `int` (ARGB, `colorValue`) en el dominio y se convierte a `Color` solo en la capa de presentación.
+  2. **El diseño no tiene login social en ninguna pantalla**; la funcionalidad requerida por el issue se añadió como extensión mínima y discreta, no como elemento protagónico.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
