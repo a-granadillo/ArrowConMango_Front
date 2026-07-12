@@ -1,9 +1,9 @@
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 
-import 'easy_levels.dart' as easy;
-import 'hard_levels.dart' as hard;
+import 'easy_levels.dart';
+import 'hard_levels.dart';
 import 'level_generator.dart';
-import 'medium_levels.dart' as medium;
+import 'medium_levels.dart';
 
 /// The game's level catalogues (Campaign and Endless).
 ///
@@ -14,9 +14,9 @@ class LevelDefinitions {
 
   /// The 15 static handcrafted levels for Campaign Mode.
   static final List<LevelModel> campaignLevels = [
-    ...easy.levels,
-    ...medium.levels,
-    ...hard.levels,
+    ...EasyLevels.all,
+    ...MediumLevels.all,
+    ...HardLevels.all,
   ];
 
   static List<LevelModel> get easyLevels =>

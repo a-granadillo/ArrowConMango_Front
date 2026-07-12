@@ -66,7 +66,22 @@ class MainMenuScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 28),
                       child: Column(
                         children: [
-                          _PlayButton(onTap: () => context.push(AppRoutes.levels)),
+                          _PlayButton(
+                            label: 'MODO CAMPAÑA',
+                            onTap: () => context.push(AppRoutes.levels),
+                          ),
+                          const SizedBox(height: 14),
+                          _PlayButton(
+                            label: 'SUPERVIVENCIA',
+                            bg: AppColors.textDark,
+                            shadow: const Color(0xFF3E2723),
+                            onTap: () {
+                              // TODO: Connect to Endless mode logic via BLoC / Router
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Modo Supervivencia pronto disponible')),
+                              );
+                            },
+                          ),
                           const SizedBox(height: 14),
                           Row(
                             children: [
@@ -177,9 +192,17 @@ class _GreenHeader extends StatelessWidget {
 }
 
 class _PlayButton extends StatelessWidget {
-  const _PlayButton({required this.onTap});
+  const _PlayButton({
+    required this.onTap,
+    required this.label,
+    this.bg,
+    this.shadow,
+  });
 
   final VoidCallback onTap;
+  final String label;
+  final Color? bg;
+  final Color? shadow;
 
   @override
   Widget build(BuildContext context) {
@@ -189,26 +212,36 @@ class _PlayButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, AppColors.primaryDark],
-          ),
+          color: bg,
+          gradient: bg == null
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                )
+              : null,
           borderRadius: BorderRadius.circular(22),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFB03800), offset: Offset(0, 6)),
+          boxShadow: [
             BoxShadow(
-                color: Color(0x59F4843D), offset: Offset(0, 10), blurRadius: 28),
+              color: shadow ?? const Color(0xFFB03800),
+              offset: const Offset(0, 6),
+            ),
+            if (bg == null)
+              const BoxShadow(
+                color: Color(0x59F4843D),
+                offset: Offset(0, 10),
+                blurRadius: 28,
+              ),
           ],
         ),
         child: Text(
-          '¡ JUGAR !',
+          label,
           textAlign: TextAlign.center,
           style: GoogleFonts.fredoka(
-            fontSize: 30,
+            fontSize: 26,
             fontWeight: FontWeight.w600,
-            letterSpacing: 3,
-            color: Colors.white,
+            letterSpacing: 2,
+            color: bg != null ? AppColors.mango : Colors.white,
           ),
         ),
       ),
