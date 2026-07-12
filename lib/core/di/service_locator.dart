@@ -39,6 +39,10 @@ import '../../features/player/data/guest_name_generator.dart';
 import '../../features/player/data/player_local_data_source.dart';
 import '../../features/player/domain/guest_player.dart';
 import '../../features/player/presentation/player_cubit.dart';
+import '../audio/audio_service.dart';
+import '../audio/audio_service_impl.dart';
+import '../audio/audio_settings_cubit.dart';
+import '../audio/audio_settings_local_data_source.dart';
 import '../database/hive_config.dart';
 import 'progress_seed.dart';
 
@@ -84,9 +88,7 @@ Future<void> setupServiceLocator() async {
   sl
     ..registerLazySingleton<scoring.ScoringStrategy>(MoveBasedScoring.new)
     ..registerLazySingleton<CollisionValidator>(
-      () => CollisionValidator(
-        Grid2DTopology(rows: maxSize, cols: maxSize),
-      ),
+      () => CollisionValidator(Grid2DTopology(rows: maxSize, cols: maxSize)),
     );
 
   // --- Use cases ---
@@ -98,7 +100,10 @@ Future<void> setupServiceLocator() async {
       () => GetLevelDefinitionUseCase(sl<ILevelRepository>()),
     )
     ..registerLazySingleton<GetLevelListUseCase>(
-      () => GetLevelListUseCase(sl<ILevelRepository>(), sl<IProgressRepository>()),
+      () => GetLevelListUseCase(
+        sl<ILevelRepository>(),
+        sl<IProgressRepository>(),
+      ),
     )
     ..registerLazySingleton<StartGameSessionUseCase>(
       StartGameSessionUseCase.new,
@@ -139,6 +144,20 @@ Future<void> setupServiceLocator() async {
       PlayerCubit(dataSource: playerDataSource, initial: initialPlayer),
     );
 
+  // --- Audio ---
+  final audioBox = await Hive.openBox<dynamic>(
+    AudioSettingsLocalDataSource.boxName,
+  );
+  final audioSettings = AudioSettingsLocalDataSource(box: audioBox);
+  sl
+    ..registerLazySingleton<AudioSettingsLocalDataSource>(() => audioSettings)
+    ..registerLazySingleton<AudioService>(
+      () => AudioServiceImpl(settings: audioSettings),
+    )
+    ..registerLazySingleton<AudioSettingsCubit>(
+      () => AudioSettingsCubit(service: sl<AudioService>()),
+    );
+
   // --- BLoCs ---
   // Global, shared across the app (progress unlocks must propagate).
   sl.registerLazySingleton<ProgressBloc>(
@@ -172,6 +191,7 @@ Future<void> setupServiceLocator() async {
         calculateScoreUseCase: sl<CalculateScoreUseCase>(),
         unlockNextLevelUseCase: sl<UnlockNextLevelUseCase>(),
         collisionValidator: sl<CollisionValidator>(),
+        audioService: sl<AudioService>(),
       ),
     );
 }

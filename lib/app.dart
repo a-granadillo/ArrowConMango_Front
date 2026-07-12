@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/audio/audio_settings_cubit.dart';
 import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -30,6 +31,7 @@ class _ArrowConMangoAppState extends State<ArrowConMangoApp> {
           value: sl<ProgressBloc>()..add(const ProgressLoadStarted()),
         ),
         BlocProvider<PlayerCubit>.value(value: sl<PlayerCubit>()),
+        BlocProvider<AudioSettingsCubit>.value(value: sl<AudioSettingsCubit>()),
       ],
       child: MaterialApp.router(
         title: 'Arrow con Mango',
