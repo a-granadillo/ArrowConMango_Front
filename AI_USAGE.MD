@@ -519,7 +519,7 @@
   2. **No toda verificación necesita reproducir la app**: extraer una función privada de *seeding* a un archivo público y testeable (`progress_seed.dart`) permitió cubrir el fix con tests unitarios rápidos en vez de depender solo de QA manual.
   3. **IndexedDB + Hive no es introspeccionable desde JS externo sin el codec de Hive**: para depurar estado persistido en Flutter Web hay que confiar en logs de la propia app o en tests, no en leer la base cruda del navegador.
 
-### Entrada #29 — UI: Leaderboard Global (Guest-First) (Issue #36)
+### Entrada #30 — UI: Leaderboard Global (Guest-First) (Issue #36)
 
 - **Fecha / autor:** 11-07-2026 / hetairoii
 - **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
@@ -540,7 +540,7 @@
   3. **SnackBar deja un timer pendiente:** se avanza el reloj (`pump(5s)`) para que se auto-cierre y no falle el test por "pending timer".
   4. **Guest-First real:** el leaderboard funciona desde el primer segundo con el UUID anónimo; el backend (`GET /leaderboard`) puede implementar la misma interfaz sin tocar la UI.
 
-### Entrada #30 — Rediseño fiel al mockup: Leaderboard con podio (Issue #36)
+### Entrada #31 — Rediseño fiel al mockup: Leaderboard con podio (Issue #36)
 
 - **Fecha / autor:** 11-07-2026 / hetairoii
 - **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
