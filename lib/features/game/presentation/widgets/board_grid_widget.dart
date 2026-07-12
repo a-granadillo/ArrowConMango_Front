@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/arrow_entity.dart';
-import '../../domain/entities/node_id.dart';
 import 'animations/arrow_exit_animation.dart';
-import 'arrow_widget.dart';
+import 'painting/arrows_layer_painter.dart';
 
 /// A just-removed arrow, rendered as a one-shot exit animation overlay.
 class ExitingArrowData {
@@ -21,9 +20,12 @@ class ExitingArrowData {
   final VoidCallback onComplete;
 }
 
-/// Renders the puzzle board exactly as designed: a dark-wood frame around a
-/// dotted board surface, with arrows positioned over the cells they occupy.
-/// Tapping an arrow reports its id via [onArrowTap].
+/// Renders the puzzle board: a dark-wood frame around a dotted surface, with
+/// arrows drawn as thin snake-like strokes (a single [ArrowsLayerPainter]).
+///
+/// Tapping is resolved by cell — the tapped pixel maps to a `(row, col)`, and
+/// the arrow occupying that cell is reported via [onArrowTap]. This is exact
+/// even for bent arrows whose bounding boxes overlap other arrows' cells.
 class BoardGridWidget extends StatelessWidget {
   const BoardGridWidget({
     super.key,
@@ -31,6 +33,7 @@ class BoardGridWidget extends StatelessWidget {
     required this.cols,
     required this.arrows,
     required this.onArrowTap,
+    required this.colorOf,
     this.exitingArrows = const [],
   });
 
@@ -38,46 +41,22 @@ class BoardGridWidget extends StatelessWidget {
   final int cols;
   final List<ArrowEntity> arrows;
   final void Function(String arrowId) onArrowTap;
+
+  /// Stable color for an arrow id (see [ArrowColorAssigner]).
+  final Color Function(String id) colorOf;
+
   final List<ExitingArrowData> exitingArrows;
 
-  /// Arrow color palette, in the exact order used by the design.
-  static const List<Color> _arrowColors = [
-    AppColors.mango,
-    AppColors.danger,
-    AppColors.primary,
-    AppColors.success,
-    AppColors.difficultyMedium,
-    AppColors.difficultyHard,
-    AppColors.difficultyEasy,
-  ];
-
-  /// Stable color for the arrow at [index] in the board's arrow list.
-  static Color colorForIndex(int index) =>
-      _arrowColors[index % _arrowColors.length];
-
-  static (int row, int col) _rc(NodeId node) {
-    final parts = node.key.split('_');
-    return (int.parse(parts[0]), int.parse(parts[1]));
-  }
-
-  (double left, double top, double width, double height) _bounds(
-    ArrowEntity arrow,
-    double cell,
-  ) {
-    var minRow = rows, minCol = cols, maxRow = 0, maxCol = 0;
-    for (final node in arrow.occupiedNodes) {
-      final (row, col) = _rc(node);
-      minRow = row < minRow ? row : minRow;
-      minCol = col < minCol ? col : minCol;
-      maxRow = row > maxRow ? row : maxRow;
-      maxCol = col > maxCol ? col : maxCol;
+  void _handleTap(Offset local, double cell) {
+    final col = (local.dx / cell).floor().clamp(0, cols - 1);
+    final row = (local.dy / cell).floor().clamp(0, rows - 1);
+    final key = '${row}_$col';
+    for (final arrow in arrows) {
+      if (arrow.occupiedNodes.any((n) => n.key == key)) {
+        onArrowTap(arrow.id);
+        return;
+      }
     }
-    return (
-      minCol * cell,
-      minRow * cell,
-      (maxCol - minCol + 1) * cell,
-      (maxRow - minRow + 1) * cell,
-    );
   }
 
   @override
@@ -89,11 +68,7 @@ class BoardGridWidget extends StatelessWidget {
         color: AppColors.textDark,
         borderRadius: BorderRadius.circular(22),
         boxShadow: const [
-          BoxShadow(
-            color: Color(0x526D4C2A),
-            blurRadius: 28,
-            offset: Offset(0, 8),
-          ),
+          BoxShadow(color: Color(0x526D4C2A), blurRadius: 28, offset: Offset(0, 8)),
         ],
       ),
       child: AspectRatio(
@@ -101,57 +76,43 @@ class BoardGridWidget extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final cell = constraints.maxWidth / cols;
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(13),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(painter: _BoardSurfacePainter(cell)),
-                  ),
-                  for (var i = 0; i < arrows.length; i++)
-                    _positionedArrow(arrows[i], i, cell),
-                  for (final exiting in exitingArrows)
-                    _positionedExiting(exiting, cell),
-                ],
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: (details) => _handleTap(details.localPosition, cell),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(painter: _BoardSurfacePainter(cell)),
+                    ),
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: ArrowsLayerPainter(
+                          arrows: arrows,
+                          colorOf: colorOf,
+                          cell: cell,
+                        ),
+                      ),
+                    ),
+                    for (final exiting in exitingArrows)
+                      Positioned.fill(
+                        key: ValueKey(exiting.id),
+                        child: ArrowExitAnimation(
+                          arrow: exiting.arrow,
+                          cell: cell,
+                          rows: rows,
+                          cols: cols,
+                          color: exiting.color,
+                          onComplete: exiting.onComplete,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             );
           },
         ),
-      ),
-    );
-  }
-
-  Widget _positionedArrow(ArrowEntity arrow, int index, double cell) {
-    final (left, top, width, height) = _bounds(arrow, cell);
-    return Positioned(
-      left: left,
-      top: top,
-      width: width,
-      height: height,
-      child: GestureDetector(
-        onTap: () => onArrowTap(arrow.id),
-        child: ArrowWidget(
-          arrow: arrow,
-          cellSize: cell,
-          color: colorForIndex(index),
-        ),
-      ),
-    );
-  }
-
-  Widget _positionedExiting(ExitingArrowData exiting, double cell) {
-    final (left, top, width, height) = _bounds(exiting.arrow, cell);
-    return Positioned(
-      key: ValueKey(exiting.id),
-      left: left,
-      top: top,
-      width: width,
-      height: height,
-      child: ArrowExitAnimation(
-        arrow: exiting.arrow,
-        cellSize: cell,
-        color: exiting.color,
-        onComplete: exiting.onComplete,
       ),
     );
   }

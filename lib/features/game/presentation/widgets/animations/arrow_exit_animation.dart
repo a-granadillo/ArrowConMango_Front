@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/arrow_entity.dart';
-import '../../../domain/entities/cardinal_direction.dart';
-import '../../../domain/entities/direction.dart';
-import '../arrow_widget.dart';
+import '../painting/arrow_exit_painter.dart';
+import '../painting/arrow_geometry.dart';
 
-/// Slides an exited arrow off the board (in its direction) while fading out,
-/// then calls [onComplete] so the overlay can be removed.
-///
-/// The parent positions this widget over the cells the arrow occupied.
+/// Animates one arrow sliding out of the board "snake" style: the stroke
+/// advances along its own path (bends included) and off the edge, then calls
+/// [onComplete] so the overlay can be removed. Positioned over the whole board.
 class ArrowExitAnimation extends StatefulWidget {
   const ArrowExitAnimation({
     super.key,
     required this.arrow,
-    required this.cellSize,
+    required this.cell,
+    required this.rows,
+    required this.cols,
     required this.color,
     required this.onComplete,
   });
 
   final ArrowEntity arrow;
-  final double cellSize;
+  final double cell;
+  final int rows;
+  final int cols;
   final Color color;
   final VoidCallback onComplete;
 
@@ -30,11 +32,16 @@ class ArrowExitAnimation extends StatefulWidget {
 class _ArrowExitAnimationState extends State<ArrowExitAnimation>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
-    duration: const Duration(milliseconds: 320),
+    duration: _durationFor(widget.arrow, widget.rows, widget.cols),
     vsync: this,
   );
   late final Animation<double> _t =
       CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
+  static Duration _durationFor(ArrowEntity arrow, int rows, int cols) {
+    final travel = arrow.length + exitCells(arrow, rows, cols);
+    return Duration(milliseconds: (140 + travel * 45).clamp(250, 700));
+  }
 
   @override
   void initState() {
@@ -51,33 +58,21 @@ class _ArrowExitAnimationState extends State<ArrowExitAnimation>
     super.dispose();
   }
 
-  Offset _direction() {
-    return switch (widget.arrow.direction) {
-      CardinalDirection.up => const Offset(0, -1),
-      CardinalDirection.down => const Offset(0, 1),
-      CardinalDirection.left => const Offset(-1, 0),
-      CardinalDirection.right => const Offset(1, 0),
-      Direction() => Offset.zero,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
-    final travel = widget.cellSize * (widget.arrow.length + 3);
-    final dir = _direction();
-    return AnimatedBuilder(
-      animation: _t,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: dir * travel * _t.value,
-          child: Opacity(opacity: 1 - _t.value, child: child),
-        );
-      },
-      child: IgnorePointer(
-        child: ArrowWidget(
-          arrow: widget.arrow,
-          cellSize: widget.cellSize,
-          color: widget.color,
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _t,
+        builder: (context, _) => CustomPaint(
+          painter: ArrowExitPainter(
+            arrow: widget.arrow,
+            color: widget.color,
+            cell: widget.cell,
+            rows: widget.rows,
+            cols: widget.cols,
+            progress: _t.value,
+          ),
+          size: Size.infinite,
         ),
       ),
     );
