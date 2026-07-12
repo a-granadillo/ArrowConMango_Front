@@ -181,7 +181,7 @@ Future<void> setupServiceLocator() async {
 void _seedLevels(Box<LevelModel> box) {
   if (box.isNotEmpty) return;
   final entries = <int, LevelModel>{
-    for (final level in LevelDefinitions.allLevels) level.id: level,
+    for (final level in LevelDefinitions.campaignLevels) level.id: level,
   };
   box.putAll(entries);
 }
@@ -190,7 +190,7 @@ void _seedLevels(Box<LevelModel> box) {
 /// collision topology so every level's exit trajectories resolve correctly.
 int _maxBoardSize() {
   var maxDim = 1;
-  for (final level in LevelDefinitions.allLevels) {
+  for (final level in LevelDefinitions.campaignLevels) {
     maxDim = math.max(maxDim, math.max(level.boardSize.rows, level.boardSize.cols));
   }
   return maxDim;
