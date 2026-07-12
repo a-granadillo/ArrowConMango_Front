@@ -1,3 +1,5 @@
+import 'package:arrowconmango_front/core/audio/audio_settings_cubit.dart';
+import 'package:arrowconmango_front/core/audio/audio_settings_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/screens/settings_screen.dart';
 import 'package:arrowconmango_front/features/player/presentation/player_cubit.dart';
 import 'package:flutter/material.dart';
@@ -5,16 +7,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../helpers/fakes/fake_audio_service.dart';
 import '../../../../helpers/player_test_setup.dart';
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
-  Future<void> pumpSettings(WidgetTester tester, PlayerCubit cubit) {
+  Future<void> pumpSettings(
+    WidgetTester tester,
+    PlayerCubit playerCubit,
+    AudioSettingsCubit audioCubit,
+  ) {
     return tester.pumpWidget(
       MaterialApp(
-        home: BlocProvider<PlayerCubit>.value(
-          value: cubit,
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<PlayerCubit>.value(value: playerCubit),
+            BlocProvider<AudioSettingsCubit>.value(value: audioCubit),
+          ],
           child: const SettingsScreen(),
         ),
       ),
@@ -23,11 +33,13 @@ void main() {
 
   testWidgets('should_render_settings_options', (tester) async {
     // Arrange
-    final cubit = makePlayerCubit(name: 'MangoLoco_10');
-    addTearDown(cubit.close);
+    final playerCubit = makePlayerCubit(name: 'MangoLoco_10');
+    final audioCubit = AudioSettingsCubit(service: FakeAudioService());
+    addTearDown(playerCubit.close);
+    addTearDown(audioCubit.close);
 
     // Act
-    await pumpSettings(tester, cubit);
+    await pumpSettings(tester, playerCubit, audioCubit);
 
     // Assert
     expect(find.text('Ajustes'), findsOneWidget);
@@ -39,9 +51,11 @@ void main() {
 
   testWidgets('should_update_name_when_edited_and_saved', (tester) async {
     // Arrange
-    final cubit = makePlayerCubit(name: 'MangoLoco_10');
-    addTearDown(cubit.close);
-    await pumpSettings(tester, cubit);
+    final playerCubit = makePlayerCubit(name: 'MangoLoco_10');
+    final audioCubit = AudioSettingsCubit(service: FakeAudioService());
+    addTearDown(playerCubit.close);
+    addTearDown(audioCubit.close);
+    await pumpSettings(tester, playerCubit, audioCubit);
 
     // Act: open the editor, type a new name, save.
     await tester.tap(find.text('Editar'));
@@ -51,7 +65,28 @@ void main() {
     await tester.pumpAndSettle();
 
     // Assert
-    expect(cubit.state.displayName, 'Abraham');
+    expect(playerCubit.state.displayName, 'Abraham');
     expect(find.text('Abraham'), findsOneWidget);
   });
+
+  testWidgets(
+    'when audio switch is tapped, it should call toggleMute on AudioSettingsCubit',
+    (tester) async {
+      // Arrange
+      final playerCubit = makePlayerCubit(name: 'MangoLoco_10');
+      final fakeAudioService = FakeAudioService();
+      final audioCubit = AudioSettingsCubit(service: fakeAudioService);
+      addTearDown(playerCubit.close);
+      addTearDown(audioCubit.close);
+      await pumpSettings(tester, playerCubit, audioCubit);
+
+      // Act
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(fakeAudioService.muteCalls, 1);
+      expect(audioCubit.state, const AudioSettingsState(isMuted: true));
+    },
+  );
 }
