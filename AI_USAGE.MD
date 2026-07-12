@@ -359,6 +359,50 @@
 - **Verificación:** El documento `ROADMAP.md` refleja correctamente la división de tareas en 3 roles (Data, BLoC/UseCases, UI).
 - **Lecciones / limitaciones:** Utilizar la IA como *sparring* para debatir UX (User Experience) previene errores graves de producto. Un login forzado aniquila la retención inicial; la solución Guest-First ofreció un compromiso perfecto entre buena retención y los requerimientos técnicos del backend.
 
+### Entrada #23 — UI: Pantallas de Menú + Base de App + Identidad Invitado (Issue #4)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación) / Arquitecto de composición
+- **Tarea/problema:** Implementar el Issue #4 (Splash, Menú Principal, Selección de Nivel, Ajustes) sobre la app, que aún era el contador demo de Flutter. Como #4 es el punto de entrada, incluye la **base compartida** (tema, routing, DI, arranque de Hive) y una **identidad de invitado** mínima (Guest-First) usada por Ajustes. Se omiten las pantallas de Login/Registro del mockup.
+- **Prompt (paráfrasis fiel):** > "Trabajemos el frontend. Analiza los issues 4, 5 y 12 en el repo y la estructura, crea ramas por issue desde develop. El HTML adjunto es la UI deseada (omite el login). Usaremos usuarios Guest-First: UUID + nombre aleatorio, leaderboard opcional, cambio de nombre local. Planea paso a paso siguiendo la documentación del frontend."
+- **Resultado obtenido:**
+  1. Rama `4-menu-screens` desde `develop`.
+  2. **Base:** `core/theme` (paleta y gradientes extraídos del mockup, tipografías Fredoka/Nunito vía `google_fonts`), `core/di/service_locator.dart` (get_it cableando repos → use cases → BLoCs), `core/router` (go_router), `main.dart`/`app.dart` reescritos (init de Hive, `MultiBlocProvider`, `MaterialApp.router`).
+  3. **Identidad invitado:** `features/player/` con `GuestPlayer`, generador de UUID v4 + nombre aleatorio (`MangoLoco_99`), `PlayerLocalDataSource` (Hive) tras la interfaz `IPlayerRepository`, y `PlayerCubit` (editar nombre).
+  4. **Pantallas #4:** Splash, MainMenu (Jugar/Ranking/Ajustes), LevelSelection (bind a `MenuBloc`), Settings (editar nombre) y un placeholder de Ranking.
+  5. **Tests:** 10 pruebas nuevas (generador, persistencia/rename, y widget tests de las 3 pantallas). Suite completa: **217/217 en verde**, `flutter analyze` sin issues. Limpieza `pubspec` (eliminada la dependencia basura `lib`, corregido `description`).
+- **Modificaciones del equipo:** (pendiente de revisión por PR). Correcciones aplicadas durante el desarrollo por el propio flujo: ver "Verificación".
+- **Verificación:** `flutter analyze` (0 issues), `flutter test` (217/217). Arranque en `web-server`: la consola confirma `main()` ejecutado y Hive abriendo las cajas `levels`, `progress` y `player` sin errores. *Limitación:* el renderer CanvasKit de Flutter Web no permite capturas/lectura de accesibilidad desde el navegador headless, por lo que la verificación visual se apoya en los widget tests.
+- **Lecciones / limitaciones:**
+  1. **La caja Hive de niveles no se poblaba.** El `HiveLevelRepository` lee de una caja vacía; ningún componente la sembraba desde `LevelDefinitions`. Se añadió el *seeding* en el arranque (si no, el menú aparecería sin niveles). Hallazgo clave que la IA detectó al trazar la cadena DI.
+  2. **`testWidgets` + Hive real se cuelga.** El I/O asíncrono de Hive dentro de `testWidgets` provoca timeout; se resolvió introduciendo `IPlayerRepository` + un fake en memoria para los widget tests (y mejor arquitectura de paso).
+  3. **`pumpAndSettle` + spinner infinito.** El `CircularProgressIndicator` del estado de carga nunca "asienta"; se conduce el `MenuBloc` a `MenuLoaded` con `tester.runAsync` antes de construir la vista.
+  4. **`GridView` es perezoso:** sólo construye las tarjetas visibles, así que las aserciones de conteo exacto (15/12) fallan; se verifican el subtítulo y el mapeo de bloqueo por tarjetas concretas.
+  5. **Topología de colisión única para tableros de tamaño variable:** los niveles miden 6×7…12×12 pero el `GameBloc` usa un solo `CollisionValidator`; se dimensiona la topología al máximo (12) para que las trayectorias de salida resuelvan bien en todos.
+
+### Entrada #24 — Rediseño fiel al mockup: Menú, Niveles, Ajustes, Splash (Issue #4)
+
+- **Fecha / autor:** 11-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8 / claude-sonnet-5)
+- **Rol en el flujo:** Desarrollador Frontend (capa de Presentación)
+- **Tarea/problema:** El primer pase de #4/#5/#12/#36 usaba la paleta y copys correctos pero un layout propio, no fiel al mockup de diseño. El usuario proporcionó el archivo fuente `Arrow con Mango.dc.html` (proyecto Claude Design) con el layout exacto, incluidas animaciones. Había que reconstruir cada pantalla para que fuera 100% fiel, rama por rama, con verificación intermedia antes de avanzar.
+- **Prompt (paráfrasis fiel):** > "Tenemos que aplicar el cambio para que sea fiel al mockup en cada rama. Analiza el html y, para cada rama correspondiente, modifica el layout visual para que sea 100% fiel al layout del html, incluyendo las animaciones. Muéstrame una prueba rápida por rama y consúltame antes de proceder con la siguiente."
+- **Resultado obtenido:**
+  1. Se importó el archivo de diseño vía `DesignSync` (`get_file` sobre el proyecto `abf968f7-...`), extrayendo el HTML/CSS inline exacto de cada pantalla (`data-screen-label`) y las `@keyframes` (`floatMango`, `sparkle`, `confettiFall`, `slideUp`, `popBig`, `mangoPop`).
+  2. Se agregó `flutter_svg` para reproducir los gráficos vectoriales del diseño tal cual (logo mango, hojas, íconos de botones).
+  3. Nuevos widgets base reutilizables: `core/widgets/mango_logo.dart` (`MangoLogo` + `FloatingMango`, animación de flotación + destellos fieles a `floatMango`/`sparkle`) y `core/widgets/app_svgs.dart` (íconos SVG copiados del diseño: trofeo, ranking, ajustes, chevron, candado, mini-mango).
+  4. **Menú principal:** header verde con borde curvo elíptico y hojas tenues, logo flotante, título de dos líneas (Fredoka 44/50), botón "¡ JUGAR !" con gradiente y sombra 3D, 3 botones de navegación con sus colores/sombras exactos del diseño, page-dots.
+  5. **Selección de nivel:** header verde con "N de 15 disponibles", grid 3-col con los 3 estados exactos de tile (completado con gradiente mango-naranja + mini-mangos, desbloqueado con dificultad, bloqueado con candado y opacity 0.6), colores/sombras extraídos literalmente del script del diseño (`bg`/`shadow` ternarios).
+  6. **Ajustes/Splash:** sin pantalla propia en el mockup; se mantuvieron consistentes con el sistema visual ya extraído (header verde, tarjetas, logo flotante).
+  7. **Tests:** actualizados 2 (menú: nuevo copy de dos líneas y botones; niveles: candado con etiqueta "Nivel N" en vez de icono suelto). Suite completa: **217/217**, `analyze` limpio.
+- **Modificaciones del equipo:** el usuario aprobó el rediseño de #4 tras revisarlo en vivo (build web servido localmente) antes de continuar con #5.
+- **Verificación:** `flutter analyze` (0), `flutter test` (217/217 incluyendo los 2 actualizados). Build `--release` servido localmente; rutas `/menu`, `/levels`, `/settings` cargadas sin errores de consola.
+- **Lecciones / limitaciones:**
+  1. **El archivo `.dc.html` es la fuente de verdad real**, no el bundle React empaquetado: contiene el layout/CSS inline exacto y las animaciones declaradas, mientras que el bundle sólo se podía leer como texto (sin poder renderizarlo/compararlo visualmente desde el navegador headless disponible).
+  2. **Extraer colores desde JS embebido requiere grep dirigido**: los ternarios `bg:`/`shadow:` de los tiles de nivel y filas del leaderboard sólo aparecen completos con suficiente contexto alrededor del match; hicieron falta varias pasadas de grep con ventanas de contexto crecientes para no perder literales partidos en el JSON del `.dc.html`.
+  3. **Verificación de fidelidad visual sin capturas de pantalla:** ante la imposibilidad de comparar pixel a pixel, se usó una combinación de (a) build real corriendo en vivo para revisión humana, (b) consola sin errores por ruta, y (c) widget tests que verifican los textos/estructura exactos del nuevo layout.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA

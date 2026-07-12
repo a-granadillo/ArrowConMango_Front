@@ -1,5 +1,5 @@
 name: arrowconmango_front
-description: "A new Flutter project."
+description: "Arrow con Mango — puzzle game mobile app (Flutter + Clean Architecture + BLoC)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -38,11 +38,22 @@ dependencies:
   # Value equality for entities (needed by BLoC for state comparison)
   equatable: ^2.0.7
   flutter_bloc: ^8.1.6
-  lib: ^0.3.0
 
   # Lightweight key-value database for local persistence.
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+
+  # Service locator for dependency injection (composition root).
+  get_it: ^7.7.0
+
+  # Declarative routing.
+  go_router: ^14.6.2
+
+  # Brand typography (Fredoka + Nunito) from Google Fonts.
+  google_fonts: ^6.2.1
+
+  # Faithful vector graphics (mango logo, leaves, icons) from the design.
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:

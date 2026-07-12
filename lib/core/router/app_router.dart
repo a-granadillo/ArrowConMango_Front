@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../features/game/presentation/bloc/menu_bloc.dart';
+import '../../features/game/presentation/bloc/menu_event.dart';
+import '../../features/game/presentation/screens/level_selection_screen.dart';
+import '../../features/game/presentation/screens/main_menu_screen.dart';
+import '../../features/game/presentation/screens/ranking_placeholder_screen.dart';
+import '../../features/game/presentation/screens/settings_screen.dart';
+import '../../features/game/presentation/screens/splash_screen.dart';
+import '../di/service_locator.dart';
+import '../widgets/mango_background.dart';
+import 'app_routes.dart';
+
+/// Builds the application's [GoRouter].
+///
+/// NOTE: `/game`, `/victory` and `/defeat` currently render placeholders.
+/// They are replaced by the real screens in issues #5 (Game) and #12 (Results).
+GoRouter buildAppRouter() {
+  return GoRouter(
+    initialLocation: AppRoutes.splash,
+    routes: [
+      GoRoute(
+        path: AppRoutes.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.menu,
+        builder: (context, state) => const MainMenuScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.levels,
+        builder: (context, state) => BlocProvider<MenuBloc>(
+          create: (_) => sl<MenuBloc>()..add(const MenuLevelsRequested()),
+          child: const LevelSelectionScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.ranking,
+        builder: (context, state) => const RankingPlaceholderScreen(),
+      ),
+      // --- Placeholders (issues #5 / #12) ---
+      GoRoute(
+        path: AppRoutes.game,
+        builder: (context, state) => _Placeholder(
+          title: 'Nivel ${state.pathParameters['levelId']}',
+          message: 'Pantalla de juego — issue #5',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.victory,
+        builder: (context, state) => const _Placeholder(
+          title: '¡Enhorabuena!',
+          message: 'Pantalla de victoria — issue #12',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.defeat,
+        builder: (context, state) => const _Placeholder(
+          title: 'Derrota',
+          message: 'Pantalla de derrota — issue #12',
+        ),
+      ),
+    ],
+  );
+}
+
+class _Placeholder extends StatelessWidget {
+  const _Placeholder({required this.title, required this.message});
+
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return MangoBackground(
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.go(AppRoutes.menu),
+              child: const Text('Menú'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
