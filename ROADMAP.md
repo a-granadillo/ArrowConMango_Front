@@ -529,6 +529,78 @@ docs/screenshots/
 
 ---
 
+## 🎯 Features por Capa (Nuevas Fases 3D & API)
+
+### **Fase B: Deuda Técnica 2D y Refactor Base**
+
+#### GitHub #20: [Frontend] Pagar deuda técnica 2D y migrar Hive
+**Scope:** `BoardGeometry` sealed class y versionado de caja Hive a `levels_v2` para soportar 3D sin romper el 2D.  
+**Dependencias:** N/A  
+**Estimación:** 4 horas  
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** a-granadillo
+
+**GitHub Issue:** [#20](https://github.com/a-granadillo/ArrowConMango_Front/issues/20)
+
+---
+
+### **Fase C: Dominio 3D (Grafo Dirigido)**
+
+#### GitHub #21: [Frontend] Lógica de Dominio 3D (Topología Z)
+**Scope:** `SpatialDirection`, `Grid3DTopology`, `ArrowGraph` (algoritmo Kahn), y generador de niveles 3D (16-25).  
+**Dependencias:** GitHub #20  
+**Estimación:** 12 horas  
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** AlbertoMonasterio
+
+**GitHub Issue:** [#21](https://github.com/a-granadillo/ArrowConMango_Front/issues/21)
+
+---
+
+### **Fase D & UI Dual: Presentación y Modos de Juego**
+
+#### GitHub #22: [Frontend] UI por Capas Z (Fantasmas Visuales)
+**Scope:** Selector de profundidad (eje Z), `Board3DLayersWidget` y renderizado de flechas "fantasma" de capas adyacentes para UX.  
+**Dependencias:** GitHub #21  
+**Estimación:** 8 horas  
+**Prioridad:** 🟡 ALTA  
+**Asignado:** hetairoii
+
+**GitHub Issue:** [#22](https://github.com/a-granadillo/ArrowConMango_Front/issues/22)
+
+#### GitHub #24: [Frontend] Modo Campaña (Estático) y Modo Arcade (Infinito)
+**Scope:** Dual game mode. Restaurar los 15 niveles artesanales densos (Campaña) y usar el `LevelGenerator` para el modo "Time Attack" (Arcade). Menú de selección de modos.  
+**Dependencias:** GitHub #3  
+**Estimación:** 6 horas  
+**Prioridad:** 🟢 MEDIA  
+**Asignado:** hetairoii (UI Menú) y a-granadillo (Restaurar data)
+
+**GitHub Issue:** [#24](https://github.com/a-granadillo/ArrowConMango_Front/issues/24)
+
+---
+
+### **Fase A & E: Red e Integración Backend**
+
+#### GitHub #19: [Backend] Implementar Auth Guest y habilitar CORS
+**Scope:** API NestJS: `POST /auth/guest` generando JWT desde UUID, y `app.enableCors()`.  
+**Dependencias:** N/A (Backend task)  
+**Estimación:** 6 horas  
+**Prioridad:** 🔴 CRÍTICA  
+**Asignado:** AlbertoMonasterio
+
+**GitHub Issue:** [#19](https://github.com/a-granadillo/ArrowConMango_Front/issues/19)
+
+#### GitHub #23: [Frontend] Integración HTTP y Fallback Offline
+**Scope:** `ApiClient` (Dio), `ApiLeaderboardRepository`, y `SyncedProgressRepository` (decorator Hive/API con fallback offline).  
+**Dependencias:** GitHub #19  
+**Estimación:** 8 horas  
+**Prioridad:** 🟡 ALTA  
+**Asignado:** a-granadillo
+
+**GitHub Issue:** [#23](https://github.com/a-granadillo/ArrowConMango_Front/issues/23)
+
+---
+
 ## 📊 Matriz de Dependencias
 
 ```

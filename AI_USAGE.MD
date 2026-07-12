@@ -558,6 +558,22 @@
   1. **Casi contamino el dominio (otra vez):** al mapear el color por jugador estuve a punto de meter `Color` de Flutter en la entidad `LeaderboardEntry` — exactamente la falla ya documentada en este archivo ("Contaminación del Dominio"). Se guardó como `int` (ARGB, `colorValue`) en el dominio y se convierte a `Color` solo en la capa de presentación.
   2. **El diseño no tiene login social en ninguna pantalla**; la funcionalidad requerida por el issue se añadió como extensión mínima y discreta, no como elemento protagónico.
 
+### Entrada #30 — Planificación de Modo 3D, Dual Game Mode e Integración API
+
+- **Fecha / autor:** 12-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: gemini-3.1-pro-preview)
+- **Rol en el flujo:** Arquitecto de Software Principal / Product Manager
+- **Tarea/problema:** El equipo propuso un plan avanzado para migrar el juego a 3D (grafos dirigidos por capas Z) y conectarlo con un backend NestJS (Guest-First). Simultáneamente, se descubrió que un agente previo había reemplazado los niveles artesanales densos (40-70 flechas con figuras) por un generador procedural infinito de baja densidad (7-18 flechas). Había que conciliar ambos enfoques y aprobar el plan 3D.
+- **Prompt (paráfrasis fiel):** > "Revisa el siguiente plan que generó uno de mis compañeros: modo 3D (grafo dirigido) + integración Frontend-Backend. Además, me plantean usar nuestro diseño artesanal para los 15 niveles predeterminados y el generador en otro modo de juego. ¿Qué opinas? Agrega las nuevas issues a github y al roadmap distribuyéndolas en el equipo."
+- **Resultado obtenido:** 
+  1. Aprobación técnica del plan 3D destacando aciertos clave: uso de `BoardGeometry` (sealed classes) para no romper el 2D, versionado explícito de la caja de Hive (`levels_v2`) y patrón Decorator para fallback offline de red.
+  2. Ajustes introducidos por la IA: (a) UX de Fantasmas: rendering semi-transparente de capas Z±1 para evitar confusión visual por bloqueos invisibles; (b) Limpieza explícita del disco en la migración de Hive.
+  3. Formulación de la arquitectura "Dual Game Mode": Modo Campaña (15 niveles artesanales restaurados) vs Modo Arcade/Time-Attack (niveles procedurales infinitos).
+  4. Redacción de 6 GitHub Issues atómicos (#19 a #24) distribuidos estratégicamente: Backend y Dominio 3D para `AlbertoMonasterio`, Migraciones y Red para `a-granadillo`, y todo el ruteo/UI/Animaciones de Capas para `hetairoii`.
+- **Modificaciones del equipo:** Inserción manual de los issues generados vía la CLI de GitHub. 
+- **Verificación:** `ROADMAP.md` y `AI_USAGE.MD` actualizados con las nuevas fases de desarrollo.
+- **Lecciones / limitaciones:** Combinar generación procedural estricta (matemáticamente 100% resoluble hacia atrás) con tableros pequeños (9x12) genera cuellos de botella geométricos que impiden la alta densidad visual. La solución arquitectónica de "modos de juego duales" maximiza el valor sin desechar código: se preserva la artesanía visual para la campaña y la escalabilidad infinita matemática para un modo arcade.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
