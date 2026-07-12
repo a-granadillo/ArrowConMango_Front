@@ -2,7 +2,8 @@ import 'package:arrowconmango_front/features/game/presentation/bloc/game_bloc.da
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/screens/game_screen.dart';
-import 'package:arrowconmango_front/features/game/presentation/widgets/arrow_widget.dart';
+import 'package:arrowconmango_front/features/game/presentation/widgets/board_grid_widget.dart';
+import 'package:arrowconmango_front/features/game/presentation/widgets/painting/arrows_layer_painter.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,29 +48,40 @@ void main() {
     // Act
     await pumpGame(tester);
 
-    // Assert — faithful design HUD: separate level/difficulty lines and
-    // icon+value+label stat chips (value and label are distinct Text nodes).
-    expect(find.text('Nivel 1'), findsOneWidget);
-    expect(find.text('Easy'), findsOneWidget);
+    // Assert — HUD: title + "Nivel N · dificultad" subtitle and stat chips.
+    expect(find.text('Nivel 1'), findsOneWidget); // title fallback (no name)
+    expect(find.text('Nivel 1 · Fácil'), findsOneWidget); // subtitle in Spanish
     expect(find.text('2'), findsOneWidget); // arrows remaining
     expect(find.text('flechas'), findsOneWidget);
     expect(find.text('0'), findsOneWidget); // taps
     expect(find.text('toques'), findsOneWidget);
     expect(find.text('1:05'), findsOneWidget); // 65s
     expect(find.textContaining('Toca una flecha'), findsOneWidget);
-    expect(find.byType(ArrowWidget), findsNWidgets(2));
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is ArrowsLayerPainter,
+      ),
+      findsOneWidget,
+    );
 
     // Dispose the screen so its periodic timer is cancelled.
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('should_dispatch_TriggerArrowExit_when_an_arrow_is_tapped',
+  testWidgets('should_dispatch_TriggerArrowExit_when_an_arrow_cell_is_tapped',
       (tester) async {
     // Arrange
     await pumpGame(tester);
 
-    // Act
-    await tester.tap(find.byType(ArrowWidget).first);
+    // Act: tap cell (0,0), occupied by arrow a1 (rows/cols = 4 in makePlaying).
+    final gd = find.descendant(
+      of: find.byType(BoardGridWidget),
+      matching: find.byType(GestureDetector),
+    );
+    final topLeft = tester.getTopLeft(gd);
+    final size = tester.getSize(gd);
+    final cell = size.width / 4;
+    await tester.tapAt(topLeft + Offset(0.5 * cell, 0.5 * cell));
     await tester.pump();
 
     // Assert
