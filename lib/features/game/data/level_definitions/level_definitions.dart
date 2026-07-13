@@ -9,23 +9,28 @@ import 'level_generator.dart';
 class LevelDefinitions {
   LevelDefinitions._();
 
-  /// Level specifications: (name, difficulty, arrowCount, seed)
-  static const List<(String, String, int, int)> _specs = [
-    ('Mango Verde', 'Easy', 25, 1007),
-    ('Semilla Tierna', 'Easy', 28, 2007),
-    ('Brote Nuevo', 'Easy', 30, 3007),
-    ('Hoja Fresca', 'Easy', 32, 4007),
-    ('Sol Naciente', 'Easy', 35, 5007),
-    ('Pulpa Dulce', 'Medium', 38, 6007),
-    ('Néctar Maduro', 'Medium', 40, 7007),
-    ('Cosecha Media', 'Medium', 42, 8007),
-    ('Fibra Jugosa', 'Medium', 45, 9007),
-    ('Aroma Tropical', 'Medium', 48, 10007),
-    ('Piel Dorada', 'Hard', 50, 11007),
-    ('Hueso Duro', 'Hard', 55, 12007),
-    ('Corazón del Mango', 'Hard', 60, 13007),
-    ('Huerto Salvaje', 'Hard', 65, 14007),
-    ('Rey Mango', 'Hard', 70, 15007),
+  /// Level specifications: (name, difficulty, config, seed)
+  static const List<(String, String, LevelConfig, int)> _specs = [
+    // Easy levels (6x6, 15 arrows, mostly straight and L-shapes)
+    ('Mango Verde', 'Easy', LevelConfig.easy, 1007),
+    ('Semilla Tierna', 'Easy', LevelConfig.easy, 2007),
+    ('Brote Nuevo', 'Easy', LevelConfig.easy, 3007),
+    ('Hoja Fresca', 'Easy', LevelConfig.easy, 4007),
+    ('Sol Naciente', 'Easy', LevelConfig.easy, 5007),
+    
+    // Medium levels (8x8, 30 arrows, mix of all shapes)
+    ('Pulpa Dulce', 'Medium', LevelConfig.medium, 6007),
+    ('Néctar Maduro', 'Medium', LevelConfig.medium, 7007),
+    ('Cosecha Media', 'Medium', LevelConfig.medium, 8007),
+    ('Fibra Jugosa', 'Medium', LevelConfig.medium, 9007),
+    ('Aroma Tropical', 'Medium', LevelConfig.medium, 10007),
+    
+    // Hard levels (12x12, 60 arrows, complex shapes)
+    ('Piel Dorada', 'Hard', LevelConfig.hard, 11007),
+    ('Hueso Duro', 'Hard', LevelConfig.hard, 12007),
+    ('Corazón del Mango', 'Hard', LevelConfig.hard, 13007),
+    ('Huerto Salvaje', 'Hard', LevelConfig.hard, 14007),
+    ('Rey Mango', 'Hard', LevelConfig.hard, 15007),
   ];
 
   /// The 15 campaign levels (procedurally generated, guaranteed solvable).
@@ -35,7 +40,7 @@ class LevelDefinitions {
         id: i + 1,
         name: _specs[i].$1,
         difficulty: _specs[i].$2,
-        arrowCount: _specs[i].$3,
+        config: _specs[i].$3,
         seed: _specs[i].$4,
       ),
   ];
@@ -62,18 +67,18 @@ class LevelDefinitions {
     required String difficulty,
     required int seed,
   }) {
-    final arrowCount = switch (difficulty) {
-      'Easy' => 9,
-      'Medium' => 13,
-      'Hard' => 18,
-      _ => 12,
+    final config = switch (difficulty) {
+      'Easy' => LevelConfig.easy,
+      'Medium' => LevelConfig.medium,
+      'Hard' => LevelConfig.hard,
+      _ => LevelConfig.medium,
     };
 
     return LevelGenerator.generate(
       id: id,
       name: 'Supervivencia $id',
       difficulty: difficulty,
-      arrowCount: arrowCount,
+      config: config,
       seed: seed,
     );
   }
