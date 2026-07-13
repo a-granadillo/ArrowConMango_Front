@@ -22,3 +22,10 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+subprojects {
+    afterEvaluate {
+        if (project.hasProperty("android")) {
+            project.android.compileSdk = 35
+        }
+    }
+}
