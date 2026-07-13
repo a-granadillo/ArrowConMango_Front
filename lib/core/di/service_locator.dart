@@ -92,7 +92,7 @@ Future<void> setupServiceLocator() async {
   // --- Use cases ---
   sl
     ..registerLazySingleton<LoadLevelUseCase>(
-      () => LoadLevelUseCase(sl<ILevelRepository>()),
+      () => LoadLevelUseCase(sl<ILevelRepository>(), sl<LevelMapper>()),
     )
     ..registerLazySingleton<GetLevelDefinitionUseCase>(
       () => GetLevelDefinitionUseCase(sl<ILevelRepository>()),

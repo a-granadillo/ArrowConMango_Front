@@ -322,9 +322,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (scoreResult) {
       case Success(value: final score):
-        final unlockResult = await _unlockNextLevelUseCase(
-          currentLevelId: level.levelId,
-        );
+        // Solo desbloquear el siguiente nivel si no es un nivel de supervivencia
+        if (level.levelId >= 0) {
+          final unlockResult = await _unlockNextLevelUseCase(
+            currentLevelId: level.levelId,
+          );
+          if (unlockResult case Error(failure: final failure)) {
+            debugPrint('Warning: Failed to unlock next level: ${failure.message}');
+          }
+        }
         final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
         emit(
           GameStateMapper.mapToVictoryState(
@@ -334,9 +340,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
             nowMs: nowMs,
           ),
         );
-        if (unlockResult case Error(failure: final failure)) {
-          debugPrint('Warning: Failed to unlock next level: ${failure.message}');
-        }
       case Error(failure: final failure):
         emit(GameError(message: failure.message));
     }

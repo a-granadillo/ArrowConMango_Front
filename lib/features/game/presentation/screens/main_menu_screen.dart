@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../../data/level_definitions/level_definitions.dart';
 
 /// Main menu ("Home") — faithful reproduction of the design.
 class MainMenuScreen extends StatelessWidget {
@@ -76,10 +77,13 @@ class MainMenuScreen extends StatelessWidget {
                             bg: AppColors.textDark,
                             shadow: const Color(0xFF3E2723),
                             onTap: () {
-                              // TODO: Connect to Endless mode logic via BLoC / Router
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Modo Supervivencia pronto disponible')),
+                              // Generate a random endless level and navigate to it
+                              final level = LevelDefinitions.generateEndless(
+                                id: -1,
+                                difficulty: 'Medium',
+                                seed: DateTime.now().millisecondsSinceEpoch,
                               );
+                              context.push(AppRoutes.gameFor(-1), extra: level);
                             },
                           ),
                           const SizedBox(height: 14),
