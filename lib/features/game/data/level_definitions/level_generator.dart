@@ -5,6 +5,8 @@ import 'package:arrowconmango_front/features/game/data/models/board_size_model.d
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 
+import 'package:arrowconmango_front/features/game/domain/services/arrow_blocking_graph.dart';
+
 import 'arrow_helper.dart';
 
 /// Configuration for level generation by difficulty
@@ -18,6 +20,7 @@ class LevelConfig {
   final double uShapeRatio; // % of U-shape arrows
   final int minSegmentLength;
   final int maxSegmentLength;
+  final int minGraphDepth; // Target minimum depth/consecutive blockages
 
   const LevelConfig({
     required this.rows,
@@ -29,6 +32,7 @@ class LevelConfig {
     required this.uShapeRatio,
     required this.minSegmentLength,
     required this.maxSegmentLength,
+    required this.minGraphDepth,
   });
 
   static const LevelConfig easy = LevelConfig(
@@ -41,6 +45,7 @@ class LevelConfig {
     uShapeRatio: 0.0, // 0% U-shape
     minSegmentLength: 2,
     maxSegmentLength: 4,
+    minGraphDepth: 3, // Needs at least 3-step dependency chain
   );
 
   static const LevelConfig medium = LevelConfig(
@@ -53,6 +58,7 @@ class LevelConfig {
     uShapeRatio: 0.15, // 15% U-shape
     minSegmentLength: 2,
     maxSegmentLength: 4,
+    minGraphDepth: 5, // Needs at least 5-step dependency chain
   );
 
   static const LevelConfig hard = LevelConfig(
@@ -65,6 +71,7 @@ class LevelConfig {
     uShapeRatio: 0.20, // 20% U-shape
     minSegmentLength: 2,
     maxSegmentLength: 5,
+    minGraphDepth: 8, // Needs at least 8-step dependency chain (extremely complex!)
   );
 }
 
@@ -86,7 +93,8 @@ class LevelConfig {
 class LevelGenerator {
   LevelGenerator._();
 
-  /// Builds a level using the provided configuration.
+  /// Builds a level using the provided configuration, guaranteeing both solvability
+  /// and target complexity via graph analysis.
   static LevelModel generate({
     required int id,
     required String name,
@@ -94,18 +102,38 @@ class LevelGenerator {
     required LevelConfig config,
     required int seed,
   }) {
-    final rng = Random(seed);
-    final occupied = <String>{};
-    final arrows = <ArrowModel>[];
+    var currentSeed = seed;
+    var boardAttempts = 0;
+    List<ArrowModel> arrows = [];
+    ArrowBlockingGraph? graph;
 
-    var attempts = 0;
-    final maxAttempts = config.arrowCount * 800;
-    while (arrows.length < config.arrowCount && attempts < maxAttempts) {
-      attempts++;
-      final candidate = _tryMakeArrow(rng, occupied, arrows.length, config);
-      if (candidate == null) continue;
-      arrows.add(candidate.model);
-      occupied.addAll(candidate.cellKeys);
+    // We try to generate boards with different seeds until we find one that meets
+    // the minimum complexity (graph depth) required for this difficulty.
+    while (boardAttempts < 100) {
+      boardAttempts++;
+      final rng = Random(currentSeed);
+      final occupied = <String>{};
+      arrows = <ArrowModel>[];
+
+      var attempts = 0;
+      final maxAttempts = config.arrowCount * 800;
+      while (arrows.length < config.arrowCount && attempts < maxAttempts) {
+        attempts++;
+        final candidate = _tryMakeArrow(rng, occupied, arrows.length, config);
+        if (candidate == null) continue;
+        arrows.add(candidate.model);
+        occupied.addAll(candidate.cellKeys);
+      }
+
+      // Analyze blocking dependencies using the ArrowBlockingGraph
+      graph = _buildBlockingGraph(arrows, config);
+      if (graph.getMaxDepth() >= config.minGraphDepth) {
+        // Success! The board is both solvable and satisfies target complexity
+        break;
+      }
+
+      // Try next seed if the board was too parallel/easy
+      currentSeed++;
     }
 
     return LevelModel(
@@ -115,6 +143,70 @@ class LevelGenerator {
       boardSize: BoardSizeModel(rows: config.rows, cols: config.cols),
       boardState: BoardStateModel(arrows: arrows),
     );
+  }
+
+  /// Traverses the generated board and builds its blocking dependency graph.
+  static ArrowBlockingGraph _buildBlockingGraph(List<ArrowModel> arrows, LevelConfig config) {
+    final graph = ArrowBlockingGraph();
+
+    for (final arrow in arrows) {
+      graph.addNode(arrow.id);
+    }
+
+    // Build spatial occupancy index
+    final occupancy = <String, String>{};
+    for (final arrow in arrows) {
+      final cells = _getArrowCells(arrow);
+      for (final cell in cells) {
+        occupancy[_key(cell[0], cell[1])] = arrow.id;
+      }
+    }
+
+    // Add blockages based on exits intersecting other arrows
+    for (final arrow in arrows) {
+      final cells = _getArrowCells(arrow);
+      final head = cells.last;
+      final (dr, dc) = _getDirectionOffset(arrow.trajectory.segments.last.direction.name);
+
+      var er = head[0] + dr, ec = head[1] + dc;
+      while (_inBoard(er, ec, config)) {
+        final blockerId = occupancy[_key(er, ec)];
+        if (blockerId != null && blockerId != arrow.id) {
+          graph.addBlockage(from: blockerId, to: arrow.id);
+        }
+        er += dr;
+        ec += dc;
+      }
+    }
+
+    return graph;
+  }
+
+  /// Traces all grid coordinates occupied by an ArrowModel.
+  static List<List<int>> _getArrowCells(ArrowModel arrow) {
+    final cells = <List<int>>[[arrow.startNode.row, arrow.startNode.col]];
+    var r = arrow.startNode.row;
+    var c = arrow.startNode.col;
+
+    for (final segment in arrow.trajectory.segments) {
+      final (dr, dc) = _getDirectionOffset(segment.direction.name);
+      for (var i = 0; i < segment.length; i++) {
+        r += dr;
+        c += dc;
+        cells.add([r, c]);
+      }
+    }
+    return cells;
+  }
+
+  static (int, int) _getDirectionOffset(String dirName) {
+    return switch (dirName) {
+      'up' => (-1, 0),
+      'down' => (1, 0),
+      'left' => (0, -1),
+      'right' => (0, 1),
+      _ => (0, 0),
+    };
   }
 
   static const List<(int, int)> _dirs = [
