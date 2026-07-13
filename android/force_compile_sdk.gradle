@@ -1,8 +1,0 @@
-subprojects {
-    afterEvaluate { proj ->
-        def android = proj.extensions.findByName('android')
-        if (android != null) {
-            android.compileSdk = 35
-        }
-    }
-}

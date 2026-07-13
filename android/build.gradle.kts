@@ -22,4 +22,3 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
-apply(from = "force_compile_sdk.gradle")
