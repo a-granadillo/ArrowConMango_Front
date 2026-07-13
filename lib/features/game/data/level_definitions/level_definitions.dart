@@ -11,21 +11,21 @@ class LevelDefinitions {
 
   /// Level specifications: (name, difficulty, arrowCount, seed)
   static const List<(String, String, int, int)> _specs = [
-    ('Mango Verde', 'Easy', 7, 1007),
-    ('Semilla Tierna', 'Easy', 8, 2007),
-    ('Brote Nuevo', 'Easy', 8, 3007),
-    ('Hoja Fresca', 'Easy', 9, 4007),
-    ('Sol Naciente', 'Easy', 9, 5007),
-    ('Pulpa Dulce', 'Medium', 11, 6007),
-    ('Néctar Maduro', 'Medium', 12, 7007),
-    ('Cosecha Media', 'Medium', 12, 8007),
-    ('Fibra Jugosa', 'Medium', 13, 9007),
-    ('Aroma Tropical', 'Medium', 13, 10007),
-    ('Piel Dorada', 'Hard', 15, 11007),
-    ('Hueso Duro', 'Hard', 16, 12007),
-    ('Corazón del Mango', 'Hard', 16, 13007),
-    ('Huerto Salvaje', 'Hard', 17, 14007),
-    ('Rey Mango', 'Hard', 18, 15007),
+    ('Mango Verde', 'Easy', 25, 1007),
+    ('Semilla Tierna', 'Easy', 28, 2007),
+    ('Brote Nuevo', 'Easy', 30, 3007),
+    ('Hoja Fresca', 'Easy', 32, 4007),
+    ('Sol Naciente', 'Easy', 35, 5007),
+    ('Pulpa Dulce', 'Medium', 38, 6007),
+    ('Néctar Maduro', 'Medium', 40, 7007),
+    ('Cosecha Media', 'Medium', 42, 8007),
+    ('Fibra Jugosa', 'Medium', 45, 9007),
+    ('Aroma Tropical', 'Medium', 48, 10007),
+    ('Piel Dorada', 'Hard', 50, 11007),
+    ('Hueso Duro', 'Hard', 55, 12007),
+    ('Corazón del Mango', 'Hard', 60, 13007),
+    ('Huerto Salvaje', 'Hard', 65, 14007),
+    ('Rey Mango', 'Hard', 70, 15007),
   ];
 
   /// The 15 campaign levels (procedurally generated, guaranteed solvable).

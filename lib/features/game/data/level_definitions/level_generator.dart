@@ -41,7 +41,7 @@ class LevelGenerator {
     final arrows = <ArrowModel>[];
 
     var attempts = 0;
-    final maxAttempts = arrowCount * 400;
+    final maxAttempts = arrowCount * 800; // Increased from 400 for denser levels
     while (arrows.length < arrowCount && attempts < maxAttempts) {
       attempts++;
       final candidate = _tryMakeArrow(rng, occupied, arrows.length);
@@ -90,13 +90,13 @@ class LevelGenerator {
     }
 
     // Build the body backward from the head (tail -> head order at the end).
-    final bend = rng.nextDouble() < 0.35;
+    final bend = rng.nextDouble() < 0.25; // Reduced from 0.35 for longer straight arrows
     // Cells collected head-first, reversed to tail->head before returning.
     final headFirst = <List<int>>[[hr, hc]];
     var cr = hr, cc = hc;
 
     if (!bend) {
-      final len = 1 + rng.nextInt(3); // 1..3 cells
+      final len = 2 + rng.nextInt(4); // 2..5 cells (longer arrows)
       for (var i = 1; i < len; i++) {
         cr -= dr;
         cc -= dc;
@@ -105,7 +105,7 @@ class LevelGenerator {
       }
     } else {
       // Last segment (along the head direction), then a perpendicular turn.
-      final lastLen = 1 + rng.nextInt(2); // cells behind the head along -d
+      final lastLen = 2 + rng.nextInt(3); // 2..4 cells behind the head along -d
       for (var i = 0; i < lastLen; i++) {
         cr -= dr;
         cc -= dc;
@@ -118,7 +118,7 @@ class LevelGenerator {
       final turnLeft = rng.nextBool();
       // Perpendicular unit: rotate (dr,dc) by ±90°.
       final (tr, tc) = turnLeft ? (-dc, dr) : (dc, -dr);
-      final firstLen = 1 + rng.nextInt(2);
+      final firstLen = 2 + rng.nextInt(3); // 2..4 cells in perpendicular direction
       for (var i = 0; i < firstLen; i++) {
         cr -= tr;
         cc -= tc;
