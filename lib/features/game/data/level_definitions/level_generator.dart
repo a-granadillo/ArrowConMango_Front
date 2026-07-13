@@ -21,6 +21,7 @@ class LevelConfig {
   final int minSegmentLength;
   final int maxSegmentLength;
   final int minGraphDepth; // Target minimum depth/consecutive blockages
+  final List<String>? silhouette; // 2D binary shape template
 
   const LevelConfig({
     required this.rows,
@@ -33,6 +34,7 @@ class LevelConfig {
     required this.minSegmentLength,
     required this.maxSegmentLength,
     required this.minGraphDepth,
+    this.silhouette,
   });
 
   static const LevelConfig easy = LevelConfig(
@@ -220,6 +222,13 @@ class LevelGenerator {
   static bool _inBoard(int r, int c, LevelConfig config) => 
       r >= 0 && r < config.rows && c >= 0 && c < config.cols;
 
+  static bool _inSilhouette(int r, int c, LevelConfig config) {
+    if (config.silhouette == null) return true;
+    if (r < 0 || r >= config.silhouette!.length) return false;
+    if (c < 0 || c >= config.silhouette![r].length) return false;
+    return config.silhouette![r][c] == '1';
+  }
+
   static String _key(int r, int c) => '${r}_$c';
 
   static _Candidate? _tryMakeArrow(Random rng, Set<String> occupied, int index, LevelConfig config) {
@@ -227,12 +236,13 @@ class LevelGenerator {
     final (dr, dc) = _dirs[dIdx];
     final dirName = _dirNames[dIdx];
 
-    // Head cell.
+    // Head cell must be within board and inside the silhouette mask.
     final hr = rng.nextInt(config.rows);
     final hc = rng.nextInt(config.cols);
-    if (occupied.contains(_key(hr, hc))) return null;
+    if (!_inSilhouette(hr, hc, config) || occupied.contains(_key(hr, hc))) return null;
 
     // Exit trajectory from head to edge must be clear (in-board part).
+    // Note: Exit trajectories are allowed to cross empty spaces (0s) outside the silhouette.
     var er = hr + dr, ec = hc + dc;
     while (_inBoard(er, ec, config)) {
       if (occupied.contains(_key(er, ec))) return null;
@@ -253,7 +263,9 @@ class LevelGenerator {
       for (var i = 1; i < len; i++) {
         cr -= dr;
         cc -= dc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) break;
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) break;
         headFirst.add([cr, cc]);
       }
     } else if (shapeType < config.straightRatio + config.lShapeRatio) {
@@ -263,7 +275,9 @@ class LevelGenerator {
       for (var i = 0; i < lastLen; i++) {
         cr -= dr;
         cc -= dc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
@@ -276,7 +290,9 @@ class LevelGenerator {
       for (var i = 0; i < firstLen; i++) {
         cr -= tr;
         cc -= tc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
@@ -288,7 +304,9 @@ class LevelGenerator {
       for (var i = 0; i < firstLen; i++) {
         cr -= dr;
         cc -= dc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
@@ -301,7 +319,9 @@ class LevelGenerator {
       for (var i = 0; i < midLen; i++) {
         cr -= tr;
         cc -= tc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
@@ -312,7 +332,9 @@ class LevelGenerator {
       for (var i = 0; i < lastLen; i++) {
         cr -= dr;
         cc -= dc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
@@ -324,7 +346,9 @@ class LevelGenerator {
       for (var i = 0; i < firstLen; i++) {
         cr -= dr;
         cc -= dc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
@@ -337,7 +361,9 @@ class LevelGenerator {
       for (var i = 0; i < midLen; i++) {
         cr -= tr;
         cc -= tc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
@@ -348,7 +374,9 @@ class LevelGenerator {
       for (var i = 0; i < lastLen; i++) {
         cr += dr;
         cc += dc; // Go forward now
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+        if (!_inBoard(cr, cc, config) || 
+            !_inSilhouette(cr, cc, config) || 
+            occupied.contains(_key(cr, cc))) {
           return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
