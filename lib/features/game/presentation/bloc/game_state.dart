@@ -57,6 +57,10 @@ final class GamePlaying extends GameState {
     required this.arrowsRemaining,
     required this.elapsedSeconds,
     required this.startedAtMs,
+    this.livesRemaining = 3,
+    this.totalTimeRemaining = 60,
+    this.levelsCompleted = 0,
+    this.isEndlessMode = false,
   });
 
   /// Identifier of the current level.
@@ -101,6 +105,18 @@ final class GamePlaying extends GameState {
   /// Timestamp in milliseconds when the level started.
   final int startedAtMs;
 
+  /// Number of lives remaining (3 in both modes).
+  final int livesRemaining;
+
+  /// Total time remaining in seconds (only used in endless mode).
+  final int totalTimeRemaining;
+
+  /// Number of levels completed in endless mode.
+  final int levelsCompleted;
+
+  /// Whether this is endless/survival mode.
+  final bool isEndlessMode;
+
   @override
   List<Object?> get props => [
         levelId,
@@ -115,6 +131,10 @@ final class GamePlaying extends GameState {
         arrowsRemaining,
         elapsedSeconds,
         startedAtMs,
+        livesRemaining,
+        totalTimeRemaining,
+        levelsCompleted,
+        isEndlessMode,
       ];
 }
 
@@ -126,6 +146,9 @@ final class GameVictory extends GameState {
     required this.score,
     required this.moveCount,
     required this.elapsedSeconds,
+    this.livesRemaining = 3,
+    this.levelsCompleted = 0,
+    this.isEndlessMode = false,
   });
 
   /// Identifier of the completed level.
@@ -140,8 +163,17 @@ final class GameVictory extends GameState {
   /// Total elapsed time in seconds until victory.
   final int elapsedSeconds;
 
+  /// Number of lives remaining.
+  final int livesRemaining;
+
+  /// Number of levels completed in endless mode.
+  final int levelsCompleted;
+
+  /// Whether this is endless/survival mode.
+  final bool isEndlessMode;
+
   @override
-  List<Object?> get props => [levelId, score, moveCount, elapsedSeconds];
+  List<Object?> get props => [levelId, score, moveCount, elapsedSeconds, livesRemaining, levelsCompleted, isEndlessMode];
 }
 
 /// The player failed to complete the level.
@@ -152,6 +184,9 @@ final class GameDefeat extends GameState {
     required this.reason,
     required this.moveCount,
     required this.elapsedSeconds,
+    this.livesRemaining = 0,
+    this.levelsCompleted = 0,
+    this.isEndlessMode = false,
   });
 
   /// Identifier of the failed level.
@@ -166,8 +201,17 @@ final class GameDefeat extends GameState {
   /// Total elapsed time in seconds until defeat.
   final int elapsedSeconds;
 
+  /// Number of lives remaining (0 when game is over).
+  final int livesRemaining;
+
+  /// Number of levels completed in endless mode.
+  final int levelsCompleted;
+
+  /// Whether this is endless/survival mode.
+  final bool isEndlessMode;
+
   @override
-  List<Object?> get props => [levelId, reason, moveCount, elapsedSeconds];
+  List<Object?> get props => [levelId, reason, moveCount, elapsedSeconds, livesRemaining, levelsCompleted, isEndlessMode];
 }
 
 /// An error occurred while loading or running the game.
