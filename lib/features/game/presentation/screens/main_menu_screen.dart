@@ -77,13 +77,8 @@ class MainMenuScreen extends StatelessWidget {
                             bg: AppColors.textDark,
                             shadow: const Color(0xFF3E2723),
                             onTap: () {
-                              // Generate a random endless level and navigate to it
-                              final level = LevelDefinitions.generateEndless(
-                                id: -1,
-                                difficulty: 'Medium',
-                                seed: DateTime.now().millisecondsSinceEpoch,
-                              );
-                              context.push(AppRoutes.gameFor(-1), extra: level);
+                              // Navigate to game with levelId -1 (endless mode)
+                              context.push(AppRoutes.gameFor(-1));
                             },
                           ),
                           const SizedBox(height: 14),

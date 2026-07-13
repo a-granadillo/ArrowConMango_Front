@@ -15,10 +15,12 @@ class LoadLevelUseCase {
   Future<Result<Level>> call({required int levelId}) async {
     // Si el ID es negativo, es un nivel de supervivencia
     if (levelId < 0) {
+      // Usar el valor absoluto del levelId como seed para generar niveles consistentes
+      final seed = levelId.abs() * 1000 + 42;
       final endlessLevel = LevelDefinitions.generateEndless(
         id: levelId,
         difficulty: 'Medium',
-        seed: DateTime.now().millisecondsSinceEpoch,
+        seed: seed,
       );
       return Success(_levelMapper.toEntity(endlessLevel));
     }
