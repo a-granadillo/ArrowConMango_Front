@@ -7,7 +7,6 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
-import '../../data/level_definitions/level_definitions.dart';
 
 /// Main menu ("Home") — faithful reproduction of the design.
 class MainMenuScreen extends StatelessWidget {

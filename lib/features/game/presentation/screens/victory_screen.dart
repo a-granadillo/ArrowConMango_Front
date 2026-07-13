@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -8,8 +7,6 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/mango_logo.dart';
 import '../bloc/game_state.dart';
-import '../bloc/progress_bloc.dart';
-import '../bloc/progress_event.dart';
 import '../widgets/mango_rating.dart';
 import '../widgets/mango_slots.dart';
 import '../widgets/result_sheet.dart';
@@ -32,13 +29,16 @@ class _VictoryScreenState extends State<VictoryScreen> {
   @override
   void initState() {
     super.initState();
-    // Persist the unlock once, after the first frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<ProgressBloc>().add(
-            ProgressLevelCompleted(currentLevelId: widget.result.levelId),
-          );
-    });
+    // Persist the unlock once, after the first frame (only in campaign mode).
+    if (!widget.result.isEndlessMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        // TODO: Persist progress when ProgressBloc is available
+        // context.read<ProgressBloc>().add(
+        //       ProgressLevelCompleted(currentLevelId: widget.result.levelId),
+        //     );
+      });
+    }
   }
 
   @override
@@ -56,7 +56,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
             const _PoppingMangoIcon(),
             const SizedBox(height: 10),
             Text(
-              '¡ENHORABUENA!',
+              result.isEndlessMode ? '¡NIVEL COMPLETADO!' : '¡ENHORABUENA!',
               textAlign: TextAlign.center,
               style: GoogleFonts.fredoka(
                 fontSize: 36,
@@ -100,11 +100,23 @@ class _VictoryScreenState extends State<VictoryScreen> {
                   label: 'Tiempo',
                   color: AppColors.success,
                 ),
-                ResultStat(
-                  value: '${result.score.totalPoints}',
-                  label: 'Mangos',
-                  color: AppColors.mango,
-                ),
+                if (result.isEndlessMode) ...[
+                  ResultStat(
+                    value: '${result.levelsCompleted}',
+                    label: 'Niveles',
+                    color: AppColors.mango,
+                  ),
+                  ResultStat(
+                    value: '${result.livesRemaining}',
+                    label: 'Vidas',
+                    color: AppColors.danger,
+                  ),
+                ] else
+                  ResultStat(
+                    value: '${result.score.totalPoints}',
+                    label: 'Mangos',
+                    color: AppColors.mango,
+                  ),
               ],
             ),
             const SizedBox(height: 16),
@@ -129,7 +141,45 @@ class _VictoryScreenState extends State<VictoryScreen> {
                     child: const Text('Menú'),
                   ),
                 ),
-                if (hasNext) ...[
+                if (result.isEndlessMode) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: GestureDetector(
+                      onTap: () {
+                        // Cargar siguiente nivel en modo supervivencia
+                        final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
+                        context.pushReplacement(AppRoutes.gameFor(nextLevelId));
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [AppColors.primary, Color(0xFFD85E18)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0xFFA83800),
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'Siguiente nivel',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.fredoka(
+                            fontSize: 20,
+                            letterSpacing: .5,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else if (hasNext) ...[
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
