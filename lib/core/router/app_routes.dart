@@ -5,6 +5,7 @@ abstract final class AppRoutes {
   static const String levels = '/levels';
   static const String settings = '/settings';
   static const String ranking = '/ranking';
+  static const String board3dDemo = '/board3d-demo';
 
   /// Game route template; use [gameFor] to build a concrete path.
   static const String game = '/game/:levelId';

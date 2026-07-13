@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/arrow_entity.dart';
 import 'animations/arrow_exit_animation.dart';
 import 'painting/arrows_layer_painter.dart';
+import 'painting/board_surface_painter.dart';
 
 /// A just-removed arrow, rendered as a one-shot exit animation overlay.
 class ExitingArrowData {
@@ -84,7 +85,7 @@ class BoardGridWidget extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: CustomPaint(painter: _BoardSurfacePainter(cell)),
+                      child: CustomPaint(painter: BoardSurfacePainter(cell)),
                     ),
                     Positioned.fill(
                       child: CustomPaint(
@@ -116,34 +117,4 @@ class BoardGridWidget extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Paints the board's dark backdrop with a subtle dotted pattern, matching
-/// the design's `rgba(0,0,0,0.16)` fill + dotted `rgba(255,248,238,0.13)`
-/// pattern (36px spacing at the design's reference scale).
-class _BoardSurfacePainter extends CustomPainter {
-  const _BoardSurfacePainter(this.cell);
-
-  final double cell;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = const Color(0x29000000),
-    );
-
-    final dotPaint = Paint()..color = const Color(0x21FFF8EE);
-    final spacing = cell;
-    final dotRadius = cell * 0.05;
-    for (var y = spacing / 2; y < size.height; y += spacing) {
-      for (var x = spacing / 2; x < size.width; x += spacing) {
-        canvas.drawCircle(Offset(x, y), dotRadius, dotPaint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _BoardSurfacePainter oldDelegate) =>
-      oldDelegate.cell != cell;
 }

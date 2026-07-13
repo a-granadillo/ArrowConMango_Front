@@ -574,6 +574,25 @@
 - **Verificación:** `ROADMAP.md` y `AI_USAGE.MD` actualizados con las nuevas fases de desarrollo.
 - **Lecciones / limitaciones:** Combinar generación procedural estricta (matemáticamente 100% resoluble hacia atrás) con tableros pequeños (9x12) genera cuellos de botella geométricos que impiden la alta densidad visual. La solución arquitectónica de "modos de juego duales" maximiza el valor sin desechar código: se preserva la artesanía visual para la campaña y la escalabilidad infinita matemática para un modo arcade.
 
+### Entrada #32 — UI: Renderizado por Capas Z con Fantasmas para niveles 3D (Issue #44)
+
+- **Fecha / autor:** 12-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: Claude Sonnet 5)
+- **Rol en el flujo:** Implementación de UI + tests, en modo planificación con aprobación explícita antes de escribir código.
+- **Tarea/problema:** Resolver el issue #44 ("implement Z-Layer rendering with ghosting for 3D levels"): `Board3DLayersWidget`, chips selectores de capa, flechas de Z±1 renderizadas como fantasmas al 30% de opacidad, y `ZAxisArrowPainter` con glifos ⊙/⊗. El dominio/datos del proyecto es 100% 2D (`Grid2DNodeId` es el único `NodeId`); la topología 3D real (issue #43) y la migración `BoardGeometry`/Hive (issue #42) —descritas en la Entrada #30— aún no existían en el código.
+- **Prompt (paráfrasis fiel):** > "Analiza, indaga y propón un plan para el issue #44 asignado a mí, y al final dame una guía sencilla para probar que se resolvió." Tras explorar el código, la IA preguntó explícitamente por el alcance (kit de UI desacoplado vs. wiring de datos 3D reales vs. dominio 3D completo) y por cómo se debía poder probar la funcionalidad dentro de la app; el usuario eligió "kit de UI + tablero de muestra" y "pantalla demo desde Ajustes".
+- **Resultado obtenido:**
+  1. View-model de presentación (`Board3DModel`, `PlanarArrow3D`, `AxialArrow3D`) que desacopla el kit del dominio 2D; las flechas planares reutilizan `CardinalDirection` para no duplicar la geometría/pintor existentes.
+  2. `ZAxisArrowPainter` + helpers puros `z_axis_geometry.dart` (glifos ⊙/⊗), y un parámetro `opacity` añadido a `ArrowsLayerPainter` (reutilizado para el ghosting en vez de duplicar el pintor).
+  3. `Board3DLayersWidget` (chips de capa + stack de capas sólida/fantasma) y una pantalla demo (`Board3DDemoScreen`) accesible desde Ajustes, con datos de muestra — sin tocar el dominio ni el `GameBloc`.
+  4. 15 tests nuevos (geometría del glifo, view-model, widget) más 267 preexistentes, todos en verde.
+- **Modificaciones del equipo:** el usuario corrigió el alcance en la fase de planificación antes de escribir código (ver arriba); durante la implementación no hubo correcciones manuales adicionales.
+- **Verificación:** `flutter analyze` (0 issues), `flutter test` (282/282). Verificación visual en navegador bloqueada por una limitación conocida del entorno (ver Lecciones); se compensó arrancando la app en un build de release real y confirmando el boot limpio de Hive sin excepciones en consola, tanto en `/` como en la ruta nueva `/board3d-demo`.
+- **Lecciones / limitaciones:**
+  1. **Números de issue del ROADMAP.md desactualizados:** los issues #19–#24 redactados en la Entrada #30 son placeholders que colisionan con PRs viejas ya mergeadas; los issues reales creados en GitHub quedaron en #42–#46 (#44 = este trabajo, bloqueado conceptualmente por #43 y #42, ninguno implementado aún).
+  2. **CanvasKit headless:** el navegador headless de este entorno no puede tomar capturas ni leer el árbol semántico de una app Flutter Web con CanvasKit por defecto (confirmado también en modo release, no solo debug); forzar `flt-semantics-placeholder` vía JS quita el overlay pero no puebla el árbol de semántica. La verificación de UI en este proyecto depende de tests de widget + logs de consola, no de captura visual.
+  3. **Overflow de layout en pruebas angostas:** un `Row` rígido para la leyenda ⊙/⊗ desbordaba en anchos de prueba de 320px; se cambió a `Wrap` para que se ajuste en pantallas angostas — un recordatorio de siempre probar el layout más nuevo en el ancho de prueba más angosto usado por el resto de la suite.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
