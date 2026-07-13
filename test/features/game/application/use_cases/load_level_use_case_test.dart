@@ -1,4 +1,6 @@
 import 'package:arrowconmango_front/features/game/application/use_cases/load_level_use_case.dart';
+import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/mappers/level_mapper.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
@@ -35,15 +37,35 @@ class MockLevelRepository implements ILevelRepository {
   }
 }
 
+/// Manual mock for [LevelMapper].
+class MockLevelMapper implements LevelMapper {
+  @override
+  Level toEntity(LevelModel model) {
+    return Level(
+      levelId: model.id,
+      rows: model.boardSize.rows,
+      cols: model.boardSize.cols,
+      templateBoard: BoardState(arrows: const []),
+    );
+  }
+
+  @override
+  LevelModel toModel(Level entity) {
+    throw UnimplementedError('toModel() should not be called in these tests');
+  }
+}
+
 void main() {
   group('LoadLevelUseCase', () {
     late MockLevelRepository mockRepository;
+    late MockLevelMapper mockMapper;
     late LoadLevelUseCase useCase;
     late Level testLevel;
 
     setUp(() {
       mockRepository = MockLevelRepository();
-      useCase = LoadLevelUseCase(mockRepository);
+      mockMapper = MockLevelMapper();
+      useCase = LoadLevelUseCase(mockRepository, mockMapper);
       testLevel = Level(
         levelId: 1,
         rows: 7,
@@ -82,6 +104,21 @@ void main() {
         expect(result, isA<Error<Level>>());
         expect((result as Error<Level>).failure, equals(failure));
         expect(mockRepository.requestedLevelId, equals(99));
+      },
+    );
+
+    test(
+      'should_generate_endless_level_when_id_is_negative',
+      () async {
+        // Arrange & Act
+        final result = await useCase(levelId: -1);
+
+        // Assert
+        expect(result, isA<Success<Level>>());
+        final level = (result as Success<Level>).value;
+        expect(level.levelId, equals(-1));
+        expect(level.difficulty(), equals('Easy')); // Because levelId is -1 which is <= 5, domain maps it to Easy
+        expect(mockRepository.requestedLevelId, isNull); // Repository not called
       },
     );
   });

@@ -574,6 +574,23 @@
 - **Verificación:** `ROADMAP.md` y `AI_USAGE.MD` actualizados con las nuevas fases de desarrollo.
 - **Lecciones / limitaciones:** Combinar generación procedural estricta (matemáticamente 100% resoluble hacia atrás) con tableros pequeños (9x12) genera cuellos de botella geométricos que impiden la alta densidad visual. La solución arquitectónica de "modos de juego duales" maximiza el valor sin desechar código: se preserva la artesanía visual para la campaña y la escalabilidad infinita matemática para un modo arcade.
 
+### Entrada #31 — Implementación del Modo Supervivencia y Sistema de Vidas en Tiempo Real (Issue #24)
+
+- **Fecha / autor:** 13-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: gemini-3.5-flash)
+- **Rol en el flujo:** Desarrollador Frontend (BLoC, Casos de Uso y UI) / Diseñador de Niveles
+- **Tarea/problema:** Traducir las especificaciones de diseño acordadas para el Modo Dual (Campaña artesanal estática vs. Supervivencia procedural infinita) a código de producción. Además, el sistema de vidas requerido ("perder una vida al chocar flechas en tiempo real") no existía: al chocar contra otra flecha se emitía un fallo silencioso sin penalización. Se requería implementar el sistema de vidas por colisión y el flujo de juego infinito con bonus de tiempo (+20s por nivel) y Game Over.
+- **Prompt (paráfrasis fiel):** > "Implementa el modo de supervivencia completo: niveles infinitos procedurales, sistema de 3 vidas (al chocar una flecha con otra pierde una vida, si pierde las 3 pierde la partida), tiempo acumulado (+20s al pasar nivel), y que el sistema de vidas por colisión también funcione en el modo campaña."
+- **Resultado obtenido:**
+  1. **Datos:** Restauración de `easy/medium/hard_levels.dart` (15 figuras estáticas densas). Actualización de `LevelDefinitions` para separar el Modo Campaña (`campaignLevels`) de la generación de Supervivencia (`generateEndless`).
+  2. **Generación procedural:** Se creó `LevelConfig` con 3 perfiles de dificultad (Easy 6x6, Medium 8x8, Hard 12x12) variando tamaño, densidad (hasta 60 flechas) y formas avanzadas (U-shape y Z-shape con giros). Se eliminaron las flechas de 1 celda (mínimo 2 celdas).
+  3. **BLoC (Reglas de Vidas):** Modificado `GameBloc._onTriggerArrowExit` para que al capturar `PathBlockedFailure` (colisión de flechas), reste una vida local, actualice el estado `GamePlaying` y, si llega a 0, emita `GameDefeat` con el nuevo motivo `DefeatReason.outOfLives`.
+  4. **UI por Modo:** `game_screen.dart` muestra `_LivesIndicator` (corazones ❤️/🖤) y alterna el timer según el modo (transcurrido en campaña, tiempo restante en supervivencia). `victory_screen.dart` y `defeat_screen.dart` actualizados con estadísticas específicas (niveles completados, vidas restantes, reintento sin romper el BLoC ni depender de un context fuera de scope).
+- **Modificaciones del equipo:** Se detectaron y corrigieron errores de importación (mismatch entre `levels` y `all` en las clases de niveles) y firmas obsoletas en los tests de `LoadLevelUseCase` y `level_definitions_test.dart` debido al cambio de `allLevels` a `campaignLevels`.
+- **Verificación:** `flutter analyze` (0 issues), `flutter test` en verde, y ejecución exitosa en Chrome verificando el descuento de corazones en tiempo real al chocar flechas en ambos modos de juego.
+- **Lecciones / limitaciones:**
+  1. **Lógica de navegación GoRouter:** Intentar invocar `context.read<GameBloc>().add()` en una pantalla de resultados que reemplazó a la de juego rompe porque el widget ya no tiene el `Provider` arriba en el árbol. La solución limpia fue usar navegación directa (`context.pushReplacement`) pasando el nuevo `levelId` negativo aleatorio y que el `LoadLevelUseCase` resuelva la generación del nivel.
+  2. **El poder de la validación estricta de tests:** El test `level_solvability_test.dart` detectó inmediatamente que el Nivel 1 ("Heart") dibujado originalmente tenía un deadlock físico insalvable. Esto obligó a rediseñar las direcciones de las flechas apuntando "hacia afuera" (desarmando la figura desde el perímetro), lo que hizo que todos los tests volvieran a verde sin alterar la silueta del corazón.
 ### Entrada #32 — UI: Renderizado por Capas Z con Fantasmas para niveles 3D (Issue #44)
 
 - **Fecha / autor:** 12-07-2026 / hetairoii

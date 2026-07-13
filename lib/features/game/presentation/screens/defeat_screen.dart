@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../bloc/game_bloc.dart';
+import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
 import '../widgets/result_sheet.dart';
 import '../widgets/result_stat.dart';
@@ -15,26 +17,31 @@ import '../widgets/result_stat.dart';
 /// handle, stats card, button language) so it reads as part of the same
 /// system rather than an ad-hoc screen.
 class DefeatScreen extends StatelessWidget {
-  const DefeatScreen({super.key, required this.result});
+  const DefeatScreen({super.key, required this.result, this.bloc});
 
   final GameDefeat result;
+  final GameBloc? bloc;
 
   String get _reasonText => switch (result.reason) {
         DefeatReason.timeExpired => '¡Se acabó el tiempo!',
         DefeatReason.noMovesAvailable => 'No quedan movimientos posibles.',
+        DefeatReason.outOfLives => '¡Te quedaste sin vidas!',
       };
 
   @override
   Widget build(BuildContext context) {
+    final hasLivesRemaining = result.livesRemaining > 0;
+    final isGameOver = result.isEndlessMode && !hasLivesRemaining;
+    
     return Scaffold(
       body: ResultSheet(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('😵', style: TextStyle(fontSize: 56)),
+            Text(isGameOver ? '💀' : '😵', style: const TextStyle(fontSize: 56)),
             const SizedBox(height: 10),
             Text(
-              '¡Oh no!',
+              isGameOver ? '¡Game Over!' : '¡Oh no!',
               textAlign: TextAlign.center,
               style: GoogleFonts.fredoka(
                 fontSize: 36,
@@ -45,7 +52,7 @@ class DefeatScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              _reasonText,
+              isGameOver ? 'Te quedaste sin vidas' : _reasonText,
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 14,
@@ -56,17 +63,31 @@ class DefeatScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ResultStatsRow(
               stats: [
-                ResultStat(
-                  value: '${result.moveCount}',
-                  label: 'Toques',
-                  color: AppColors.primary,
-                ),
-                ResultStat(
-                  value: formatDuration(result.elapsedSeconds),
-                  label: 'Tiempo',
-                  color: AppColors.success,
-                  showDivider: false,
-                ),
+                if (result.isEndlessMode) ...[
+                  ResultStat(
+                    value: '${result.levelsCompleted}',
+                    label: 'Niveles',
+                    color: AppColors.primary,
+                  ),
+                  ResultStat(
+                    value: '${result.livesRemaining}',
+                    label: 'Vidas',
+                    color: AppColors.danger,
+                    showDivider: false,
+                  ),
+                ] else ...[
+                  ResultStat(
+                    value: '${result.moveCount}',
+                    label: 'Toques',
+                    color: AppColors.primary,
+                  ),
+                  ResultStat(
+                    value: formatDuration(result.elapsedSeconds),
+                    label: 'Tiempo',
+                    color: AppColors.success,
+                    showDivider: false,
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 16),
@@ -95,9 +116,23 @@ class DefeatScreen extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: GestureDetector(
-                    onTap: () => context.pushReplacement(
-                      AppRoutes.gameFor(result.levelId),
-                    ),
+                    onTap: () {
+                      if (result.isEndlessMode && hasLivesRemaining) {
+                        // En modo supervivencia con vidas restantes, reintentar reusando el bloc
+                        if (bloc != null) {
+                          bloc!.add(const RetryLevel());
+                          context.pop();
+                        } else {
+                          final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000 + 1);
+                          context.pushReplacement(AppRoutes.gameFor(nextLevelId));
+                        }
+                      } else {
+                        // En modo campaña o game over, reintentar el mismo nivel
+                        context.pushReplacement(
+                          AppRoutes.gameFor(result.levelId),
+                        );
+                      }
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
@@ -115,7 +150,7 @@ class DefeatScreen extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        'Reintentar',
+                        isGameOver ? 'Reiniciar' : 'Reintentar',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.fredoka(
                           fontSize: 20,

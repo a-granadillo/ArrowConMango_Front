@@ -73,24 +73,38 @@ GoRouter buildAppRouter() {
         path: AppRoutes.victory,
         builder: (context, state) {
           final extra = state.extra;
-          return extra is GameVictory
-              ? VictoryScreen(result: extra)
-              : const _Placeholder(
-                  title: 'Sin datos',
-                  message: 'No hay un resultado que mostrar.',
-                );
+          if (extra is GameVictory) {
+            return VictoryScreen(result: extra);
+          }
+          if (extra is Map<String, dynamic>) {
+            return VictoryScreen(
+              result: extra['result'] as GameVictory,
+              bloc: extra['bloc'] as GameBloc?,
+            );
+          }
+          return const _Placeholder(
+            title: 'Sin datos',
+            message: 'No hay un resultado que mostrar.',
+          );
         },
       ),
       GoRoute(
         path: AppRoutes.defeat,
         builder: (context, state) {
           final extra = state.extra;
-          return extra is GameDefeat
-              ? DefeatScreen(result: extra)
-              : const _Placeholder(
-                  title: 'Sin datos',
-                  message: 'No hay un resultado que mostrar.',
-                );
+          if (extra is GameDefeat) {
+            return DefeatScreen(result: extra);
+          }
+          if (extra is Map<String, dynamic>) {
+            return DefeatScreen(
+              result: extra['result'] as GameDefeat,
+              bloc: extra['bloc'] as GameBloc?,
+            );
+          }
+          return const _Placeholder(
+            title: 'Sin datos',
+            message: 'No hay un resultado que mostrar.',
+          );
         },
       ),
     ],

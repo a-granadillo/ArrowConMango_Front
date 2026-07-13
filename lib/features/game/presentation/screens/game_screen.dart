@@ -67,10 +67,28 @@ class _GameScreenState extends State<GameScreen> {
         _colors.reset();
       case GameVictory():
         _timer?.cancel();
-        context.pushReplacement(AppRoutes.victory, extra: state);
+        if (state.isEndlessMode) {
+          // En modo supervivencia, hacemos push en vez de pushReplacement
+          // y pasamos el bloc para preservar el estado
+          context.push(AppRoutes.victory, extra: {
+            'result': state,
+            'bloc': context.read<GameBloc>(),
+          });
+        } else {
+          context.pushReplacement(AppRoutes.victory, extra: state);
+        }
       case GameDefeat():
         _timer?.cancel();
-        context.pushReplacement(AppRoutes.defeat, extra: state);
+        if (state.isEndlessMode) {
+          // En modo supervivencia, hacemos push en vez de pushReplacement
+          // y pasamos el bloc para preservar el estado
+          context.push(AppRoutes.defeat, extra: {
+            'result': state,
+            'bloc': context.read<GameBloc>(),
+          });
+        } else {
+          context.pushReplacement(AppRoutes.defeat, extra: state);
+        }
       case GameError():
         break;
     }
@@ -290,13 +308,40 @@ class _Header extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: _StatChip(
-                  svg: AppSvgs.timer,
-                  value: _formatTime(state.elapsedSeconds),
-                  label: '',
+              if (state.isEndlessMode)
+                Expanded(
+                  child: _StatChip(
+                    svg: AppSvgs.timer,
+                    value: _formatTime(state.totalTimeRemaining),
+                    label: '',
+                  ),
+                )
+              else
+                Expanded(
+                  child: _StatChip(
+                    svg: AppSvgs.timer,
+                    value: _formatTime(state.elapsedSeconds),
+                    label: '',
+                  ),
                 ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _LivesIndicator(lives: state.livesRemaining),
               ),
+              if (state.isEndlessMode) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _StatChip(
+                    svg: AppSvgs.niveles,
+                    value: '${state.levelsCompleted}',
+                    label: 'niveles',
+                  ),
+                ),
+              ],
             ],
           ),
         ],
@@ -322,6 +367,40 @@ class _HeaderIconButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: AppSvgs.icon(svg, 17),
+      ),
+    );
+  }
+}
+
+class _LivesIndicator extends StatelessWidget {
+  const _LivesIndicator({required this.lives});
+
+  final int lives;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Vidas: $lives de 3',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Text(
+                index < lives ? '❤️' : '🖤',
+                style: const TextStyle(fontSize: 18),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }

@@ -14,7 +14,8 @@ void main() {
     // Assert — faithful design: two-line title + play + 3 nav buttons.
     expect(find.text('ARROW CON'), findsOneWidget);
     expect(find.text('MANGO'), findsOneWidget);
-    expect(find.text('¡ JUGAR !'), findsOneWidget);
+    expect(find.text('MODO CAMPAÑA'), findsOneWidget);
+    expect(find.text('SUPERVIVENCIA'), findsOneWidget);
     expect(find.text('Niveles'), findsOneWidget);
     expect(find.text('Ranking'), findsOneWidget);
     expect(find.text('Ajustes'), findsOneWidget);

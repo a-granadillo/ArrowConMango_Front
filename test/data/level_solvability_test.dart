@@ -39,7 +39,7 @@ void main() {
   const mapper = LevelMapper(BoardStateMapper(ArrowMapper()));
 
   group('Level solvability', () {
-    for (final level in LevelDefinitions.allLevels) {
+    for (final level in LevelDefinitions.campaignLevels) {
       test('level_${level.id}_${level.name}_is_solvable', () {
         final entity = mapper.toEntity(level);
         final stuck = _drain(entity.templateBoard, validator);
@@ -53,7 +53,7 @@ void main() {
     }
 
     test('every_level_has_at_least_one_immediately_exitable_arrow', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         final board = mapper.toEntity(level).templateBoard;
         final anyExitable = board.arrows.any(
           (a) => validator.checkExit(a, board).canExit,

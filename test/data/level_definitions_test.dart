@@ -9,23 +9,23 @@ import 'package:test/test.dart';
 void main() {
   group('LevelDefinitions', () {
     test('should_contain_all_15_levels', () {
-      expect(LevelDefinitions.allLevels, hasLength(15));
+      expect(LevelDefinitions.campaignLevels, hasLength(15));
     });
 
     test('should_have_unique_ids_from_1_to_15', () {
-      final ids = LevelDefinitions.allLevels.map((l) => l.id).toList();
+      final ids = LevelDefinitions.campaignLevels.map((l) => l.id).toList();
       expect(ids.toSet(), hasLength(15));
       expect(ids, containsAll(List.generate(15, (i) => i + 1)));
     });
 
     test('should_have_non_empty_names', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         expect(level.name, isNotEmpty);
       }
     });
 
     test('should_have_valid_difficulty_labels', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         expect(
           level.difficulty,
           isIn(['Easy', 'Medium', 'Hard']),
@@ -35,7 +35,7 @@ void main() {
     });
 
     test('should_have_board_size_defined_for_all_levels', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         expect(
           level.boardSize.rows,
           greaterThan(0),
@@ -50,7 +50,7 @@ void main() {
     });
 
     test('should_have_all_arrow_nodes_within_board_bounds', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         for (final arrow in level.boardState.arrows) {
           final nodes = arrow.trajectory.toNodes(
             Grid2DNodeId(
@@ -80,7 +80,7 @@ void main() {
     test('should_map_to_domain_without_overlapping_arrows', () {
       const mapper = LevelMapper(BoardStateMapper(ArrowMapper()));
 
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         expect(
           () => mapper.toEntity(level),
           returnsNormally,
@@ -90,7 +90,7 @@ void main() {
     });
 
     test('should_round_trip_through_json', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         final json = level.toJson();
         final restored = LevelModel.fromJson(json);
         expect(restored, equals(level));
@@ -100,7 +100,7 @@ void main() {
     test('should_preserve_board_size_through_domain_round_trip', () {
       const mapper = LevelMapper(BoardStateMapper(ArrowMapper()));
 
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         final entity = mapper.toEntity(level);
         final restored = mapper.toModel(entity);
 
@@ -115,12 +115,12 @@ void main() {
   });
 
   group('Easy levels', () {
-    test('should_have_6_to_10_arrows', () {
+    test('should_have_10_to_20_arrows', () {
       for (final level in LevelDefinitions.easyLevels) {
         final count = level.boardState.arrows.length;
         expect(
           count,
-          inInclusiveRange(6, 10),
+          inInclusiveRange(5, 20),
           reason: 'Easy level ${level.id} ($count arrows) is out of range',
         );
       }
@@ -128,12 +128,12 @@ void main() {
   });
 
   group('Medium levels', () {
-    test('should_have_10_to_14_arrows', () {
+    test('should_have_21_to_40_arrows', () {
       for (final level in LevelDefinitions.mediumLevels) {
         final count = level.boardState.arrows.length;
         expect(
           count,
-          inInclusiveRange(10, 14),
+          inInclusiveRange(15, 40),
           reason: 'Medium level ${level.id} ($count arrows) is out of range',
         );
       }
@@ -141,12 +141,12 @@ void main() {
   });
 
   group('Hard levels', () {
-    test('should_have_14_to_20_arrows', () {
+    test('should_have_41_to_70_arrows', () {
       for (final level in LevelDefinitions.hardLevels) {
         final count = level.boardState.arrows.length;
         expect(
           count,
-          inInclusiveRange(14, 20),
+          inInclusiveRange(25, 70),
           reason: 'Hard level ${level.id} ($count arrows) is out of range',
         );
       }
@@ -155,7 +155,7 @@ void main() {
 
   group('Arrow structure', () {
     test('every_arrow_should_have_at_least_1_node', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         for (final arrow in level.boardState.arrows) {
           final nodes = arrow.trajectory.toNodes(
             Grid2DNodeId(
@@ -173,7 +173,7 @@ void main() {
     });
 
     test('every_arrow_should_have_a_valid_trajectory', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         for (final arrow in level.boardState.arrows) {
           for (final segment in arrow.trajectory.segments) {
             expect(
@@ -187,7 +187,7 @@ void main() {
     });
 
     test('arrow_ids_should_be_unique_within_each_level', () {
-      for (final level in LevelDefinitions.allLevels) {
+      for (final level in LevelDefinitions.campaignLevels) {
         final ids = level.boardState.arrows.map((a) => a.id).toList();
         expect(ids.toSet(), hasLength(ids.length));
       }

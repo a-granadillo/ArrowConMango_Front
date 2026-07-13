@@ -58,3 +58,9 @@ final class RetryLevel extends GameEvent {
   /// Creates a [RetryLevel] event.
   const RetryLevel();
 }
+
+/// Requests to load the next level in endless mode.
+final class NextEndlessLevel extends GameEvent {
+  /// Creates a [NextEndlessLevel] event.
+  const NextEndlessLevel();
+}

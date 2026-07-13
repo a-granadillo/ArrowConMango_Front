@@ -58,6 +58,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<UndoMove>(_onUndoMove);
     on<Tick>(_onTick);
     on<RetryLevel>(_onRetryLevel);
+    on<NextEndlessLevel>(_onNextEndlessLevel);
   }
 
   final LoadLevelUseCase _loadLevelUseCase;
@@ -70,6 +71,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   final CollisionValidator _collisionValidator;
   final int Function() _clock;
   final int _timeLimitInSeconds;
+
+  // Estado interno para modo supervivencia
+  int _livesRemaining = 3;
+  int _totalTimeRemaining = 60;
+  int _levelsCompleted = 0;
+  bool _isEndlessMode = false;
 
   static int _defaultClock() => DateTime.now().millisecondsSinceEpoch;
 
@@ -110,6 +117,18 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   Future<void> _onLoadLevel(LoadLevel event, Emitter<GameState> emit) async {
     emit(GameLoading(levelId: event.levelId));
+
+    // Inicializar estado según el modo de juego
+    _isEndlessMode = event.levelId < 0;
+    if (_isEndlessMode) {
+      _livesRemaining = 3;
+      _totalTimeRemaining = 60;
+      _levelsCompleted = 0;
+    } else {
+      _livesRemaining = 3;
+      _totalTimeRemaining = _timeLimitInSeconds;
+      _levelsCompleted = 0;
+    }
 
     final levelResult = await _loadLevelUseCase(levelId: event.levelId);
 
@@ -161,21 +180,39 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         if (!newSession.boardState.isEmpty &&
             !_hasAvailableMoves(newSession.boardState)) {
-          emit(
-            GameStateMapper.mapToDefeatState(
-              session: newSession,
-              level: level,
-              reason: DefeatReason.noMovesAvailable,
-              nowMs: _clock(),
-            ),
+          _emitDefeatState(
+            session: newSession,
+            level: level,
+            reason: DefeatReason.noMovesAvailable,
+            nowMs: _clock(),
+            emit: emit,
           );
           return;
         }
 
         _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
       case Error(failure: final failure):
-        if (failure is ArrowNotFoundFailure || failure is PathBlockedFailure) {
-          // Expected domain errors: keep the UI in GamePlaying.
+        if (failure is PathBlockedFailure) {
+          _livesRemaining--;
+          final level = _levelForState(state);
+          if (_livesRemaining <= 0) {
+            _emitDefeatState(
+              session: session,
+              level: level,
+              reason: DefeatReason.outOfLives,
+              nowMs: _clock(),
+              emit: emit,
+            );
+            return;
+          }
+          final evaluation = _evaluateGameStateUseCase(
+            session: session,
+            nowMs: _clock(),
+          );
+          _emitPlayingStateFromEvaluation(session, level, evaluation, emit);
+          break;
+        }
+        if (failure is ArrowNotFoundFailure) {
           break;
         }
         emit(GameError(message: failure.message));
@@ -222,16 +259,31 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       return;
     }
 
-    if (evaluation.elapsedSeconds >= _timeLimitInSeconds) {
-      emit(
-        GameStateMapper.mapToDefeatState(
+    // En modo supervivencia, decrementar el tiempo total
+    if (_isEndlessMode) {
+      _totalTimeRemaining--;
+      if (_totalTimeRemaining <= 0) {
+        _emitDefeatState(
           session: session,
           level: _levelForState(state),
           reason: DefeatReason.timeExpired,
           nowMs: event.nowMs,
-        ),
-      );
-      return;
+          emit: emit,
+        );
+        return;
+      }
+    } else {
+      // En modo campaña, usar el límite de tiempo normal
+      if (evaluation.elapsedSeconds >= _timeLimitInSeconds) {
+        _emitDefeatState(
+          session: session,
+          level: _levelForState(state),
+          reason: DefeatReason.timeExpired,
+          nowMs: event.nowMs,
+          emit: emit,
+        );
+        return;
+      }
     }
 
     _emitPlayingStateFromEvaluation(
@@ -252,6 +304,13 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     };
 
     if (levelId == null) return;
+
+    // En modo supervivencia, si se perdió el nivel, reiniciar vidas y tiempo
+    if (_isEndlessMode && state is GameDefeat && _livesRemaining <= 0) {
+      _livesRemaining = 3;
+      _totalTimeRemaining = 60;
+      _levelsCompleted = 0;
+    }
 
     emit(GameLoading(levelId: levelId));
 
@@ -277,6 +336,38 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
   }
 
+  Future<void> _onNextEndlessLevel(NextEndlessLevel event, Emitter<GameState> emit) async {
+    // Incrementar niveles completados y agregar tiempo
+    _levelsCompleted++;
+    _totalTimeRemaining += 20;
+    
+    // Generar un nuevo nivel con seed diferente
+    final newLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
+    
+    emit(GameLoading(levelId: newLevelId));
+    
+    final levelResult = await _loadLevelUseCase(levelId: newLevelId);
+    
+    switch (levelResult) {
+      case Success(value: final level):
+        final nowMs = _clock();
+        final sessionResult = _startGameSessionUseCase(
+          level: level,
+          sessionId: 'session-$newLevelId',
+          startedAtMs: nowMs,
+        );
+        
+        switch (sessionResult) {
+          case Success(value: final session):
+            await _emitPlayingState(session, level, emit);
+          case Error(failure: final failure):
+            emit(GameError(message: failure.message, levelId: newLevelId));
+        }
+      case Error(failure: final failure):
+        emit(GameError(message: failure.message, levelId: newLevelId));
+    }
+  }
+
   Future<void> _emitPlayingState(
     GameSession session,
     Level level,
@@ -299,14 +390,58 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Align the mapper clock with the elapsed time reported by the evaluation
     // so the emitted state reflects the evaluated elapsed seconds.
     final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
-    emit(
-      GameStateMapper.mapToPlayingState(
-        session: session,
-        level: level,
-        score: evaluation.score,
-        nowMs: nowMs,
-      ),
+    final playingState = GameStateMapper.mapToPlayingState(
+      session: session,
+      level: level,
+      score: evaluation.score,
+      nowMs: nowMs,
     );
+    
+    // Agregar información de vidas y modo supervivencia
+    emit(GamePlaying(
+      levelId: playingState.levelId,
+      levelName: playingState.levelName,
+      difficulty: playingState.difficulty,
+      rows: playingState.rows,
+      cols: playingState.cols,
+      boardState: playingState.boardState,
+      moveCount: playingState.moveCount,
+      history: playingState.history,
+      score: playingState.score,
+      arrowsRemaining: playingState.arrowsRemaining,
+      elapsedSeconds: playingState.elapsedSeconds,
+      startedAtMs: playingState.startedAtMs,
+      livesRemaining: _livesRemaining,
+      totalTimeRemaining: _totalTimeRemaining,
+      levelsCompleted: _levelsCompleted,
+      isEndlessMode: _isEndlessMode,
+    ));
+  }
+
+  void _emitDefeatState({
+    required GameSession session,
+    required Level level,
+    required DefeatReason reason,
+    required int nowMs,
+    required Emitter<GameState> emit,
+  }) {
+    final defeatState = GameStateMapper.mapToDefeatState(
+      session: session,
+      level: level,
+      reason: reason,
+      nowMs: nowMs,
+    );
+    
+    // Agregar información de vidas y modo supervivencia
+    emit(GameDefeat(
+      levelId: defeatState.levelId,
+      reason: defeatState.reason,
+      moveCount: defeatState.moveCount,
+      elapsedSeconds: defeatState.elapsedSeconds,
+      livesRemaining: _livesRemaining,
+      levelsCompleted: _levelsCompleted,
+      isEndlessMode: _isEndlessMode,
+    ));
   }
 
   Future<void> _emitVictoryState(
@@ -322,20 +457,39 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (scoreResult) {
       case Success(value: final score):
-        final unlockResult = await _unlockNextLevelUseCase(
-          currentLevelId: level.levelId,
-        );
-        final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
-        emit(
-          GameStateMapper.mapToVictoryState(
-            session: session,
-            level: level,
-            score: score,
-            nowMs: nowMs,
-          ),
-        );
-        if (unlockResult case Error(failure: final failure)) {
-          debugPrint('Warning: Failed to unlock next level: ${failure.message}');
+        if (_isEndlessMode) {
+          // Modo supervivencia: incrementar niveles completados y agregar tiempo
+          _levelsCompleted++;
+          _totalTimeRemaining += 20; // Agregar 20 segundos extra
+          
+          emit(
+            GameVictory(
+              levelId: level.levelId,
+              score: score,
+              moveCount: evaluation.moveCount,
+              elapsedSeconds: evaluation.elapsedSeconds,
+              livesRemaining: _livesRemaining,
+              levelsCompleted: _levelsCompleted,
+              isEndlessMode: true,
+            ),
+          );
+        } else {
+          // Modo campaña: comportamiento normal
+          final unlockResult = await _unlockNextLevelUseCase(
+            currentLevelId: level.levelId,
+          );
+          final nowMs = session.startedAtMs + (evaluation.elapsedSeconds * 1000);
+          emit(
+            GameStateMapper.mapToVictoryState(
+              session: session,
+              level: level,
+              score: score,
+              nowMs: nowMs,
+            ),
+          );
+          if (unlockResult case Error(failure: final failure)) {
+            debugPrint('Warning: Failed to unlock next level: ${failure.message}');
+          }
         }
       case Error(failure: final failure):
         emit(GameError(message: failure.message));
