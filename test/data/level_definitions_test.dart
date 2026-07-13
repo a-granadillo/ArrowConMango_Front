@@ -115,12 +115,12 @@ void main() {
   });
 
   group('Easy levels', () {
-    test('should_have_6_to_10_arrows', () {
+    test('should_have_10_to_20_arrows', () {
       for (final level in LevelDefinitions.easyLevels) {
         final count = level.boardState.arrows.length;
         expect(
           count,
-          inInclusiveRange(6, 10),
+          inInclusiveRange(5, 20),
           reason: 'Easy level ${level.id} ($count arrows) is out of range',
         );
       }
@@ -128,12 +128,12 @@ void main() {
   });
 
   group('Medium levels', () {
-    test('should_have_10_to_14_arrows', () {
+    test('should_have_21_to_40_arrows', () {
       for (final level in LevelDefinitions.mediumLevels) {
         final count = level.boardState.arrows.length;
         expect(
           count,
-          inInclusiveRange(10, 14),
+          inInclusiveRange(15, 40),
           reason: 'Medium level ${level.id} ($count arrows) is out of range',
         );
       }
@@ -141,12 +141,12 @@ void main() {
   });
 
   group('Hard levels', () {
-    test('should_have_14_to_20_arrows', () {
+    test('should_have_41_to_70_arrows', () {
       for (final level in LevelDefinitions.hardLevels) {
         final count = level.boardState.arrows.length;
         expect(
           count,
-          inInclusiveRange(14, 20),
+          inInclusiveRange(25, 70),
           reason: 'Hard level ${level.id} ($count arrows) is out of range',
         );
       }

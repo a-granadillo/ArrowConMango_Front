@@ -40,8 +40,13 @@ class MockLevelRepository implements ILevelRepository {
 /// Manual mock for [LevelMapper].
 class MockLevelMapper implements LevelMapper {
   @override
-  Level toEntity(dynamic model) {
-    throw UnimplementedError('toEntity() should not be called in these tests');
+  Level toEntity(LevelModel model) {
+    return Level(
+      levelId: model.id,
+      rows: model.boardSize.rows,
+      cols: model.boardSize.cols,
+      templateBoard: BoardState(arrows: const []),
+    );
   }
 
   @override
@@ -99,6 +104,21 @@ void main() {
         expect(result, isA<Error<Level>>());
         expect((result as Error<Level>).failure, equals(failure));
         expect(mockRepository.requestedLevelId, equals(99));
+      },
+    );
+
+    test(
+      'should_generate_endless_level_when_id_is_negative',
+      () async {
+        // Arrange & Act
+        final result = await useCase(levelId: -1);
+
+        // Assert
+        expect(result, isA<Success<Level>>());
+        final level = (result as Success<Level>).value;
+        expect(level.levelId, equals(-1));
+        expect(level.difficulty(), equals('Easy')); // Because levelId is -1 which is <= 5, domain maps it to Easy
+        expect(mockRepository.requestedLevelId, isNull); // Repository not called
       },
     );
   });

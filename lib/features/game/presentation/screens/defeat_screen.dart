@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../bloc/game_bloc.dart';
+import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
 import '../widgets/result_sheet.dart';
 import '../widgets/result_stat.dart';
@@ -15,9 +17,10 @@ import '../widgets/result_stat.dart';
 /// handle, stats card, button language) so it reads as part of the same
 /// system rather than an ad-hoc screen.
 class DefeatScreen extends StatelessWidget {
-  const DefeatScreen({super.key, required this.result});
+  const DefeatScreen({super.key, required this.result, this.bloc});
 
   final GameDefeat result;
+  final GameBloc? bloc;
 
   String get _reasonText => switch (result.reason) {
         DefeatReason.timeExpired => '¡Se acabó el tiempo!',
@@ -115,9 +118,14 @@ class DefeatScreen extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () {
                       if (result.isEndlessMode && hasLivesRemaining) {
-                        // En modo supervivencia con vidas restantes, generar nuevo nivel
-                        final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
-                        context.pushReplacement(AppRoutes.gameFor(nextLevelId));
+                        // En modo supervivencia con vidas restantes, reintentar reusando el bloc
+                        if (bloc != null) {
+                          bloc!.add(const RetryLevel());
+                          context.pop();
+                        } else {
+                          final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000 + 1);
+                          context.pushReplacement(AppRoutes.gameFor(nextLevelId));
+                        }
                       } else {
                         // En modo campaña o game over, reintentar el mismo nivel
                         context.pushReplacement(

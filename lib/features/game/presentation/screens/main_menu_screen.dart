@@ -25,105 +25,112 @@ class MainMenuScreen extends StatelessWidget {
               _GreenHeader(height: headerH, width: c.maxWidth),
               // Foreground content.
               SafeArea(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 42),
-                    const FloatingMango(size: 112),
-                    const SizedBox(height: 14),
-                    Text(
-                      'ARROW CON',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.fredoka(
-                        fontSize: 44,
-                        height: 1.05,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    Text(
-                      'MANGO',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.fredoka(
-                        fontSize: 50,
-                        height: 1,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '¡EL LABERINTO MÁS SABROSO!',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2.5,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: c.maxHeight - 40),
+                    child: IntrinsicHeight(
                       child: Column(
                         children: [
-                          _PlayButton(
-                            label: 'MODO CAMPAÑA',
-                            onTap: () => context.push(AppRoutes.levels),
-                          ),
+                          const SizedBox(height: 24),
+                          const FloatingMango(size: 112),
                           const SizedBox(height: 14),
-                          _PlayButton(
-                            label: 'SUPERVIVENCIA',
-                            bg: AppColors.textDark,
-                            shadow: const Color(0xFF3E2723),
-                            onTap: () {
-                              // Navigate to game with levelId -1 (endless mode)
-                              context.push(AppRoutes.gameFor(-1));
-                            },
+                          Text(
+                            'ARROW CON',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.fredoka(
+                              fontSize: 44,
+                              height: 1.05,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
                           ),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _NavButton(
-                                  svg: AppSvgs.niveles,
-                                  label: 'Niveles',
-                                  bg: AppColors.mango,
-                                  fg: AppColors.textDark,
-                                  shadow: const Color(0xFFD4A017),
+                          Text(
+                            'MANGO',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.fredoka(
+                              fontSize: 50,
+                              height: 1,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '¡EL LABERINTO MÁS SABROSO!',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2.5,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            child: Column(
+                              children: [
+                                _PlayButton(
+                                  label: 'MODO CAMPAÑA',
                                   onTap: () => context.push(AppRoutes.levels),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _NavButton(
-                                  svg: AppSvgs.ranking,
-                                  label: 'Ranking',
-                                  bg: AppColors.success,
-                                  fg: Colors.white,
-                                  shadow: AppColors.successDark,
-                                  onTap: () => context.push(AppRoutes.ranking),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _NavButton(
-                                  svg: AppSvgs.ajustes,
-                                  label: 'Ajustes',
+                                const SizedBox(height: 14),
+                                _PlayButton(
+                                  label: 'SUPERVIVENCIA',
                                   bg: AppColors.textDark,
-                                  fg: AppColors.mango,
                                   shadow: const Color(0xFF3E2723),
-                                  onTap: () => context.push(AppRoutes.settings),
+                                  onTap: () {
+                                    // Navigate to game with levelId -1 (endless mode)
+                                    context.push(AppRoutes.gameFor(-1));
+                                  },
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 14),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _NavButton(
+                                        svg: AppSvgs.niveles,
+                                        label: 'Niveles',
+                                        bg: AppColors.mango,
+                                        fg: AppColors.textDark,
+                                        shadow: const Color(0xFFD4A017),
+                                        onTap: () => context.push(AppRoutes.levels),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _NavButton(
+                                        svg: AppSvgs.ranking,
+                                        label: 'Ranking',
+                                        bg: AppColors.success,
+                                        fg: Colors.white,
+                                        shadow: AppColors.successDark,
+                                        onTap: () => context.push(AppRoutes.ranking),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _NavButton(
+                                        svg: AppSvgs.ajustes,
+                                        label: 'Ajustes',
+                                        bg: AppColors.textDark,
+                                        fg: AppColors.mango,
+                                        shadow: const Color(0xFF3E2723),
+                                        onTap: () => context.push(AppRoutes.settings),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(height: 20),
+                          const _PageDots(),
+                          const SizedBox(height: 24),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const _PageDots(),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
               ),
             ],

@@ -67,10 +67,28 @@ class _GameScreenState extends State<GameScreen> {
         _colors.reset();
       case GameVictory():
         _timer?.cancel();
-        context.pushReplacement(AppRoutes.victory, extra: state);
+        if (state.isEndlessMode) {
+          // En modo supervivencia, hacemos push en vez de pushReplacement
+          // y pasamos el bloc para preservar el estado
+          context.push(AppRoutes.victory, extra: {
+            'result': state,
+            'bloc': context.read<GameBloc>(),
+          });
+        } else {
+          context.pushReplacement(AppRoutes.victory, extra: state);
+        }
       case GameDefeat():
         _timer?.cancel();
-        context.pushReplacement(AppRoutes.defeat, extra: state);
+        if (state.isEndlessMode) {
+          // En modo supervivencia, hacemos push en vez de pushReplacement
+          // y pasamos el bloc para preservar el estado
+          context.push(AppRoutes.defeat, extra: {
+            'result': state,
+            'bloc': context.read<GameBloc>(),
+          });
+        } else {
+          context.pushReplacement(AppRoutes.defeat, extra: state);
+        }
       case GameError():
         break;
     }
@@ -361,24 +379,28 @@ class _LivesIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(3, (index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Text(
-              index < lives ? '❤️' : '🖤',
-              style: const TextStyle(fontSize: 18),
-            ),
-          );
-        }),
+    return Semantics(
+      label: 'Vidas: $lives de 3',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Text(
+                index < lives ? '❤️' : '🖤',
+                style: const TextStyle(fontSize: 18),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }

@@ -467,12 +467,13 @@ void main() {
           reason: DefeatReason.noMovesAvailable,
           moveCount: 1,
           elapsedSeconds: 0,
+          livesRemaining: 3,
         ),
       ],
     );
 
     blocTest<GameBloc, GameState>(
-      'should emit no new states when TriggerArrowExit returns PathBlockedFailure',
+      'should decrement lives when TriggerArrowExit returns PathBlockedFailure',
       // Arrange
       setUp: () {
         fakeTriggerExit.result = Error<GameSession>(
@@ -481,13 +482,33 @@ void main() {
             blockingArrowId: 'arrow_2',
           ),
         );
+        fakeEvaluateState.result = const GameEvaluation(
+          status: GameStatus.ongoing,
+          score: initialScore,
+          moveCount: 0,
+          elapsedSeconds: 0,
+          arrowsRemaining: 1,
+        );
       },
       build: buildBloc,
       seed: playingSeed,
       // Act
       act: (bloc) => bloc.add(const TriggerArrowExit(arrowId: 'arrow_1')),
       // Assert
-      expect: () => <GameState>[],
+      expect: () => [
+        GamePlaying(
+          levelId: 1,
+          difficulty: 'Easy',
+          boardState: singleArrowBoard(),
+          moveCount: 0,
+          history: const CommandHistory(),
+          score: initialScore,
+          arrowsRemaining: 1,
+          elapsedSeconds: 0,
+          startedAtMs: clockValue,
+          livesRemaining: 2,
+        ),
+      ],
     );
 
     blocTest<GameBloc, GameState>(
@@ -658,6 +679,7 @@ void main() {
           reason: DefeatReason.timeExpired,
           moveCount: 0,
           elapsedSeconds: 60,
+          livesRemaining: 3,
         ),
       ],
     );

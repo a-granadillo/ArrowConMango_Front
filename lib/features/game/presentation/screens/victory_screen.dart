@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -6,7 +7,11 @@ import '../../../../core/app_info.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../bloc/game_bloc.dart';
+import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
+import '../bloc/progress_bloc.dart';
+import '../bloc/progress_event.dart';
 import '../widgets/mango_rating.dart';
 import '../widgets/mango_slots.dart';
 import '../widgets/result_sheet.dart';
@@ -17,9 +22,10 @@ import '../widgets/result_stat.dart';
 /// rating, stats and the next-level action. Persists the unlock through
 /// [ProgressBloc] on entry.
 class VictoryScreen extends StatefulWidget {
-  const VictoryScreen({super.key, required this.result});
+  const VictoryScreen({super.key, required this.result, this.bloc});
 
   final GameVictory result;
+  final GameBloc? bloc;
 
   @override
   State<VictoryScreen> createState() => _VictoryScreenState();
@@ -33,10 +39,9 @@ class _VictoryScreenState extends State<VictoryScreen> {
     if (!widget.result.isEndlessMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        // TODO: Persist progress when ProgressBloc is available
-        // context.read<ProgressBloc>().add(
-        //       ProgressLevelCompleted(currentLevelId: widget.result.levelId),
-        //     );
+        context.read<ProgressBloc>().add(
+              ProgressLevelCompleted(currentLevelId: widget.result.levelId),
+            );
       });
     }
   }
@@ -147,9 +152,14 @@ class _VictoryScreenState extends State<VictoryScreen> {
                     flex: 2,
                     child: GestureDetector(
                       onTap: () {
-                        // Cargar siguiente nivel en modo supervivencia
-                        final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
-                        context.pushReplacement(AppRoutes.gameFor(nextLevelId));
+                        // Cargar siguiente nivel en modo supervivencia reusando el bloc existente
+                        if (widget.bloc != null) {
+                          widget.bloc!.add(const NextEndlessLevel());
+                          context.pop();
+                        } else {
+                          final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000 + 1);
+                          context.pushReplacement(AppRoutes.gameFor(nextLevelId));
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
