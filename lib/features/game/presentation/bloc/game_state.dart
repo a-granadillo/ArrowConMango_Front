@@ -10,6 +10,9 @@ enum DefeatReason {
 
   /// The available time for the level has expired.
   timeExpired,
+
+  /// The player ran out of lives.
+  outOfLives,
 }
 
 /// {@template game_state}

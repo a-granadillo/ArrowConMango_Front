@@ -192,8 +192,27 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
       case Error(failure: final failure):
-        if (failure is ArrowNotFoundFailure || failure is PathBlockedFailure) {
-          // Expected domain errors: keep the UI in GamePlaying.
+        if (failure is PathBlockedFailure) {
+          _livesRemaining--;
+          final level = _levelForState(state);
+          if (_livesRemaining <= 0) {
+            _emitDefeatState(
+              session: session,
+              level: level,
+              reason: DefeatReason.outOfLives,
+              nowMs: _clock(),
+              emit: emit,
+            );
+            return;
+          }
+          final evaluation = _evaluateGameStateUseCase(
+            session: session,
+            nowMs: _clock(),
+          );
+          _emitPlayingStateFromEvaluation(session, level, evaluation, emit);
+          break;
+        }
+        if (failure is ArrowNotFoundFailure) {
           break;
         }
         emit(GameError(message: failure.message));
@@ -286,38 +305,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     if (levelId == null) return;
 
-    // En modo supervivencia, si se perdió el nivel, restar una vida
-    if (_isEndlessMode && state is GameDefeat) {
-      _livesRemaining--;
-      
-      if (_livesRemaining > 0) {
-        // Aún quedan vidas, generar nuevo nivel con seed diferente
-        final newLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
-        emit(GameLoading(levelId: newLevelId));
-        
-        final levelResult = await _loadLevelUseCase(levelId: newLevelId);
-        
-        switch (levelResult) {
-          case Success(value: final level):
-            final nowMs = _clock();
-            final sessionResult = _startGameSessionUseCase(
-              level: level,
-              sessionId: 'session-$newLevelId',
-              startedAtMs: nowMs,
-            );
-            
-            switch (sessionResult) {
-              case Success(value: final session):
-                await _emitPlayingState(session, level, emit);
-              case Error(failure: final failure):
-                emit(GameError(message: failure.message, levelId: newLevelId));
-            }
-          case Error(failure: final failure):
-            emit(GameError(message: failure.message, levelId: newLevelId));
-        }
-        return;
-      }
-      // Si no quedan vidas, el juego termina (Game Over)
+    // En modo supervivencia, si se perdió el nivel, reiniciar vidas y tiempo
+    if (_isEndlessMode && state is GameDefeat && _livesRemaining <= 0) {
+      _livesRemaining = 3;
+      _totalTimeRemaining = 60;
+      _levelsCompleted = 0;
     }
 
     emit(GameLoading(levelId: levelId));

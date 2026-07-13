@@ -22,6 +22,7 @@ class DefeatScreen extends StatelessWidget {
   String get _reasonText => switch (result.reason) {
         DefeatReason.timeExpired => '¡Se acabó el tiempo!',
         DefeatReason.noMovesAvailable => 'No quedan movimientos posibles.',
+        DefeatReason.outOfLives => '¡Te quedaste sin vidas!',
       };
 
   @override
