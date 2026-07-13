@@ -41,39 +41,39 @@ class LevelConfig {
     rows: 6,
     cols: 6,
     arrowCount: 15,
-    straightRatio: 0.60, // 60% straight
-    lShapeRatio: 0.40, // 40% L-shape
-    zShapeRatio: 0.0, // 0% Z-shape
-    uShapeRatio: 0.0, // 0% U-shape
+    straightRatio: 0.35, // Reduced straight for more structure
+    lShapeRatio: 0.45,
+    zShapeRatio: 0.15, // Introduce S-shapes early
+    uShapeRatio: 0.05, // Small chance of horseshoe curves
     minSegmentLength: 2,
     maxSegmentLength: 4,
-    minGraphDepth: 3, // Needs at least 3-step dependency chain
+    minGraphDepth: 5, // Increased from 3 (needs at least 5 consecutive steps)
   );
 
   static const LevelConfig medium = LevelConfig(
     rows: 8,
     cols: 8,
     arrowCount: 30,
-    straightRatio: 0.30, // 30% straight
-    lShapeRatio: 0.35, // 35% L-shape
-    zShapeRatio: 0.20, // 20% Z-shape
-    uShapeRatio: 0.15, // 15% U-shape
+    straightRatio: 0.15, // Even fewer straight arrows
+    lShapeRatio: 0.45,
+    zShapeRatio: 0.25, // More zigzags
+    uShapeRatio: 0.15,
     minSegmentLength: 2,
     maxSegmentLength: 4,
-    minGraphDepth: 5, // Needs at least 5-step dependency chain
+    minGraphDepth: 8, // Increased from 5 (needs at least 8 consecutive steps)
   );
 
   static const LevelConfig hard = LevelConfig(
     rows: 12,
     cols: 12,
     arrowCount: 60,
-    straightRatio: 0.15, // 15% straight
-    lShapeRatio: 0.35, // 35% L-shape
-    zShapeRatio: 0.30, // 30% Z-shape
-    uShapeRatio: 0.20, // 20% U-shape
+    straightRatio: 0.05, // Almost zero straight arrows!
+    lShapeRatio: 0.35,
+    zShapeRatio: 0.35, // High percentage of complex zigzags
+    uShapeRatio: 0.25, // High percentage of 180° turns
     minSegmentLength: 2,
     maxSegmentLength: 5,
-    minGraphDepth: 8, // Needs at least 8-step dependency chain (extremely complex!)
+    minGraphDepth: 12, // Increased from 8 (extremely complex: 12 consecutive blockages!)
   );
 }
 
@@ -118,7 +118,7 @@ class LevelGenerator {
       arrows = <ArrowModel>[];
 
       var attempts = 0;
-      final maxAttempts = config.arrowCount * 800;
+      final maxAttempts = config.arrowCount * 1200; // Increased from 800 for even denser layouts
       while (arrows.length < config.arrowCount && attempts < maxAttempts) {
         attempts++;
         final candidate = _tryMakeArrow(rng, occupied, arrows.length, config);
