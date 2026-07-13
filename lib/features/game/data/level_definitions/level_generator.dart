@@ -184,7 +184,9 @@ class LevelGenerator {
       for (var i = 0; i < firstLen; i++) {
         cr -= tr;
         cc -= tc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) break;
+        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+          return _finish(dirName, headFirst);
+        }
         headFirst.add([cr, cc]);
       }
     } else if (shapeType < config.straightRatio + config.lShapeRatio + config.zShapeRatio) {
@@ -218,7 +220,9 @@ class LevelGenerator {
       for (var i = 0; i < lastLen; i++) {
         cr -= dr;
         cc -= dc;
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) break;
+        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+          return _finish(dirName, headFirst);
+        }
         headFirst.add([cr, cc]);
       }
     } else {
@@ -252,7 +256,9 @@ class LevelGenerator {
       for (var i = 0; i < lastLen; i++) {
         cr += dr;
         cc += dc; // Go forward now
-        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) break;
+        if (!_inBoard(cr, cc, config) || occupied.contains(_key(cr, cc))) {
+          return _finish(dirName, headFirst);
+        }
         headFirst.add([cr, cc]);
       }
     }
@@ -260,7 +266,10 @@ class LevelGenerator {
     return _finish(dirName, headFirst);
   }
 
-  static _Candidate _finish(String dirName, List<List<int>> headFirst) {
+  static _Candidate? _finish(String dirName, List<List<int>> headFirst) {
+    // Minimum 2 cells per arrow
+    if (headFirst.length < 2) return null;
+    
     final cells = headFirst.reversed.toList(); // tail -> head
     final model = arrowHelper('a${_seq++}', dirName, cells);
     final keys = cells.map((c) => _key(c[0], c[1])).toSet();
