@@ -90,38 +90,100 @@ class LevelGenerator {
     }
 
     // Build the body backward from the head (tail -> head order at the end).
-    final bend = rng.nextDouble() < 0.25; // Reduced from 0.35 for longer straight arrows
+    final shapeType = rng.nextDouble();
     // Cells collected head-first, reversed to tail->head before returning.
     final headFirst = <List<int>>[[hr, hc]];
     var cr = hr, cc = hc;
 
-    if (!bend) {
-      final len = 2 + rng.nextInt(4); // 2..5 cells (longer arrows)
+    if (shapeType < 0.45) {
+      // Straight arrow (45% chance)
+      final len = 2 + rng.nextInt(4); // 2..5 cells
       for (var i = 1; i < len; i++) {
         cr -= dr;
         cc -= dc;
         if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) break;
         headFirst.add([cr, cc]);
       }
-    } else {
-      // Last segment (along the head direction), then a perpendicular turn.
-      final lastLen = 2 + rng.nextInt(3); // 2..4 cells behind the head along -d
+    } else if (shapeType < 0.75) {
+      // L-shape arrow (30% chance)
+      final lastLen = 2 + rng.nextInt(3); // 2..4 cells behind the head
       for (var i = 0; i < lastLen; i++) {
         cr -= dr;
         cc -= dc;
         if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) {
-          return _finish(dirName, headFirst); // fall back to what we have
+          return _finish(dirName, headFirst);
         }
         headFirst.add([cr, cc]);
       }
-      // Turn perpendicular.
+      // Turn perpendicular
       final turnLeft = rng.nextBool();
-      // Perpendicular unit: rotate (dr,dc) by ±90°.
       final (tr, tc) = turnLeft ? (-dc, dr) : (dc, -dr);
-      final firstLen = 2 + rng.nextInt(3); // 2..4 cells in perpendicular direction
+      final firstLen = 2 + rng.nextInt(3);
       for (var i = 0; i < firstLen; i++) {
         cr -= tr;
         cc -= tc;
+        if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) break;
+        headFirst.add([cr, cc]);
+      }
+    } else if (shapeType < 0.90) {
+      // Z-shape arrow (15% chance) - zigzag with two turns
+      final firstLen = 2 + rng.nextInt(2); // 2..3 cells
+      for (var i = 0; i < firstLen; i++) {
+        cr -= dr;
+        cc -= dc;
+        if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) {
+          return _finish(dirName, headFirst);
+        }
+        headFirst.add([cr, cc]);
+      }
+      // First turn
+      final turnLeft = rng.nextBool();
+      final (tr, tc) = turnLeft ? (-dc, dr) : (dc, -dr);
+      final midLen = 1 + rng.nextInt(2); // 1..2 cells
+      for (var i = 0; i < midLen; i++) {
+        cr -= tr;
+        cc -= tc;
+        if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) {
+          return _finish(dirName, headFirst);
+        }
+        headFirst.add([cr, cc]);
+      }
+      // Second turn (back to original direction)
+      final lastLen = 1 + rng.nextInt(2); // 1..2 cells
+      for (var i = 0; i < lastLen; i++) {
+        cr -= dr;
+        cc -= dc;
+        if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) break;
+        headFirst.add([cr, cc]);
+      }
+    } else {
+      // U-shape arrow (10% chance) - 180° turn
+      final firstLen = 2 + rng.nextInt(2); // 2..3 cells
+      for (var i = 0; i < firstLen; i++) {
+        cr -= dr;
+        cc -= dc;
+        if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) {
+          return _finish(dirName, headFirst);
+        }
+        headFirst.add([cr, cc]);
+      }
+      // Turn 90°
+      final turnLeft = rng.nextBool();
+      final (tr, tc) = turnLeft ? (-dc, dr) : (dc, -dr);
+      final midLen = 2 + rng.nextInt(2); // 2..3 cells
+      for (var i = 0; i < midLen; i++) {
+        cr -= tr;
+        cc -= tc;
+        if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) {
+          return _finish(dirName, headFirst);
+        }
+        headFirst.add([cr, cc]);
+      }
+      // Turn 90° again (now going opposite direction)
+      final lastLen = 2 + rng.nextInt(2); // 2..3 cells
+      for (var i = 0; i < lastLen; i++) {
+        cr += dr;
+        cc += dc; // Go forward now
         if (!_inBoard(cr, cc) || occupied.contains(_key(cr, cc))) break;
         headFirst.add([cr, cc]);
       }
