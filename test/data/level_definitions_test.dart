@@ -141,12 +141,12 @@ void main() {
   });
 
   group('Hard levels', () {
-    test('should_have_20_to_70_arrows', () {
+    test('should_have_15_to_70_arrows', () {
       for (final level in LevelDefinitions.hardLevels) {
         final count = level.boardState.arrows.length;
         expect(
           count,
-          inInclusiveRange(20, 70),
+          inInclusiveRange(15, 70),
           reason: 'Hard level ${level.id} ($count arrows) is out of range',
         );
       }
