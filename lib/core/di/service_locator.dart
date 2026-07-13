@@ -149,13 +149,16 @@ Future<void> setupServiceLocator() async {
     AudioSettingsLocalDataSource.boxName,
   );
   final audioSettings = AudioSettingsLocalDataSource(box: audioBox);
+  final audioService = AudioServiceImpl(settings: audioSettings);
   sl
-    ..registerLazySingleton<AudioSettingsLocalDataSource>(() => audioSettings)
-    ..registerLazySingleton<AudioService>(
-      () => AudioServiceImpl(settings: audioSettings),
+    ..registerSingleton<AudioSettingsLocalDataSource>(audioSettings)
+    ..registerSingleton<AudioService>(
+      audioService,
+      dispose: (service) => service.dispose(),
     )
-    ..registerLazySingleton<AudioSettingsCubit>(
-      () => AudioSettingsCubit(service: sl<AudioService>()),
+    ..registerSingleton<AudioSettingsCubit>(
+      AudioSettingsCubit(service: audioService),
+      dispose: (cubit) => cubit.close(),
     );
 
   // --- BLoCs ---

@@ -18,10 +18,10 @@ import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_fai
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
+import 'package:arrowconmango_front/core/audio/audio_service.dart';
+import 'package:arrowconmango_front/core/audio/audio_track.dart';
+import 'package:arrowconmango_front/core/audio/sfx_clip.dart';
 import 'package:flutter/foundation.dart';
-import '../../../../core/audio/audio_service.dart';
-import '../../../../core/audio/audio_track.dart';
-import '../../../../core/audio/sfx_clip.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/mappers/game_state_mapper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
