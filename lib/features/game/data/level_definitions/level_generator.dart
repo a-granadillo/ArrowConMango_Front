@@ -222,6 +222,18 @@ class LevelGenerator {
   static bool _inBoard(int r, int c, LevelConfig config) => 
       r >= 0 && r < config.rows && c >= 0 && c < config.cols;
 
+  static int _minDistanceToEdge(int r, int c, LevelConfig config) {
+    final d1 = r;
+    final d2 = config.rows - 1 - r;
+    final d3 = c;
+    final d4 = config.cols - 1 - c;
+    var m = d1;
+    if (d2 < m) m = d2;
+    if (d3 < m) m = d3;
+    if (d4 < m) m = d4;
+    return m;
+  }
+
   static bool _inSilhouette(int r, int c, LevelConfig config) {
     if (config.silhouette == null) return true;
     if (r < 0 || r >= config.silhouette!.length) return false;
@@ -240,6 +252,21 @@ class LevelGenerator {
     final hr = rng.nextInt(config.rows);
     final hc = rng.nextInt(config.cols);
     if (!_inSilhouette(hr, hc, config) || occupied.contains(_key(hr, hc))) return null;
+
+    // --- ONION EFFECT (EFECTO CEBOLLA) BIAS ---
+    // Since generation runs backward, first placed arrows are the last to exit (most blocked / outer).
+    // Last placed arrows are the first to exit (unblocked / inner).
+    final progress = index / config.arrowCount;
+    final edgeDist = _minDistanceToEdge(hr, hc, config);
+    
+    if (progress < 0.35) {
+      // Outer layer (first 35%): force heads near the perimeter/boundaries
+      final maxEdgeDist = config.rows >= 10 ? 2 : 1;
+      if (edgeDist > maxEdgeDist) return null; // Reject center placement
+    } else if (progress >= 0.70) {
+      // Inner layer (last 30%): force heads near the center of the board
+      if (edgeDist < 2 && config.rows >= 7) return null; // Reject edge placement
+    }
 
     // Exit trajectory from head to edge must be clear (in-board part).
     // Note: Exit trajectories are allowed to cross empty spaces (0s) outside the silhouette.
