@@ -117,15 +117,6 @@ class LevelGenerator {
     );
   }
 
-    return LevelModel(
-      id: id,
-      name: name,
-      difficulty: difficulty,
-      boardSize: const BoardSizeModel(rows: rows, cols: cols),
-      boardState: BoardStateModel(arrows: arrows),
-    );
-  }
-
   static const List<(int, int)> _dirs = [
     (-1, 0), // up
     (1, 0), // down
