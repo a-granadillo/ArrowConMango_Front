@@ -6,16 +6,22 @@ import 'arrow_geometry.dart';
 
 /// Draws every live arrow on the board in one pass as a thin stroked polyline
 /// (tail→head) with a V arrowhead and a flat drop shadow, matching the design.
+///
+/// [opacity] scales both the shadow and color passes uniformly (1.0 = fully
+/// opaque). Used to render ghosted arrows from adjacent Z-layers in the 3D
+/// board without a separate painter.
 class ArrowsLayerPainter extends CustomPainter {
   ArrowsLayerPainter({
     required this.arrows,
     required this.colorOf,
     required this.cell,
+    this.opacity = 1.0,
   });
 
   final List<ArrowEntity> arrows;
   final Color Function(String id) colorOf;
   final double cell;
+  final double opacity;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -37,13 +43,16 @@ class ArrowsLayerPainter extends CustomPainter {
       // Shadow pass.
       canvas.save();
       canvas.translate(kArrowShadowOffset.dx, kArrowShadowOffset.dy);
-      paint.color = kArrowShadowColor;
+      paint.color = kArrowShadowColor.withValues(
+        alpha: kArrowShadowColor.a * opacity,
+      );
       canvas.drawPath(body, paint);
       canvas.drawPath(head, paint);
       canvas.restore();
 
       // Color pass.
-      paint.color = colorOf(arrow.id);
+      final color = colorOf(arrow.id);
+      paint.color = color.withValues(alpha: color.a * opacity);
       canvas.drawPath(body, paint);
       canvas.drawPath(head, paint);
     }
@@ -51,5 +60,7 @@ class ArrowsLayerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ArrowsLayerPainter old) =>
-      old.cell != cell || !listEquals(old.arrows, arrows);
+      old.cell != cell ||
+      old.opacity != opacity ||
+      !listEquals(old.arrows, arrows);
 }

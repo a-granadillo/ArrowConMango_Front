@@ -6,6 +6,7 @@ import '../../features/game/presentation/bloc/game_bloc.dart';
 import '../../features/game/presentation/bloc/game_state.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
 import '../../features/game/presentation/bloc/menu_event.dart';
+import '../../features/game/presentation/screens/board_3d_demo_screen.dart';
 import '../../features/game/presentation/screens/defeat_screen.dart';
 import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
@@ -45,6 +46,10 @@ GoRouter buildAppRouter() {
       GoRoute(
         path: AppRoutes.settings,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.board3dDemo,
+        builder: (context, state) => const Board3DDemoScreen(),
       ),
       GoRoute(
         path: AppRoutes.ranking,

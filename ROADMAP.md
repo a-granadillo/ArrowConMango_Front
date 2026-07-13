@@ -573,7 +573,7 @@ docs/screenshots/
 **Dependencias:** GitHub #3  
 **Estimación:** 6 horas  
 **Prioridad:** 🟢 MEDIA  
-**Asignado:** hetairoii (UI Menú) y a-granadillo (Restaurar data)
+**Asignado:** a-granadillo
 
 **GitHub Issue:** [#24](https://github.com/a-granadillo/ArrowConMango_Front/issues/24)
 
@@ -586,7 +586,7 @@ docs/screenshots/
 **Dependencias:** N/A (Backend task)  
 **Estimación:** 6 horas  
 **Prioridad:** 🔴 CRÍTICA  
-**Asignado:** AlbertoMonasterio
+**Asignado:** hetairoii
 
 **GitHub Issue:** [#19](https://github.com/a-granadillo/ArrowConMango_Front/issues/19)
 
@@ -595,7 +595,7 @@ docs/screenshots/
 **Dependencias:** GitHub #19  
 **Estimación:** 8 horas  
 **Prioridad:** 🟡 ALTA  
-**Asignado:** a-granadillo
+**Asignado:** AlbertoMonasterio
 
 **GitHub Issue:** [#23](https://github.com/a-granadillo/ArrowConMango_Front/issues/23)
 
