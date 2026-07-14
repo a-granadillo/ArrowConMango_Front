@@ -1,15 +1,24 @@
+import 'package:arrowconmango_front/core/audio/audio_service.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/screens/defeat_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../helpers/fakes/fake_audio_service.dart';
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
   Future<void> pumpDefeat(WidgetTester tester, GameDefeat result) {
     return tester.pumpWidget(
-      MaterialApp(home: DefeatScreen(result: result)),
+      MaterialApp(
+        home: RepositoryProvider<AudioService>.value(
+          value: FakeAudioService(),
+          child: DefeatScreen(result: result),
+        ),
+      ),
     );
   }
 

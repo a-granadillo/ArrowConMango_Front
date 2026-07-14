@@ -692,6 +692,29 @@
 - **Lecciones / limitaciones:**
   1. **Evitar el blast radius con abstracciones inteligentes:** Exponer propiedades delegadas (`get rows => ...`) usando switches de Dart 3 sobre clases selladas permite refactorizar la estructura de datos interna del dominio conservando la interfaz pública intacta. Esto ahorró tener que refactorizar decenas de archivos de UI.
   2. **Hot-reload de configuración en sub-agentes:** Al reescribir `opencode.json` de manera local para pisar modelos incorrectos de la configuración global, OpenCode lee e inyecta la nueva configuración del proyecto en los arranques subsiguientes de los sub-agentes sin requerir reinicio forzado del chat padre.
+### Entrada #35 — feat(network): HTTP API integration with Hive offline fallback (Issue #45)
+
+- **Fecha / autor:** 14-07-2026 / hetairoii
+- **Herramienta:** Claude Code (Modelo: claude-opus-4-8)
+- **Rol en el flujo:** Análisis cross-repo + implementación, en modo planificación con aprobación explícita antes de escribir código.
+- **Tarea/problema:** Resolver el issue #45 ("implement HTTP API integration with Hive offline fallback"): sincronizar el progreso del jugador con el backend y hacer fallback a Hive cuando esté offline, sincronizando al reconectar. Al explorar el backend se encontró que ya implementaba `GET/PUT /api/v1/progress` (JWT, merge idempotente) y `POST /auth/guest`, salvo el campo `currentLevel` que el modelo local del frontend necesita; esa brecha se cerró primero en el backend (issue #12, PR #13, mergeado a `master`) antes de implementar este issue.
+- **Prompt (paráfrasis fiel):** > "Analiza el issue #45 del frontend, analiza el backend para adaptarlo, crea el issue correspondiente en el backend en una rama desde master, y cuando esté mergeado implementa la funcionalidad en el frontend en una rama desde develop, dándome puntos de verificación manual en cada repositorio."
+- **Resultado obtenido:**
+  1. `dio` y `connectivity_plus` añadidos a `pubspec.yaml`.
+  2. `ApiConfig` (`lib/core/config/api_config.dart`) — `baseUrl` configurable vía `--dart-define=API_BASE_URL`.
+  3. `AuthTokenStore` (`lib/features/player/data/auth_token_store.dart`) — persiste el JWT en la caja Hive `'player'` existente.
+  4. `AuthInterceptor` (`lib/core/network/auth_interceptor.dart`) — adjunta `Authorization: Bearer`, hace guest-login automático con el UUID del jugador si no hay token, reautentica una vez ante 401.
+  5. `ApiClient` (`lib/core/network/api_client.dart`) — envuelve `Dio` con el interceptor.
+  6. `RemoteProgressDataSource` (`lib/features/game/data/datasources/remote_progress_data_source.dart`) — mapea explícitamente entre las claves del modelo local (`completedLevels`/`scores`, IDs `int`) y las del backend (`completed`/`best`/`currentLevel`, IDs `String`).
+  7. `SyncedProgressRepository` (`lib/features/game/data/repositories/synced_progress_repository.dart`) — decorador de `HiveProgressRepository` implementando `IProgressRepository`: guarda local primero (nunca se pierde progreso), intenta push remoto, marca un flag "pending" en la caja `'player'` si falla, y lo vacía automáticamente al recuperar conectividad (`connectivity_plus`) o al arrancar. `loadProgress` hace merge (unión de niveles + máximo nivel actual) entre lo local y lo remoto.
+  8. Único cambio de wiring en `lib/core/di/service_locator.dart`: el binding de `IProgressRepository` ahora resuelve `SyncedProgressRepository` en vez de `HiveProgressRepository` directamente; nada aguas abajo (use cases, `ProgressBloc`) cambió.
+  9. 7 tests nuevos (`test/features/game/data/repositories/synced_progress_repository_test.dart`) cubriendo online/offline/reconexión/merge/fallback, usando `mocktail`.
+- **Modificaciones del equipo:** Se reordenó la sección "Player (Guest-First identity)" del `service_locator.dart` para que se registre antes que "Networking", ya que el `AuthInterceptor` necesita el UUID del jugador al construirse. Se corrigió una importación innecesaria (`test/fake.dart`) detectada por `flutter analyze`.
+- **Verificación:** `flutter analyze` (0 issues) y `flutter test` (320/320, incluye los 7 tests nuevos).
+- **Archivos afectados:**
+  - Nuevos: `lib/core/config/api_config.dart`, `lib/core/network/api_client.dart`, `lib/core/network/auth_interceptor.dart`, `lib/features/player/data/auth_token_store.dart`, `lib/features/game/data/datasources/remote_progress_data_source.dart`, `lib/features/game/data/repositories/synced_progress_repository.dart`, `test/features/game/data/repositories/synced_progress_repository_test.dart`.
+  - Modificados: `pubspec.yaml`, `lib/core/di/service_locator.dart`.
+- **Lecciones / limitaciones:** Explorar el backend antes de asumir su alcance evitó reimplementar sincronización que ya existía; solo hizo falta un campo puntual. Falta persistir puntajes por nivel (`best`) desde el frontend — hoy se envía vacío porque `AppProgressMapper` aún los descarta (TODO documentado en ese archivo); quedará para un issue futuro.
 
 ## Evaluación crítica
 
