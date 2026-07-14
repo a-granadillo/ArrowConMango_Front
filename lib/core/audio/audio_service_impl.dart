@@ -28,6 +28,7 @@ class AudioServiceImpl implements AudioService {
   final Map<SfxClip, AudioPlayer> _sfxPool = {};
   bool _muted;
   AudioTrack? _currentTrack;
+  int _bgmGeneration = 0;
 
   @override
   bool get isMuted => _muted;
@@ -36,14 +37,20 @@ class AudioServiceImpl implements AudioService {
   Future<void> playBgm(AudioTrack track) async {
     if (_muted) return;
 
+    final gen = ++_bgmGeneration;
+
     try {
       if (_currentTrack == track) {
         if (_bgmPlayer.state == PlayerState.playing) return;
       }
 
       await _bgmPlayer.stop();
+      if (gen != _bgmGeneration) return;
+
       _currentTrack = track;
       await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+      if (gen != _bgmGeneration) return;
+
       await _bgmPlayer.play(AssetSource(track.assetPath));
     } catch (e, stackTrace) {
       debugPrint('AudioServiceImpl.playBgm failed: $e\n$stackTrace');
@@ -53,8 +60,11 @@ class AudioServiceImpl implements AudioService {
   @override
   Future<void> stopBgm() async {
     try {
+      final track = _currentTrack;
       await _bgmPlayer.stop();
-      _currentTrack = null;
+      if (_currentTrack == track) {
+        _currentTrack = null;
+      }
     } catch (e, stackTrace) {
       debugPrint('AudioServiceImpl.stopBgm failed: $e\n$stackTrace');
     }

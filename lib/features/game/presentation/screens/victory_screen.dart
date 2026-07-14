@@ -147,7 +147,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
                   Expanded(
                   child: OutlinedButton(
                     onPressed: _withClick(() {
-                      _audioService?.stopBgm();
+                      _audioService?.playBgm(AudioTrack.menuTheme);
                       context.go(AppRoutes.menu);
                     }),
                     style: OutlinedButton.styleFrom(

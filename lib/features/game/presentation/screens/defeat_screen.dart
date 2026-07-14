@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
+import '../../../../core/audio/audio_track.dart';
 import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -105,7 +106,7 @@ class DefeatScreen extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: withClick(() {
-                      audioService.stopBgm();
+                      audioService.playBgm(AudioTrack.menuTheme);
                       context.go(AppRoutes.menu);
                     }),
                     style: OutlinedButton.styleFrom(

@@ -1,9 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/audio/audio_service.dart';
+import '../../../../core/audio/audio_track.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_gradients.dart';
@@ -20,22 +21,15 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    _timer = Timer(SplashScreen.displayDuration, _goToMenu);
   }
 
   void _goToMenu() {
-    if (mounted) context.go(AppRoutes.menu);
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+    if (!mounted) return;
+    context.read<AudioService>().playBgm(AudioTrack.menuTheme);
+    context.go(AppRoutes.menu);
   }
 
   @override
@@ -73,11 +67,11 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ),
                 const SizedBox(height: 36),
-                const SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
+                Text(
+                  'Toca para continuar',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textOnPrimary,
                   ),
                 ),

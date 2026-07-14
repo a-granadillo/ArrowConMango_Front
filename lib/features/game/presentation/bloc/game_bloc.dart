@@ -370,6 +370,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         switch (sessionResult) {
           case Success(value: final session):
             await _emitPlayingState(session, level, emit);
+            _audioService?.playBgm(AudioTrack.gameTheme);
           case Error(failure: final failure):
             emit(GameError(message: failure.message, levelId: newLevelId));
         }
