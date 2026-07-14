@@ -16,6 +16,12 @@ abstract interface class AudioService {
   /// Stops the currently playing background music, if any.
   Future<void> stopBgm();
 
+  /// Pauses the currently playing background music, if any.
+  Future<void> pause();
+
+  /// Resumes the paused background music, if any.
+  Future<void> resume();
+
   /// Plays a one-shot sound effect.
   ///
   /// If the service is muted the call is a no-op.

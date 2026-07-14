@@ -203,6 +203,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
       case Error(failure: final failure):
         if (failure is PathBlockedFailure) {
+          _audioService?.playSfx(SfxClip.block);
           _livesRemaining--;
           final level = _levelForState(state);
           if (_livesRemaining <= 0) {
@@ -371,6 +372,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         switch (sessionResult) {
           case Success(value: final session):
             await _emitPlayingState(session, level, emit);
+            _audioService?.playBgm(AudioTrack.gameTheme);
           case Error(failure: final failure):
             emit(GameError(message: failure.message, levelId: newLevelId));
         }
@@ -467,6 +469,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     required int nowMs,
     required Emitter<GameState> emit,
   }) {
+    _audioService?.stopBgm();
     _audioService?.playSfx(SfxClip.defeat);
     final defeatState = GameStateMapper.mapToDefeatState(
       session: session,
@@ -500,6 +503,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (scoreResult) {
       case Success(value: final score):
+        _audioService?.stopBgm();
         _audioService?.playSfx(SfxClip.victory);
         if (_isEndlessMode) {
           // Modo supervivencia: incrementar niveles completados y agregar tiempo

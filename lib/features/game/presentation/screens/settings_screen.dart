@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_settings_cubit.dart';
 import '../../../../core/audio/audio_settings_state.dart';
+import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -22,6 +24,18 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _language = 'es';
+  AudioService? _audioService;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _audioService ??= context.read<AudioService>();
+  }
+
+  VoidCallback _withClick(VoidCallback action) => () {
+    _audioService?.playSfx(SfxClip.click);
+    action();
+  };
 
   Future<void> _editName(BuildContext context) async {
     final cubit = context.read<PlayerCubit>();
@@ -38,12 +52,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
+            onPressed: () {
+              _audioService?.playSfx(SfxClip.click);
+              Navigator.of(dialogContext).pop();
+            },
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(controller.text.trim()),
+            onPressed: () {
+              _audioService?.playSfx(SfxClip.click);
+              Navigator.of(dialogContext).pop(controller.text.trim());
+            },
             child: const Text('Guardar'),
           ),
         ],
@@ -72,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'Nombre de jugador',
                     subtitle: player.displayName,
                     trailing: TextButton(
-                      onPressed: () => _editName(context),
+                      onPressed: _withClick(() => _editName(context)),
                       child: const Text('Editar'),
                     ),
                   ),
@@ -112,7 +131,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'Vista previa del renderizado por capas Z',
                   trailing: IconButton(
                     icon: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-                    onPressed: () => context.push(AppRoutes.board3dDemo),
+                    onPressed: _withClick(
+                      () => context.push(AppRoutes.board3dDemo),
+                    ),
                   ),
                 ),
               ],
@@ -141,7 +162,10 @@ class _Header extends StatelessWidget {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => context.pop(),
+            onTap: () {
+              context.read<AudioService>().playSfx(SfxClip.click);
+              context.pop();
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
