@@ -225,7 +225,7 @@ class PatternPlacer {
     required Random rng,
     required int startArrowId,
   }) {
-    if (patternCounts.isEmpty) return ([], <String>{});
+    if (patternCounts.isEmpty) return ([], occupied);
 
     final arrows = <ArrowModel>[];
     final allOccupied = Set<String>.from(occupied);

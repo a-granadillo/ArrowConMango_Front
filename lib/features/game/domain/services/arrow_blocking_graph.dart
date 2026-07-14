@@ -127,11 +127,11 @@ class ArrowBlockingGraph {
   /// Higher depth represents a more complex, sequential puzzle.
   /// Returns `0` if the graph is empty or contains cycles.
   int getMaxDepth() {
-    if (hasCycle()) return 0;
-
-    final depths = <String, int>{for (final node in _nodes) node: 1};
+    // Single topological sort pass: null means cycle or empty → depth 0.
     final sorted = topologicalSort();
     if (sorted == null) return 0;
+
+    final depths = <String, int>{for (final node in sorted) node: 1};
 
     var maxDepth = 0;
     for (final node in sorted) {

@@ -127,8 +127,10 @@ class LevelConfig {
 class LevelGenerator {
   LevelGenerator._();
 
-  /// Builds a level using the provided configuration, guaranteeing both solvability
-  /// and target complexity via graph analysis.
+  /// Builds a level using the provided configuration.
+  /// Uses up to 1000 seeds to find a solvable board that meets the target
+  /// complexity (minGraphDepth). If no board satisfies both, falls back to
+  /// a simpler configuration that guarantees solvability.
   static LevelModel generate({
     required int id,
     required String name,
@@ -189,6 +191,11 @@ class LevelGenerator {
         arrows.add(candidate.model);
         occupied.addAll(candidate.cellKeys);
       }
+
+      // Skip under-filled boards: if we exhausted attempts without reaching
+      // the target arrow count, try the next seed instead of proceeding with
+      // a board that won't meet the difficulty target.
+      if (arrows.length < config.arrowCount) continue;
 
       // Analyze blocking dependencies using the ArrowBlockingGraph
       graph = _buildBlockingGraph(arrows, config);
@@ -624,7 +631,8 @@ class LevelGenerator {
     final exitPath = <(int, int)>[];
     var er = head[0] + dr, ec = head[1] + dc;
     while (_inBoard(er, ec, config)) {
-      if (!occupied.contains(_key(er, ec))) {
+      if (!occupied.contains(_key(er, ec)) &&
+          _inSilhouette(er, ec, config)) {
         exitPath.add((er, ec));
       }
       er += dr;

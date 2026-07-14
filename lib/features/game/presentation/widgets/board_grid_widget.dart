@@ -71,7 +71,9 @@ class BoardGridWidget extends StatelessWidget {
     final key = '${row}_$col';
     for (final arrow in arrows) {
       if (arrow.occupiedNodes.any((n) => n.key == key)) {
-        onArrowLongPress!(arrow.id);
+        if (arrow.isSwitchable) {
+          onArrowLongPress!(arrow.id);
+        }
         return;
       }
     }
