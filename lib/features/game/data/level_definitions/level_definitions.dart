@@ -1,6 +1,7 @@
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 
 import 'level_generator.dart';
+import 'silhouettes.dart';
 
 /// The game's level catalogues (Campaign and Endless).
 ///
@@ -9,40 +10,298 @@ import 'level_generator.dart';
 class LevelDefinitions {
   LevelDefinitions._();
 
-  /// Level specifications: (name, difficulty, config, seed)
-  static const List<(String, String, LevelConfig, int)> _specs = [
-    // Easy levels (6x6, 15 arrows, mostly straight and L-shapes)
-    ('Mango Verde', 'Easy', LevelConfig.easy, 1007),
-    ('Semilla Tierna', 'Easy', LevelConfig.easy, 2007),
-    ('Brote Nuevo', 'Easy', LevelConfig.easy, 3007),
-    ('Hoja Fresca', 'Easy', LevelConfig.easy, 4007),
-    ('Sol Naciente', 'Easy', LevelConfig.easy, 5007),
-    
-    // Medium levels (8x8, 30 arrows, mix of all shapes)
-    ('Pulpa Dulce', 'Medium', LevelConfig.medium, 6007),
-    ('Néctar Maduro', 'Medium', LevelConfig.medium, 7007),
-    ('Cosecha Media', 'Medium', LevelConfig.medium, 8007),
-    ('Fibra Jugosa', 'Medium', LevelConfig.medium, 9007),
-    ('Aroma Tropical', 'Medium', LevelConfig.medium, 10007),
-    
-    // Hard levels (12x12, 60 arrows, complex shapes)
-    ('Piel Dorada', 'Hard', LevelConfig.hard, 11007),
-    ('Hueso Duro', 'Hard', LevelConfig.hard, 12007),
-    ('Corazón del Mango', 'Hard', LevelConfig.hard, 13007),
-    ('Huerto Salvaje', 'Hard', LevelConfig.hard, 14007),
-    ('Rey Mango', 'Hard', LevelConfig.hard, 15007),
-  ];
-
-  /// The 15 campaign levels (procedurally generated, guaranteed solvable).
+  /// The 15 campaign levels mapped to their specific structural configurations and visual silhouettes.
   static final List<LevelModel> campaignLevels = [
-    for (var i = 0; i < _specs.length; i++)
-      LevelGenerator.generate(
-        id: i + 1,
-        name: _specs[i].$1,
-        difficulty: _specs[i].$2,
-        config: _specs[i].$3,
-        seed: _specs[i].$4,
+    // --- EASY LEVELS (mostly 6x6, straight and L-shapes, ~15 arrows) ---
+    LevelGenerator.generate(
+      id: 1,
+      name: 'Mango Verde',
+      difficulty: 'Easy',
+      config: const LevelConfig(
+        rows: 6,
+        cols: 7,
+        arrowCount: 12,
+        straightRatio: 0.60,
+        lShapeRatio: 0.40,
+        zShapeRatio: 0.0,
+        uShapeRatio: 0.0,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 3,
+        silhouette: Silhouettes.heart, // Shape of Heart
       ),
+      seed: 1007,
+    ),
+    LevelGenerator.generate(
+      id: 2,
+      name: 'Semilla Tierna',
+      difficulty: 'Easy',
+      config: const LevelConfig(
+        rows: 7,
+        cols: 7,
+        arrowCount: 15,
+        straightRatio: 0.60,
+        lShapeRatio: 0.40,
+        zShapeRatio: 0.0,
+        uShapeRatio: 0.0,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 3,
+        silhouette: Silhouettes.star, // Shape of Star
+      ),
+      seed: 2007,
+    ),
+    LevelGenerator.generate(
+      id: 3,
+      name: 'Brote Nuevo',
+      difficulty: 'Easy',
+      config: const LevelConfig(
+        rows: 7,
+        cols: 7,
+        arrowCount: 15,
+        straightRatio: 0.60,
+        lShapeRatio: 0.40,
+        zShapeRatio: 0.0,
+        uShapeRatio: 0.0,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 3,
+        silhouette: Silhouettes.arrowUp, // Shape of Arrow Up
+      ),
+      seed: 3007,
+    ),
+    LevelGenerator.generate(
+      id: 4,
+      name: 'Hoja Fresca',
+      difficulty: 'Easy',
+      config: const LevelConfig(
+        rows: 7,
+        cols: 7,
+        arrowCount: 16,
+        straightRatio: 0.60,
+        lShapeRatio: 0.40,
+        zShapeRatio: 0.0,
+        uShapeRatio: 0.0,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 3,
+        silhouette: Silhouettes.house, // Shape of House
+      ),
+      seed: 4007,
+    ),
+    LevelGenerator.generate(
+      id: 5,
+      name: 'Sol Naciente',
+      difficulty: 'Easy',
+      config: const LevelConfig(
+        rows: 7,
+        cols: 7,
+        arrowCount: 12,
+        straightRatio: 0.60,
+        lShapeRatio: 0.40,
+        zShapeRatio: 0.0,
+        uShapeRatio: 0.0,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 3,
+        silhouette: Silhouettes.diamond, // Shape of Diamond
+      ),
+      seed: 5007,
+    ),
+
+    // --- MEDIUM LEVELS (mostly 8x8, mix of shapes, ~25-30 arrows) ---
+    LevelGenerator.generate(
+      id: 6,
+      name: 'Pulpa Dulce',
+      difficulty: 'Medium',
+      config: const LevelConfig(
+        rows: 9,
+        cols: 9,
+        arrowCount: 20,
+        straightRatio: 0.30,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.20,
+        uShapeRatio: 0.15,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 5,
+        silhouette: Silhouettes.mango, // Shape of Mango
+      ),
+      seed: 6007,
+    ),
+    LevelGenerator.generate(
+      id: 7,
+      name: 'Néctar Maduro',
+      difficulty: 'Medium',
+      config: const LevelConfig(
+        rows: 9,
+        cols: 9,
+        arrowCount: 22,
+        straightRatio: 0.30,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.20,
+        uShapeRatio: 0.15,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 5,
+        silhouette: Silhouettes.car, // Shape of Car
+      ),
+      seed: 7007,
+    ),
+    LevelGenerator.generate(
+      id: 8,
+      name: 'Cosecha Media',
+      difficulty: 'Medium',
+      config: const LevelConfig(
+        rows: 9,
+        cols: 9,
+        arrowCount: 20,
+        straightRatio: 0.30,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.20,
+        uShapeRatio: 0.15,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 5,
+        silhouette: Silhouettes.spaceship, // Shape of Spaceship
+      ),
+      seed: 8007,
+    ),
+    LevelGenerator.generate(
+      id: 9,
+      name: 'Fibra Jugosa',
+      difficulty: 'Medium',
+      config: const LevelConfig(
+        rows: 9,
+        cols: 9,
+        arrowCount: 20,
+        straightRatio: 0.30,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.20,
+        uShapeRatio: 0.15,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 5,
+        silhouette: Silhouettes.tree, // Shape of Tree
+      ),
+      seed: 9007,
+    ),
+    LevelGenerator.generate(
+      id: 10,
+      name: 'Aroma Tropical',
+      difficulty: 'Medium',
+      config: const LevelConfig(
+        rows: 9,
+        cols: 9,
+        arrowCount: 25,
+        straightRatio: 0.30,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.20,
+        uShapeRatio: 0.15,
+        minSegmentLength: 2,
+        maxSegmentLength: 4,
+        minGraphDepth: 5,
+        silhouette: Silhouettes.butterfly, // Shape of Butterfly
+      ),
+      seed: 10007,
+    ),
+
+    // --- HARD LEVELS (mostly 12x12, full complexity, +40 arrows) ---
+    LevelGenerator.generate(
+      id: 11,
+      name: 'Piel Dorada',
+      difficulty: 'Hard',
+      config: const LevelConfig(
+        rows: 12,
+        cols: 12,
+        arrowCount: 38,
+        straightRatio: 0.15,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.30,
+        uShapeRatio: 0.20,
+        minSegmentLength: 2,
+        maxSegmentLength: 5,
+        minGraphDepth: 8,
+        silhouette: Silhouettes.dragon, // Shape of Dragon
+      ),
+      seed: 11007,
+    ),
+    LevelGenerator.generate(
+      id: 12,
+      name: 'Hueso Duro',
+      difficulty: 'Hard',
+      config: const LevelConfig(
+        rows: 12,
+        cols: 12,
+        arrowCount: 40,
+        straightRatio: 0.15,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.30,
+        uShapeRatio: 0.20,
+        minSegmentLength: 2,
+        maxSegmentLength: 5,
+        minGraphDepth: 8,
+        silhouette: Silhouettes.castle, // Shape of Castle
+      ),
+      seed: 12007,
+    ),
+    LevelGenerator.generate(
+      id: 13,
+      name: 'Corazón del Mango',
+      difficulty: 'Hard',
+      config: const LevelConfig(
+        rows: 11,
+        cols: 10,
+        arrowCount: 35,
+        straightRatio: 0.15,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.30,
+        uShapeRatio: 0.20,
+        minSegmentLength: 2,
+        maxSegmentLength: 5,
+        minGraphDepth: 8,
+        silhouette: Silhouettes.robot, // Shape of Robot
+      ),
+      seed: 13007,
+    ),
+    LevelGenerator.generate(
+      id: 14,
+      name: 'Huerto Salvaje',
+      difficulty: 'Hard',
+      config: const LevelConfig(
+        rows: 12,
+        cols: 12,
+        arrowCount: 42,
+        straightRatio: 0.15,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.30,
+        uShapeRatio: 0.20,
+        minSegmentLength: 2,
+        maxSegmentLength: 5,
+        minGraphDepth: 8,
+        silhouette: Silhouettes.phoenix, // Shape of Phoenix
+      ),
+      seed: 14007,
+    ),
+    LevelGenerator.generate(
+      id: 15,
+      name: 'Rey Mango',
+      difficulty: 'Hard',
+      config: const LevelConfig(
+        rows: 12,
+        cols: 12,
+        arrowCount: 50,
+        straightRatio: 0.15,
+        lShapeRatio: 0.35,
+        zShapeRatio: 0.30,
+        uShapeRatio: 0.20,
+        minSegmentLength: 2,
+        maxSegmentLength: 5,
+        minGraphDepth: 8,
+        silhouette: Silhouettes.geometricPattern, // Shape of Geometric Pattern
+      ),
+      seed: 15007,
+    ),
   ];
 
   static List<LevelModel> get easyLevels =>

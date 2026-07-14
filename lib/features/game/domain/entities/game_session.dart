@@ -4,6 +4,7 @@ import '../errors/arrow_not_found_failure.dart';
 import 'arrow_entity.dart';
 import 'board_state.dart';
 import 'command_history.dart';
+import 'direction.dart';
 import 'move_command.dart';
 
 /// Represents an active game in progress.
@@ -68,6 +69,30 @@ class GameSession extends Equatable {
     );
     return _copy(
       boardState: boardState.withoutArrow(arrow),
+      history: history.push(cmd),
+      moveCount: moveCount + 1,
+    );
+  }
+
+  /// Records that [arrow] was rotated to [newDirection].
+  ///
+  /// Returns a new [GameSession] with the updated board and command history.
+  ///
+  /// Throws [ArrowNotFoundFailure] if [arrow] is not present in the current board.
+  GameSession afterArrowRotate(ArrowEntity arrow, Direction newDirection) {
+    if (boardState.getArrowById(arrow.id) == null) {
+      throw ArrowNotFoundFailure(arrowId: arrow.id);
+    }
+
+    final cmd = ArrowRotateCommand(
+      arrowId: arrow.id,
+      previousDirection: arrow.direction,
+      previousState: boardState,
+    );
+
+    final updatedArrow = arrow.withDirection(newDirection);
+    return _copy(
+      boardState: boardState.replacing(updatedArrow),
       history: history.push(cmd),
       moveCount: moveCount + 1,
     );

@@ -30,10 +30,13 @@ class ArrowEntity extends Equatable {
   /// The trailing node (the base of the arrow).
   NodeId get tailNode => occupiedNodes.first;
 
+  final bool isSwitchable;
+
   const ArrowEntity({
     required this.id,
     required this.direction,
     required this.occupiedNodes,
+    this.isSwitchable = false,
   });
 
   /// Returns a new [ArrowEntity] with its occupied nodes replaced.
@@ -43,6 +46,7 @@ class ArrowEntity extends Equatable {
       id: id,
       direction: direction,
       occupiedNodes: newNodes,
+      isSwitchable: isSwitchable,
     );
   }
 
@@ -52,9 +56,10 @@ class ArrowEntity extends Equatable {
       id: id,
       direction: newDirection,
       occupiedNodes: occupiedNodes,
+      isSwitchable: isSwitchable,
     );
   }
 
   @override
-  List<Object?> get props => [id, direction, occupiedNodes];
+  List<Object?> get props => [id, direction, occupiedNodes, isSwitchable];
 }

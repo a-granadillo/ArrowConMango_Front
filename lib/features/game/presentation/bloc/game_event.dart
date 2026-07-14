@@ -64,3 +64,15 @@ final class NextEndlessLevel extends GameEvent {
   /// Creates a [NextEndlessLevel] event.
   const NextEndlessLevel();
 }
+
+/// Requests to rotate the arrow identified by [arrowId] 90° clockwise.
+final class RotateArrow extends GameEvent {
+  /// Creates a [RotateArrow] event.
+  const RotateArrow({required this.arrowId});
+
+  /// Identifier of the arrow to rotate.
+  final String arrowId;
+
+  @override
+  List<Object?> get props => [arrowId];
+}

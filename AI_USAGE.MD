@@ -610,6 +610,57 @@
   2. **CanvasKit headless:** el navegador headless de este entorno no puede tomar capturas ni leer el árbol semántico de una app Flutter Web con CanvasKit por defecto (confirmado también en modo release, no solo debug); forzar `flt-semantics-placeholder` vía JS quita el overlay pero no puebla el árbol de semántica. La verificación de UI en este proyecto depende de tests de widget + logs de consola, no de captura visual.
   3. **Overflow de layout en pruebas angostas:** un `Row` rígido para la leyenda ⊙/⊗ desbordaba en anchos de prueba de 320px; se cambió a `Wrap` para que se ajuste en pantallas angostas — un recordatorio de siempre probar el layout más nuevo en el ancho de prueba más angosto usado por el resto de la suite.
 
+### Entrada #33 — Generador Basado en Grafos: Patrones, Chain Forcing y Drain de Resolubilidad
+
+- **Fecha / autor:** 13-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: big-pickle)
+- **Rol en el flujo:** Arquitecto de Software / Desarrollador Backend (Capa de Datos — Generación de Niveles).
+- **Tarea/problema:** El generador procedural de niveles para el modo Supervivencia producía tableros irresolubles con frecuencia. Las flechas de patrón (ChainLink3, DoubleUInterlock, SpiralLock) interactuaban entre sí creando dependencias cíclicas que el grafo de bloqueos no detectaba. Además, el chequeo `_isSolvable` estaba dentro de un guard de profundidad (`graph.getMaxDepth() >= minGraphDepth`), por lo que boards con profundidad 0 nunca se verificaban — el generador devolvía tableros irresolubles silenciosamente.
+- **Prompt (paráfrasis fiel):** > "Dos cosas: (1) por qué las flechas de patrón se quedan trabadas si la teoría dice que el generador es monótono, (2) después de 100 semillas fallidas, el generador devuelve el último tablero sin verificar si es resoluble."
+- **Diagnóstico (verificado):**
+
+  1. **SpiralLock**: La plantilla tenía una flecha D con dirección 'up' desde (1,0) cuya trayectoria de salida impactaba directamente en el cuerpo de A en (0,0). Esto creaba un ciclo A→D→C→B→A en el grafo de bloqueos, haciendo el tablero irresoluble aunque el generador lo aprobara.
+  2. **`_isSolvable` mal scoped**: La llamada al drain estaba dentro del `if (graph.getMaxDepth() >= config.minGraphDepth)`, lo que significa que boards sin profundidad (ciclos) jamás ejecutaban el drain. El generador iteraba 100 veces buscando profundidad suficiente sin detectar que el board era irresoluble.
+  3. **Cross-template cycles**: ChainLink3 (flecha C) y DoubleUInterlock (flechas en U) comparten regiones del tablero porque el generador siembra patrones en zona central y forcing en las orillas. La trayectoria de salida de una flecha de patrón intersecta celdas ocupadas por otra flecha de patrón o forcing, creando dependencias cíclicas sin que ninguna plantilla individual tenga un ciclo interno.
+  4. **100 semillas insuficientes**: Para configuraciones complejas como Medium (ChainLink3 + DoubleUInterlock, 8×8), 100 semillas no son suficientes para encontrar una combinación sin cross-template cycle.
+
+- **Resultado obtenido:**
+  1. **SpiralLock corregido**: La flecha D se cambió de trayectoria `[(3,0),(2,0),(1,0)]` dirección 'up' (exit impactaba A en (0,0)) a `[(3,0),(4,0),(4,1)]` dirección 'right' (exit libre en (4,2)). Bounding box actualizado a 5×4.
+  2. **`_isSolvable` movido fuera del guard**: Ahora se ejecuta en CADA board, no solo cuando la profundidad es suficiente. Se verificó que el drain codicioso funciona incluso para boards con depth=0 (ciclos, cross-template dependencies).
+  3. **maxAttempts 100→1000**: 10× más iteraciones para encontrar una combinación viable de patrones + forcing.
+  4. **Post-loop safety net**: Si después de 1000 intentos el board sigue siendo irresoluble, se regenera con una config simplificada (sin patrones, sin chain forcing, arrowCount reducido 40%, profundidad plana). Esta llamada recursiva siempre converge porque la generación simple sin patrones es monótona y produce boards resolubles garantizados.
+  5. **Test de solvabilidad para survival**: 15 tests (Easy/Medium/Hard × 5 seeds cada uno) más un test de opening move, que verifican que todos los boards generados para survival son resolubles.
+
+- **Modificaciones del equipo:** Se corrigió el scope de `_isSolvable`, se rediseñó manualmente la plantilla SpiralLock, y se añadió la red de seguridad post-loop. El equipo validó que la fallback nunca se active innecesariamente (1000 intentos son suficientes para la mayoría de configs).
+- **Verificación:** `flutter test` — todos los tests de solvabilidad de survival en verde, incluyendo Medium seed 10001 que antes fallaba consistentemente.
+- **Archivos afectados:**
+  - `lib/features/game/data/level_definitions/level_generator.dart` — maxAttempts 100→1000, _isSolvable fuera del guard, post-loop fallback.
+  - `lib/features/game/data/level_definitions/pattern_placer.dart` — SpiralLock template corregido.
+  - `test/data/level_solvability_test.dart` — 15 nuevos tests de survival + opening move.
+- **Lecciones / limitaciones:**
+  1. **No asumir que el generador es "monótono" cuando hay patrones**: La monotonicidad (sacar cualquier flecha nunca bloquea a otra) se cumple para flechas individuales, pero los patrones se siembran TODOS JUNTOS y sus trayectorias de salida pueden cruzarse. El grafo de bloqueos detecta ciclos individuales pero no cross-template cycles que requieren 4+ flechas para cerrarse.
+  2. **Un drain codicioso es la red de seguridad correcta**: En vez de intentar detectar todos los tipos posibles de ciclos (NP-hard), ejecutar un drain simple al final garantiza resolubilidad real en tiempo O(n²).
+  3. **El fallback recursivo es seguro porque la base es monótona**: Generar sin patrones ni chain forcing siempre produce boards resolubles (se pueden desarmar en orden inverso de inserción). La recursión tiene un solo nivel porque la config simple siempre converge en ≤1000 intentos.
+
+### Entrada #34 — Ajuste de Tiempos en Modo Supervivencia: 30s Iniciales, +10s por Nivel
+
+- **Fecha / autor:** 13-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: big-pickle)
+- **Rol en el flujo:** Desarrollador Frontend (BLoC — Ajuste de reglas de juego).
+- **Tarea/problema:** El modo supervivencia iniciaba con 60 segundos y sumaba 20 segundos por nivel completado. El jugador solicitó que sea más rápido y ajustado: 30 segundos iniciales y solo +10 segundos de bonus al pasar nivel.
+- **Prompt (paráfrasis fiel):** > "quiero cambiar los tiempos en el modo survival , quiero que te den 30 segundos y cuando pases de nivel solo se sumen 10 segundos a lo que quede de tiempo"
+- **Resultado obtenido:**
+  1. Tiempo inicial en `_onLoadLevel`: `_totalTimeRemaining = 60` → `_totalTimeRemaining = 30`.
+  2. Reinicio tras game over en `_onRetryLevel`: `_totalTimeRemaining = 60` → `_totalTimeRemaining = 30`.
+  3. Bonus por victoria en `_emitVictoryState`: `_totalTimeRemaining += 20` → `_totalTimeRemaining += 10`.
+  4. Bonus por `NextEndlessLevel`: `_totalTimeRemaining += 20` → `_totalTimeRemaining += 10`.
+  5. Default del campo: `int _totalTimeRemaining = 60` → `int _totalTimeRemaining = 30`.
+- **Modificaciones del equipo:** Ninguna. Cambio directo de constantes.
+- **Verificación:** `flutter analyze` sin errores. Requiere validación en vivo por el jugador.
+- **Archivos afectados:**
+  - `lib/features/game/presentation/bloc/game_bloc.dart` — 5 líneas modificadas.
+- **Lecciones / limitaciones:** Ninguna. El cambio es puramente de constantes de juego.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
