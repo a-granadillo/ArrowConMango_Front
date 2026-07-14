@@ -1,4 +1,5 @@
 import 'package:arrowconmango_front/core/app_info.dart';
+import 'package:arrowconmango_front/core/audio/audio_service.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/score.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
@@ -12,6 +13,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../../../helpers/fakes/fake_audio_service.dart';
 
 class MockProgressBloc extends MockBloc<ProgressEvent, ProgressState>
     implements ProgressBloc {}
@@ -37,9 +40,12 @@ void main() {
   Future<void> pumpVictory(WidgetTester tester, GameVictory result) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: BlocProvider<ProgressBloc>.value(
-          value: progressBloc,
-          child: VictoryScreen(result: result),
+        home: RepositoryProvider<AudioService>.value(
+          value: FakeAudioService(),
+          child: BlocProvider<ProgressBloc>.value(
+            value: progressBloc,
+            child: VictoryScreen(result: result),
+          ),
         ),
       ),
     );

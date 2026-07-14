@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/audio/audio_settings_cubit.dart';
+import '../../../../core/audio/audio_settings_state.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -19,7 +21,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _audioOn = true;
   String _language = 'es';
 
   Future<void> _editName(BuildContext context) async {
@@ -80,10 +81,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SettingCard(
                   icon: Icons.volume_up_rounded,
                   title: 'Sonido',
-                  trailing: Switch(
-                    value: _audioOn,
-                    activeThumbColor: AppColors.success,
-                    onChanged: (v) => setState(() => _audioOn = v),
+                  trailing: BlocBuilder<AudioSettingsCubit, AudioSettingsState>(
+                    builder: (context, audioState) => Switch(
+                      value: !audioState.isMuted,
+                      activeThumbColor: AppColors.success,
+                      onChanged: (_) =>
+                          context.read<AudioSettingsCubit>().toggleMute(),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -93,7 +97,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   trailing: DropdownButton<String>(
                     value: _language,
                     underline: const SizedBox.shrink(),
-                    onChanged: (v) => setState(() => _language = v ?? _language),
+                    onChanged: (v) =>
+                        setState(() => _language = v ?? _language),
                     items: const [
                       DropdownMenuItem(value: 'es', child: Text('Español')),
                       DropdownMenuItem(value: 'en', child: Text('English')),
@@ -184,7 +189,9 @@ class _SettingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [BoxShadow(color: Color(0xFFE8D5C0), offset: Offset(0, 3))],
+        boxShadow: const [
+          BoxShadow(color: Color(0xFFE8D5C0), offset: Offset(0, 3)),
+        ],
       ),
       child: Row(
         children: [

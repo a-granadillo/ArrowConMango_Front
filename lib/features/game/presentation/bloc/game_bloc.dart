@@ -19,6 +19,9 @@ import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_fai
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
+import 'package:arrowconmango_front/core/audio/audio_service.dart';
+import 'package:arrowconmango_front/core/audio/audio_track.dart';
+import 'package:arrowconmango_front/core/audio/sfx_clip.dart';
 import 'package:flutter/foundation.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/mappers/game_state_mapper.dart';
@@ -41,19 +44,21 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     required CalculateScoreUseCase calculateScoreUseCase,
     required UnlockNextLevelUseCase unlockNextLevelUseCase,
     required CollisionValidator collisionValidator,
+    AudioService? audioService,
     int Function()? clock,
     int timeLimitInSeconds = 60,
-  })  : _loadLevelUseCase = loadLevelUseCase,
-        _startGameSessionUseCase = startGameSessionUseCase,
-        _evaluateGameStateUseCase = evaluateGameStateUseCase,
-        _triggerArrowExitUseCase = triggerArrowExitUseCase,
-        _undoMoveUseCase = undoMoveUseCase,
-        _calculateScoreUseCase = calculateScoreUseCase,
-        _unlockNextLevelUseCase = unlockNextLevelUseCase,
-        _collisionValidator = collisionValidator,
-        _clock = clock ?? _defaultClock,
-        _timeLimitInSeconds = timeLimitInSeconds,
-        super(const GameInitial()) {
+  }) : _loadLevelUseCase = loadLevelUseCase,
+       _startGameSessionUseCase = startGameSessionUseCase,
+       _evaluateGameStateUseCase = evaluateGameStateUseCase,
+       _triggerArrowExitUseCase = triggerArrowExitUseCase,
+       _undoMoveUseCase = undoMoveUseCase,
+       _calculateScoreUseCase = calculateScoreUseCase,
+       _unlockNextLevelUseCase = unlockNextLevelUseCase,
+       _collisionValidator = collisionValidator,
+       _audioService = audioService,
+       _clock = clock ?? _defaultClock,
+       _timeLimitInSeconds = timeLimitInSeconds,
+       super(const GameInitial()) {
     on<LoadLevel>(_onLoadLevel);
     on<TriggerArrowExit>(_onTriggerArrowExit);
     on<UndoMove>(_onUndoMove);
@@ -71,6 +76,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   final CalculateScoreUseCase _calculateScoreUseCase;
   final UnlockNextLevelUseCase _unlockNextLevelUseCase;
   final CollisionValidator _collisionValidator;
+  final AudioService? _audioService;
   final int Function() _clock;
   final int _timeLimitInSeconds;
 
@@ -146,6 +152,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         switch (sessionResult) {
           case Success(value: final session):
             await _emitPlayingState(session, level, emit);
+            _audioService?.playBgm(AudioTrack.gameTheme);
           case Error(failure: final failure):
             emit(GameError(message: failure.message, levelId: event.levelId));
         }
@@ -169,6 +176,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (result) {
       case Success(value: final newSession):
+        _audioService?.playSfx(SfxClip.arrowExit);
         final evaluation = _evaluateGameStateUseCase(
           session: newSession,
           nowMs: _clock(),
@@ -330,6 +338,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         switch (sessionResult) {
           case Success(value: final session):
             await _emitPlayingState(session, level, emit);
+            _audioService?.playBgm(AudioTrack.gameTheme);
           case Error(failure: final failure):
             emit(GameError(message: failure.message, levelId: levelId));
         }
@@ -345,11 +354,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     
     // Generar un nuevo nivel con seed diferente
     final newLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
-    
+
     emit(GameLoading(levelId: newLevelId));
-    
+
     final levelResult = await _loadLevelUseCase(levelId: newLevelId);
-    
+
     switch (levelResult) {
       case Success(value: final level):
         final nowMs = _clock();
@@ -358,7 +367,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           sessionId: 'session-$newLevelId',
           startedAtMs: nowMs,
         );
-        
+
         switch (sessionResult) {
           case Success(value: final session):
             await _emitPlayingState(session, level, emit);
@@ -429,7 +438,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       score: evaluation.score,
       nowMs: nowMs,
     );
-    
+
     // Agregar información de vidas y modo supervivencia
     emit(GamePlaying(
       levelId: playingState.levelId,
@@ -458,13 +467,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     required int nowMs,
     required Emitter<GameState> emit,
   }) {
+    _audioService?.playSfx(SfxClip.defeat);
     final defeatState = GameStateMapper.mapToDefeatState(
       session: session,
       level: level,
       reason: reason,
       nowMs: nowMs,
     );
-    
+
     // Agregar información de vidas y modo supervivencia
     emit(GameDefeat(
       levelId: defeatState.levelId,
@@ -490,6 +500,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (scoreResult) {
       case Success(value: final score):
+        _audioService?.playSfx(SfxClip.victory);
         if (_isEndlessMode) {
           // Modo supervivencia: incrementar niveles completados y agregar tiempo
           _levelsCompleted++;

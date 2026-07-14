@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/audio/audio_service.dart';
+import 'core/audio/audio_settings_cubit.dart';
 import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -19,23 +21,49 @@ class ArrowConMangoApp extends StatefulWidget {
   State<ArrowConMangoApp> createState() => _ArrowConMangoAppState();
 }
 
-class _ArrowConMangoAppState extends State<ArrowConMangoApp> {
+class _ArrowConMangoAppState extends State<ArrowConMangoApp>
+    with WidgetsBindingObserver {
   late final _router = buildAppRouter();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      sl<AudioService>().dispose();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<ProgressBloc>.value(
-          value: sl<ProgressBloc>()..add(const ProgressLoadStarted()),
+    return RepositoryProvider<AudioService>.value(
+      value: sl<AudioService>(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<ProgressBloc>.value(
+            value: sl<ProgressBloc>()..add(const ProgressLoadStarted()),
+          ),
+          BlocProvider<PlayerCubit>.value(value: sl<PlayerCubit>()),
+          BlocProvider<AudioSettingsCubit>.value(
+            value: sl<AudioSettingsCubit>(),
+          ),
+        ],
+        child: MaterialApp.router(
+          title: 'Arrow con Mango',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          routerConfig: _router,
         ),
-        BlocProvider<PlayerCubit>.value(value: sl<PlayerCubit>()),
-      ],
-      child: MaterialApp.router(
-        title: 'Arrow con Mango',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        routerConfig: _router,
       ),
     );
   }
