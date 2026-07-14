@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/audio/audio_service.dart';
+import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -158,7 +160,10 @@ class _LevelGrid extends StatelessWidget {
           levelId: level.levelId,
           state: _stateFor(index),
           difficulty: LevelSelectionScreen.difficultyFor(level.levelId),
-          onTap: () => context.push(AppRoutes.gameFor(level.levelId)),
+          onTap: () {
+            context.read<AudioService>().playSfx(SfxClip.click);
+            context.push(AppRoutes.gameFor(level.levelId));
+          },
         );
       },
     );

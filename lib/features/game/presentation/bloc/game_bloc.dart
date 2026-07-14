@@ -435,6 +435,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     required int nowMs,
     required Emitter<GameState> emit,
   }) {
+    _audioService?.stopBgm();
     _audioService?.playSfx(SfxClip.defeat);
     final defeatState = GameStateMapper.mapToDefeatState(
       session: session,
@@ -468,6 +469,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     switch (scoreResult) {
       case Success(value: final score):
+        _audioService?.stopBgm();
         _audioService?.playSfx(SfxClip.victory);
         if (_isEndlessMode) {
           // Modo supervivencia: incrementar niveles completados y agregar tiempo
