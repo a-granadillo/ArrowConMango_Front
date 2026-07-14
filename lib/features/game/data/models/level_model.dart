@@ -26,7 +26,9 @@ class LevelModel extends Equatable {
     } else if (json['rows'] != null && json['cols'] != null) {
       size = BoardSizeModel(rows: json['rows'] as int, cols: json['cols'] as int);
     } else {
-      size = const BoardSizeModel(rows: 8, cols: 8); // Default fallback
+      throw const FormatException(
+        'Missing required layout dimensions (boardSize or legacy rows/cols)',
+      );
     }
 
     return LevelModel(

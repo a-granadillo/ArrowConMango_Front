@@ -18,6 +18,9 @@ class BoardGeometry2D extends BoardGeometry {
 
   @override
   List<Object?> get props => [rows, cols];
+
+  @override
+  String toString() => 'BoardGeometry2D(rows: $rows, cols: $cols)';
 }
 
 /// Concrete subclass representing 3D board geometry (rows, cols, depth).
@@ -36,4 +39,7 @@ class BoardGeometry3D extends BoardGeometry {
 
   @override
   List<Object?> get props => [rows, cols, depth];
+
+  @override
+  String toString() => 'BoardGeometry3D(rows: $rows, cols: $cols, depth: $depth)';
 }
