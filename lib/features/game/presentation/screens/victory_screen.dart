@@ -146,7 +146,10 @@ class _VictoryScreenState extends State<VictoryScreen> {
               children: [
                   Expanded(
                   child: OutlinedButton(
-                    onPressed: _withClick(() => context.go(AppRoutes.menu)),
+                    onPressed: _withClick(() {
+                      _audioService?.stopBgm();
+                      context.go(AppRoutes.menu);
+                    }),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: AppColors.cream2,

@@ -27,6 +27,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _audioService ??= context.read<AudioService>()
+      ..stopBgm()
       ..playBgm(AudioTrack.menuTheme);
   }
 

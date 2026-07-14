@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/audio/audio_service.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -145,7 +146,10 @@ class _GameScreenState extends State<GameScreen> {
       children: [
         _Header(
           state: state,
-          onHome: () => context.go(AppRoutes.menu),
+          onHome: () {
+            context.read<AudioService>().stopBgm();
+            context.go(AppRoutes.menu);
+          },
           onRestart: () => bloc.add(const RetryLevel()),
         ),
         Expanded(
