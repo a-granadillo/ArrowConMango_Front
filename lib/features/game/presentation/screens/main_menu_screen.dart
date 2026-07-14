@@ -26,9 +26,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _audioService ??= context.read<AudioService>()
-      ..stopBgm()
-      ..playBgm(AudioTrack.menuTheme);
+    _audioService ??= context.read<AudioService>();
+    _audioService!.playBgm(AudioTrack.menuTheme);
   }
 
   VoidCallback _withClick(VoidCallback action) => () {
