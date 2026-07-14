@@ -8,6 +8,7 @@ import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/domain/services/arrow_blocking_graph.dart';
 
 import 'arrow_helper.dart';
+import 'pattern_placer.dart';
 
 /// Configuration for level generation by difficulty
 class LevelConfig {
@@ -23,6 +24,21 @@ class LevelConfig {
   final int minGraphDepth; // Target minimum depth/consecutive blockages
   final List<String>? silhouette; // 2D binary shape template
 
+  /// Templates to stamp before random generation.
+  /// 'Easy' → only ChainLink3 (1x),
+  /// 'Medium' → ChainLink3 + DoubleUInterlock (1x each),
+  /// 'Hard' → ChainLink3 + DoubleUInterlock + SpiralLock (1x each)
+  final Map<String, int> patternCounts; // templateName -> count
+
+  /// Probability of chain forcing during random generation (0.0 - 1.0).
+  final double chainForceProbability;
+
+  /// Max depth to force per chain.
+  final int maxForcedChainDepth;
+
+  /// Percentage of arrows that are switchable (rotatable by the player).
+  final double switchableRatio;
+
   const LevelConfig({
     required this.rows,
     required this.cols,
@@ -35,6 +51,10 @@ class LevelConfig {
     required this.maxSegmentLength,
     required this.minGraphDepth,
     this.silhouette,
+    this.patternCounts = const {},
+    this.chainForceProbability = 0.0,
+    this.maxForcedChainDepth = 0,
+    this.switchableRatio = 0.0,
   });
 
   static const LevelConfig easy = LevelConfig(
@@ -48,6 +68,10 @@ class LevelConfig {
     minSegmentLength: 2,
     maxSegmentLength: 4,
     minGraphDepth: 5, // Increased from 3 (needs at least 5 consecutive steps)
+    patternCounts: {'ChainLink3': 1},
+    chainForceProbability: 0.1,
+    maxForcedChainDepth: 3,
+    switchableRatio: 0.0,
   );
 
   static const LevelConfig medium = LevelConfig(
@@ -61,6 +85,10 @@ class LevelConfig {
     minSegmentLength: 2,
     maxSegmentLength: 4,
     minGraphDepth: 8, // Increased from 5 (needs at least 8 consecutive steps)
+    patternCounts: {'ChainLink3': 1, 'DoubleUInterlock': 1},
+    chainForceProbability: 0.15,
+    maxForcedChainDepth: 4,
+    switchableRatio: 0.2,
   );
 
   static const LevelConfig hard = LevelConfig(
@@ -74,6 +102,10 @@ class LevelConfig {
     minSegmentLength: 2,
     maxSegmentLength: 5,
     minGraphDepth: 12, // Increased from 8 (extremely complex: 12 consecutive blockages!)
+    patternCounts: {'ChainLink3': 1, 'DoubleUInterlock': 1, 'SpiralLock': 1},
+    chainForceProbability: 0.2,
+    maxForcedChainDepth: 5,
+    switchableRatio: 0.35,
   );
 }
 
@@ -111,16 +143,47 @@ class LevelGenerator {
 
     // We try to generate boards with different seeds until we find one that meets
     // the minimum complexity (graph depth) required for this difficulty.
-    while (boardAttempts < 100) {
+    // The high iteration count compensates for the possibility that pattern + chain
+    // interactions occasionally produce unsolvable boards (cross-template cycles).
+    while (boardAttempts < 1000) {
       boardAttempts++;
       final rng = Random(currentSeed);
       final occupied = <String>{};
       arrows = <ArrowModel>[];
 
+      // Phase 1: Place pattern templates before random generation.
+      final patternResult = PatternPlacer.placeForDifficulty(
+        patternCounts: config.patternCounts,
+        silhouette: config.silhouette,
+        rows: config.rows,
+        cols: config.cols,
+        occupied: occupied,
+        rng: rng,
+        startArrowId: 1,
+      );
+      arrows.addAll(patternResult.$1);
+      occupied.addAll(patternResult.$2);
+
+      // Phase 2: Random generation with chain forcing.
       var attempts = 0;
-      final maxAttempts = config.arrowCount * 1200; // Increased from 800 for even denser layouts
+      final maxAttempts = config.arrowCount * 1200;
       while (arrows.length < config.arrowCount && attempts < maxAttempts) {
         attempts++;
+
+        // Try chain forcing periodically.
+        if (config.chainForceProbability > 0 &&
+            arrows.length >= 3 &&
+            arrows.length < config.arrowCount &&
+            rng.nextDouble() < config.chainForceProbability) {
+          final target = arrows[rng.nextInt(arrows.length)];
+          final forced = _tryForceChain(target, rng, occupied, config);
+          if (forced != null) {
+            arrows.add(forced.model);
+            occupied.addAll(forced.cellKeys);
+            continue;
+          }
+        }
+
         final candidate = _tryMakeArrow(rng, occupied, arrows.length, config);
         if (candidate == null) continue;
         arrows.add(candidate.model);
@@ -129,13 +192,72 @@ class LevelGenerator {
 
       // Analyze blocking dependencies using the ArrowBlockingGraph
       graph = _buildBlockingGraph(arrows, config);
-      if (graph.getMaxDepth() >= config.minGraphDepth) {
-        // Success! The board is both solvable and satisfies target complexity
-        break;
+
+      // Defensive drain check: verify the board is actually solvable.
+      // In theory the monotone property guarantees solvability, but the
+      // interaction of patterns + chain forcing + switchable marking
+      // introduces enough complexity that we double-check with a greedy
+      // drain. This runs on EVERY board (not just when graph depth is
+      // sufficient) to catch edge cases before they reach the player.
+      final solvable = _isSolvable(arrows, config);
+
+      if (graph.getMaxDepth() >= config.minGraphDepth && solvable) {
+        break; // Good: meets complexity target AND is solvable.
       }
 
-      // Try next seed if the board was too parallel/easy
+      // Try next seed if the board was too parallel/easy or unsolvable.
       currentSeed++;
+    }
+
+    // Post-loop safety net: if we exhausted all attempts and the board is still
+    // unsolvable, regenerate with a minimal config that guarantees solvability
+    // (no patterns, no chain forcing, flat depth).
+    if (!_isSolvable(arrows, config)) {
+      return LevelGenerator.generate(
+        id: id,
+        name: name,
+        difficulty: difficulty,
+        config: LevelConfig(
+          rows: config.rows,
+          cols: config.cols,
+          arrowCount: (config.arrowCount * 0.4).round().clamp(5, config.arrowCount),
+          straightRatio: 0.5,
+          lShapeRatio: 0.5,
+          zShapeRatio: 0.0,
+          uShapeRatio: 0.0,
+          minSegmentLength: config.minSegmentLength,
+          maxSegmentLength: config.maxSegmentLength,
+          minGraphDepth: 0,
+        ),
+        seed: currentSeed + 99999,
+      );
+    }
+
+    // Mark arrows as switchable based on the config ratio.
+    if (config.switchableRatio > 0 && arrows.isNotEmpty) {
+      final switchableCount = (arrows.length * config.switchableRatio).round();
+      if (switchableCount > 0) {
+        // Prefer mid-chain arrows (strategic) over shallowest and deepest.
+        final startIdx = (arrows.length * 0.2).round();
+        final endIdx = arrows.length - (arrows.length * 0.1).round();
+        final candidates = arrows.sublist(
+          startIdx.clamp(0, arrows.length),
+          endIdx.clamp(0, arrows.length),
+        );
+        final shuffleRng = Random(currentSeed);
+        candidates.shuffle(shuffleRng);
+
+        for (var i = 0; i < switchableCount && i < candidates.length; i++) {
+          final arrow = candidates[i];
+          final idx = arrows.indexOf(arrow);
+          arrows[idx] = ArrowModel(
+            id: arrow.id,
+            startNode: arrow.startNode,
+            trajectory: arrow.trajectory,
+            isSwitchable: true,
+          );
+        }
+      }
     }
 
     return LevelModel(
@@ -182,6 +304,75 @@ class LevelGenerator {
     }
 
     return graph;
+  }
+
+  /// Greedy drain check: verifies that all arrows can be cleared in some order.
+  ///
+  /// Uses the same exit-trajectory check as the generator's monotone property:
+  /// iterates arrows in any order, removes those with a clear exit path, and
+  /// repeats until no more can exit. If any arrows remain, the board is stuck.
+  ///
+  /// This is O(N² × L) where N = arrow count and L = max exit path length;
+  /// for 60 arrows on a 12×12 board this is ~60² × 12 ≈ 43K checks per drain
+  /// pass, and with at most N passes, ~2.6M operations total. Called once per
+  /// generated board, it's well within acceptable latency.
+  static bool _isSolvable(List<ArrowModel> arrows, LevelConfig config) {
+    // Build a reverse index: cell-key -> set of arrow IDs occupying it.
+    final occupancy = <String, Set<String>>{};
+    for (final arrow in arrows) {
+      for (final cell in _getArrowCells(arrow)) {
+        final key = _key(cell[0], cell[1]);
+        occupancy.putIfAbsent(key, () => {}).add(arrow.id);
+      }
+    }
+
+    final remaining = Set<String>.from(arrows.map((a) => a.id));
+    var madeProgress = true;
+
+    while (madeProgress && remaining.isNotEmpty) {
+      madeProgress = false;
+      for (final arrowId in remaining.toList()) {
+        final arrow = arrows.firstWhere((a) => a.id == arrowId);
+        if (_drainCanExit(arrow, remaining, occupancy, config)) {
+          remaining.remove(arrowId);
+          madeProgress = true;
+          break;
+        }
+      }
+    }
+
+    return remaining.isEmpty;
+  }
+
+  /// Checks whether [arrow]'s exit path is clear of all other arrows still in
+  /// the [remaining] set.
+  static bool _drainCanExit(
+    ArrowModel arrow,
+    Set<String> remaining,
+    Map<String, Set<String>> occupancy,
+    LevelConfig config,
+  ) {
+    final cells = _getArrowCells(arrow);
+    final head = cells.last;
+    final (dr, dc) = _getDirectionOffset(
+      arrow.trajectory.segments.last.direction.name,
+    );
+
+    var er = head[0] + dr, ec = head[1] + dc;
+    while (_inBoard(er, ec, config)) {
+      final blockers = occupancy[_key(er, ec)];
+      if (blockers != null) {
+        for (final blockerId in blockers) {
+          if (blockerId != arrow.id && remaining.contains(blockerId)) {
+            return false;
+          }
+        }
+      }
+      er += dr;
+      ec += dc;
+    }
+
+    return true;
   }
 
   /// Traces all grid coordinates occupied by an ArrowModel.
@@ -292,7 +483,9 @@ class LevelGenerator {
         cc -= dc;
         if (!_inBoard(cr, cc, config) || 
             !_inSilhouette(cr, cc, config) || 
-            occupied.contains(_key(cr, cc))) break;
+            occupied.contains(_key(cr, cc))) {
+          break;
+        }
         headFirst.add([cr, cc]);
       }
     } else if (shapeType < config.straightRatio + config.lShapeRatio) {
@@ -411,6 +604,90 @@ class LevelGenerator {
     }
 
     return _finish(dirName, headFirst);
+  }
+
+  /// Try to place an arrow that blocks [targetArrow] by placing its body
+  /// on [targetArrow]'s exit trajectory.
+  static _Candidate? _tryForceChain(
+    ArrowModel targetArrow,
+    Random rng,
+    Set<String> occupied,
+    LevelConfig config,
+  ) {
+    final cells = _getArrowCells(targetArrow);
+    final head = cells.last;
+    final (dr, dc) = _getDirectionOffset(
+      targetArrow.trajectory.segments.last.direction.name,
+    );
+
+    // Trace exit path from target arrow's head, collecting free cells.
+    final exitPath = <(int, int)>[];
+    var er = head[0] + dr, ec = head[1] + dc;
+    while (_inBoard(er, ec, config)) {
+      if (!occupied.contains(_key(er, ec))) {
+        exitPath.add((er, ec));
+      }
+      er += dr;
+      ec += dc;
+    }
+
+    if (exitPath.isEmpty) return null;
+
+    for (var attempt = 0; attempt < 15; attempt++) {
+      final targetCell = exitPath[rng.nextInt(exitPath.length)];
+
+      final dIdx = rng.nextInt(4);
+      final (adr, adc) = _dirs[dIdx];
+      final adirName = _dirNames[dIdx];
+
+      final len = config.minSegmentLength +
+          rng.nextInt(config.maxSegmentLength - config.minSegmentLength + 1);
+
+      // Place head so that targetCell is somewhere in the body.
+      final k = rng.nextInt(len);
+      final hr = targetCell.$1 + k * adr;
+      final hc = targetCell.$2 + k * adc;
+
+      if (!_inBoard(hr, hc, config) ||
+          !_inSilhouette(hr, hc, config) ||
+          occupied.contains(_key(hr, hc))) {
+        continue;
+      }
+
+      // Check exit from head is clear.
+      var ehr = hr + adr, ech = hc + adc;
+      var exitClear = true;
+      while (_inBoard(ehr, ech, config)) {
+        if (occupied.contains(_key(ehr, ech))) {
+          exitClear = false;
+          break;
+        }
+        ehr += adr;
+        ech += adc;
+      }
+      if (!exitClear) continue;
+
+      // Build body backward from head.
+      final headFirst = <List<int>>[[hr, hc]];
+      var cr = hr, cc = hc;
+      var bodyValid = true;
+      for (var i = 1; i < len; i++) {
+        cr -= adr;
+        cc -= adc;
+        if (!_inBoard(cr, cc, config) ||
+            !_inSilhouette(cr, cc, config) ||
+            occupied.contains(_key(cr, cc))) {
+          bodyValid = false;
+          break;
+        }
+        headFirst.add([cr, cc]);
+      }
+      if (!bodyValid || headFirst.length < 2) continue;
+
+      return _finish(adirName, headFirst);
+    }
+
+    return null;
   }
 
   static _Candidate? _finish(String dirName, List<List<int>> headFirst) {

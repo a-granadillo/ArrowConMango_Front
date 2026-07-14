@@ -11,6 +11,7 @@ import 'package:arrowconmango_front/features/game/application/use_cases/trigger_
 import 'package:arrowconmango_front/features/game/application/use_cases/undo_move_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/arrow_not_found_failure.dart';
@@ -59,6 +60,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<Tick>(_onTick);
     on<RetryLevel>(_onRetryLevel);
     on<NextEndlessLevel>(_onNextEndlessLevel);
+    on<RotateArrow>(_onRotateArrow);
   }
 
   final LoadLevelUseCase _loadLevelUseCase;
@@ -122,7 +124,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     _isEndlessMode = event.levelId < 0;
     if (_isEndlessMode) {
       _livesRemaining = 3;
-      _totalTimeRemaining = 60;
+      _totalTimeRemaining = 30;
       _levelsCompleted = 0;
     } else {
       _livesRemaining = 3;
@@ -308,7 +310,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // En modo supervivencia, si se perdió el nivel, reiniciar vidas y tiempo
     if (_isEndlessMode && state is GameDefeat && _livesRemaining <= 0) {
       _livesRemaining = 3;
-      _totalTimeRemaining = 60;
+      _totalTimeRemaining = 30;
       _levelsCompleted = 0;
     }
 
@@ -339,7 +341,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   Future<void> _onNextEndlessLevel(NextEndlessLevel event, Emitter<GameState> emit) async {
     // Incrementar niveles completados y agregar tiempo
     _levelsCompleted++;
-    _totalTimeRemaining += 20;
+    _totalTimeRemaining += 10;
     
     // Generar un nuevo nivel con seed diferente
     final newLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
@@ -366,6 +368,37 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       case Error(failure: final failure):
         emit(GameError(message: failure.message, levelId: newLevelId));
     }
+  }
+
+  void _onRotateArrow(RotateArrow event, Emitter<GameState> emit) {
+    final state = this.state;
+    if (state is! GamePlaying) return;
+
+    final arrow = state.boardState.getArrowById(event.arrowId);
+    if (arrow == null) return;
+    if (!arrow.isSwitchable) return;
+
+    final nextDirection = switch (arrow.direction) {
+      CardinalDirection.up => CardinalDirection.right,
+      CardinalDirection.right => CardinalDirection.down,
+      CardinalDirection.down => CardinalDirection.left,
+      CardinalDirection.left => CardinalDirection.up,
+      _ => arrow.direction,
+    };
+
+    final session = _sessionFromState(state);
+    final newSession = session.afterArrowRotate(arrow, nextDirection);
+
+    final evaluation = _evaluateGameStateUseCase(
+      session: newSession,
+      nowMs: _clock(),
+    );
+    _emitPlayingStateFromEvaluation(
+      newSession,
+      _levelForState(state),
+      evaluation,
+      emit,
+    );
   }
 
   Future<void> _emitPlayingState(
@@ -460,7 +493,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         if (_isEndlessMode) {
           // Modo supervivencia: incrementar niveles completados y agregar tiempo
           _levelsCompleted++;
-          _totalTimeRemaining += 20; // Agregar 20 segundos extra
+          _totalTimeRemaining += 10; // Sumar 10s a lo que quede de tiempo
           
           emit(
             GameVictory(

@@ -36,6 +36,7 @@ class BoardGridWidget extends StatelessWidget {
     required this.onArrowTap,
     required this.colorOf,
     this.exitingArrows = const [],
+    this.onArrowLongPress,
   });
 
   final int rows;
@@ -48,6 +49,9 @@ class BoardGridWidget extends StatelessWidget {
 
   final List<ExitingArrowData> exitingArrows;
 
+  /// Callback for long-press on a switchable arrow.
+  final void Function(String arrowId)? onArrowLongPress;
+
   void _handleTap(Offset local, double cell) {
     final col = (local.dx / cell).floor().clamp(0, cols - 1);
     final row = (local.dy / cell).floor().clamp(0, rows - 1);
@@ -55,6 +59,19 @@ class BoardGridWidget extends StatelessWidget {
     for (final arrow in arrows) {
       if (arrow.occupiedNodes.any((n) => n.key == key)) {
         onArrowTap(arrow.id);
+        return;
+      }
+    }
+  }
+
+  void _handleLongPress(Offset local, double cell) {
+    if (onArrowLongPress == null) return;
+    final col = (local.dx / cell).floor().clamp(0, cols - 1);
+    final row = (local.dy / cell).floor().clamp(0, rows - 1);
+    final key = '${row}_$col';
+    for (final arrow in arrows) {
+      if (arrow.occupiedNodes.any((n) => n.key == key)) {
+        onArrowLongPress!(arrow.id);
         return;
       }
     }
@@ -80,6 +97,7 @@ class BoardGridWidget extends StatelessWidget {
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapUp: (details) => _handleTap(details.localPosition, cell),
+              onLongPressStart: (details) => _handleLongPress(details.localPosition, cell),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(13),
                 child: Stack(

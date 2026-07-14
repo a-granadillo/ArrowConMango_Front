@@ -1,4 +1,5 @@
 import 'package:arrowconmango_front/features/game/data/level_definitions/level_definitions.dart';
+import 'package:arrowconmango_front/features/game/data/level_definitions/level_generator.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/arrow_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/board_state_mapper.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/level_mapper.dart';
@@ -63,6 +64,67 @@ void main() {
           isTrue,
           reason: 'Level ${level.id} has no opening move',
         );
+      }
+    });
+  });
+
+  group('Endless/survival solvability', () {
+    // Generate boards with the same configs used by generateEndless().
+    // Each seed is a different level; we test that every one is solvable.
+    for (final entry in [
+      ('Easy', LevelConfig.easy, [1001, 2001, 3001, 4001, 5001]),
+      ('Medium', LevelConfig.medium, [6001, 7001, 8001, 9001, 10001]),
+      ('Hard', LevelConfig.hard, [11001, 12001, 13001, 14001, 15001]),
+    ]) {
+      final (diffLabel, config, seeds) = entry;
+      for (final seed in seeds) {
+        test('${diffLabel}_seed_${seed}_is_solvable', () {
+          final level = LevelGenerator.generate(
+            id: -seed,
+            name: 'Test $diffLabel $seed',
+            difficulty: diffLabel,
+            config: config,
+            seed: seed,
+          );
+
+          // Mapper + domain-level drain (same as campaign-level test).
+          final entity = mapper.toEntity(level);
+          final stuck = _drain(entity.templateBoard, validator);
+          expect(
+            stuck,
+            isEmpty,
+            reason: '$diffLabel seed $seed is NOT solvable — '
+                '${stuck.length} arrows stuck: $stuck',
+          );
+        });
+      }
+    }
+
+    test('every_survival_board_has_opening_move', () {
+      for (final entry in [
+        (LevelConfig.easy, [1001, 2001]),
+        (LevelConfig.medium, [6001, 7001]),
+        (LevelConfig.hard, [11001, 12001]),
+      ]) {
+        final (config, seeds) = entry;
+        for (final seed in seeds) {
+          final level = LevelGenerator.generate(
+            id: -seed,
+            name: 'Test $seed',
+            difficulty: 'Test',
+            config: config,
+            seed: seed,
+          );
+          final board = mapper.toEntity(level).templateBoard;
+          final anyExitable = board.arrows.any(
+            (a) => validator.checkExit(a, board).canExit,
+          );
+          expect(
+            anyExitable,
+            isTrue,
+            reason: 'Seed $seed has no opening move',
+          );
+        }
       }
     });
   });

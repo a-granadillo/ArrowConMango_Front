@@ -17,10 +17,13 @@ class ArrowModel extends Equatable {
   final NodeModel startNode;
   final ArrowTrajectory trajectory;
 
+  final bool isSwitchable;
+
   const ArrowModel({
     required this.id,
     required this.startNode,
     required this.trajectory,
+    this.isSwitchable = false,
   });
 
   factory ArrowModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +31,7 @@ class ArrowModel extends Equatable {
       id: json['id'] as String,
       startNode: NodeModel.fromJson(json['startNode'] as Map<String, dynamic>),
       trajectory: ArrowTrajectory.fromJson(json['trajectory'] as Map<String, dynamic>),
+      isSwitchable: json['isSwitchable'] as bool? ?? false,
     );
   }
 
@@ -36,9 +40,10 @@ class ArrowModel extends Equatable {
       'id': id,
       'startNode': startNode.toJson(),
       'trajectory': trajectory.toJson(),
+      'isSwitchable': isSwitchable,
     };
   }
 
   @override
-  List<Object?> get props => [id, startNode, trajectory];
+  List<Object?> get props => [id, startNode, trajectory, isSwitchable];
 }

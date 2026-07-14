@@ -55,6 +55,23 @@ class ArrowsLayerPainter extends CustomPainter {
       paint.color = color.withValues(alpha: color.a * opacity);
       canvas.drawPath(body, paint);
       canvas.drawPath(head, paint);
+
+      // Rotation indicator for switchable arrows.
+      if (arrow.isSwitchable) {
+        final (tr, tc) = rc(arrow.tailNode);
+        final tailCenter = cellCenter(tr, tc, cell);
+
+        final indicatorPaint = Paint()
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.9 * opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5;
+
+        canvas.drawCircle(tailCenter, cell * 0.13, indicatorPaint);
+
+        // Small curved arc to suggest rotation.
+        final arcRect = Rect.fromCircle(center: tailCenter, radius: cell * 0.09);
+        canvas.drawArc(arcRect, -0.5, 1.8, false, indicatorPaint);
+      }
     }
   }
 

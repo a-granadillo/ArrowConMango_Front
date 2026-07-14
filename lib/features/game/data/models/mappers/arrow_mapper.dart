@@ -21,6 +21,7 @@ class ArrowMapper {
       id: model.id,
       direction: model.trajectory.finalDirection,
       occupiedNodes: nodes,
+      isSwitchable: model.isSwitchable,
     );
   }
 
@@ -54,6 +55,7 @@ class ArrowMapper {
         trajectory: ArrowTrajectory(
           segments: [TrajectorySegment(direction: direction, length: 0)],
         ),
+        isSwitchable: entity.isSwitchable,
       );
     }
 
@@ -84,6 +86,7 @@ class ArrowMapper {
       id: entity.id,
       startNode: startNode,
       trajectory: trajectory,
+      isSwitchable: entity.isSwitchable,
     );
   }
 

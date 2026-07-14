@@ -165,6 +165,8 @@ class _GameScreenState extends State<GameScreen> {
                         colorOf: _colors.colorOf,
                         onArrowTap: (id) =>
                             bloc.add(TriggerArrowExit(arrowId: id)),
+                        onArrowLongPress: (id) =>
+                            bloc.add(RotateArrow(arrowId: id)),
                       ),
                     ),
                   ),
