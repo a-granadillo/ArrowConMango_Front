@@ -201,6 +201,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
       case Error(failure: final failure):
         if (failure is PathBlockedFailure) {
+          _audioService?.playSfx(SfxClip.block);
           _livesRemaining--;
           final level = _levelForState(state);
           if (_livesRemaining <= 0) {

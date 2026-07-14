@@ -3,7 +3,8 @@ enum SfxClip {
   click,
   arrowExit,
   victory,
-  defeat;
+  defeat,
+  block;
 
   /// Asset path expected by [AudioPlayer].
   ///
@@ -14,5 +15,6 @@ enum SfxClip {
     SfxClip.arrowExit => 'audio/sfx/arrow_exit.wav',
     SfxClip.victory => 'audio/sfx/victory.wav',
     SfxClip.defeat => 'audio/sfx/defeat.wav',
+    SfxClip.block => 'audio/sfx/block.wav',
   };
 }
