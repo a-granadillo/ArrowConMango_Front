@@ -10,6 +10,8 @@ class FakeAudioService implements AudioService {
   final List<AudioTrack> bgmCalls = [];
   final List<SfxClip> sfxCalls = [];
   int stopBgmCalls = 0;
+  int pauseCalls = 0;
+  int resumeCalls = 0;
   int muteCalls = 0;
   int unmuteCalls = 0;
   bool _muted = false;
@@ -19,6 +21,12 @@ class FakeAudioService implements AudioService {
 
   @override
   Future<void> stopBgm() async => stopBgmCalls++;
+
+  @override
+  Future<void> pause() async => pauseCalls++;
+
+  @override
+  Future<void> resume() async => resumeCalls++;
 
   @override
   Future<void> playSfx(SfxClip clip) async => sfxCalls.add(clip);

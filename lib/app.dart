@@ -39,8 +39,16 @@ class _ArrowConMangoAppState extends State<ArrowConMangoApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-      sl<AudioService>().dispose();
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+        sl<AudioService>().pause();
+      case AppLifecycleState.resumed:
+        sl<AudioService>().resume();
+      case AppLifecycleState.detached:
+        sl<AudioService>().dispose();
+      case AppLifecycleState.inactive:
+        break;
     }
   }
 

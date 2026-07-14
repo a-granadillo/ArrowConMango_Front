@@ -61,6 +61,25 @@ class AudioServiceImpl implements AudioService {
   }
 
   @override
+  Future<void> pause() async {
+    try {
+      await _bgmPlayer.pause();
+    } catch (e, stackTrace) {
+      debugPrint('AudioServiceImpl.pause failed: $e\n$stackTrace');
+    }
+  }
+
+  @override
+  Future<void> resume() async {
+    if (_muted || _currentTrack == null) return;
+    try {
+      await _bgmPlayer.resume();
+    } catch (e, stackTrace) {
+      debugPrint('AudioServiceImpl.resume failed: $e\n$stackTrace');
+    }
+  }
+
+  @override
   Future<void> playSfx(SfxClip clip) async {
     if (_muted) return;
 

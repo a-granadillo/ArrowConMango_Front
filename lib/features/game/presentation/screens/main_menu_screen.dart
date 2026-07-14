@@ -30,12 +30,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       ..playBgm(AudioTrack.menuTheme);
   }
 
-  @override
-  void dispose() {
-    _audioService?.stopBgm();
-    super.dispose();
-  }
-
   VoidCallback _withClick(VoidCallback action) => () {
     _audioService?.playSfx(SfxClip.click);
     action();

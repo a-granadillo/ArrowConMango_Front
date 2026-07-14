@@ -58,12 +58,6 @@ class _VictoryScreenState extends State<VictoryScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _audioService?.stopBgm();
-    super.dispose();
-  }
-
   VoidCallback _withClick(VoidCallback action) => () {
     _audioService?.playSfx(SfxClip.click);
     action();
