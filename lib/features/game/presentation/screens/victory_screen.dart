@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/app_info.dart';
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
+import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/mango_logo.dart';
@@ -62,6 +63,11 @@ class _VictoryScreenState extends State<VictoryScreen> {
     _audioService?.stopBgm();
     super.dispose();
   }
+
+  VoidCallback _withClick(VoidCallback action) => () {
+    _audioService?.playSfx(SfxClip.click);
+    action();
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -144,9 +150,9 @@ class _VictoryScreenState extends State<VictoryScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
+                  Expanded(
                   child: OutlinedButton(
-                    onPressed: () => context.go(AppRoutes.menu),
+                    onPressed: _withClick(() => context.go(AppRoutes.menu)),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: AppColors.cream2,
@@ -171,7 +177,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
                   Expanded(
                     flex: 2,
                     child: GestureDetector(
-                      onTap: () {
+                      onTap: _withClick(() {
                         // Cargar siguiente nivel en modo supervivencia reusando el bloc existente
                         if (widget.bloc != null) {
                           widget.bloc!.add(const NextEndlessLevel());
@@ -180,7 +186,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
                           final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000 + 1);
                           context.pushReplacement(AppRoutes.gameFor(nextLevelId));
                         }
-                      },
+                      }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
@@ -214,9 +220,9 @@ class _VictoryScreenState extends State<VictoryScreen> {
                   Expanded(
                     flex: 2,
                     child: GestureDetector(
-                      onTap: () => context.pushReplacement(
+                      onTap: _withClick(() => context.pushReplacement(
                         AppRoutes.gameFor(result.levelId + 1),
-                      ),
+                      )),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(

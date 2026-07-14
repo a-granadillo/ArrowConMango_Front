@@ -19,6 +19,7 @@ class AudioServiceImpl implements AudioService {
   AudioServiceImpl({required AudioSettingsLocalDataSource settings})
     : _settings = settings,
       _muted = settings.isMuted {
+    _configureBgmPlayer();
     _precache();
   }
 
@@ -101,12 +102,33 @@ class AudioServiceImpl implements AudioService {
     }
   }
 
+  /// Configures the BGM player to request audio focus so it keeps priority
+  /// over short sound effects on Android.
+  Future<void> _configureBgmPlayer() async {
+    try {
+      await _bgmPlayer.setAudioContext(AudioContext(
+        android: const AudioContextAndroid(
+          audioFocus: AndroidAudioFocus.gain,
+        ),
+      ));
+    } catch (e, stackTrace) {
+      debugPrint(
+        'AudioServiceImpl._configureBgmPlayer failed: $e\n$stackTrace',
+      );
+    }
+  }
+
   /// Pre-loads every [SfxClip] into its own [AudioPlayer] so effects are ready
   /// to play immediately.
   Future<void> _precache() async {
     for (final clip in SfxClip.values) {
       try {
         final player = AudioPlayer();
+        await player.setAudioContext(AudioContext(
+          android: const AudioContextAndroid(
+            audioFocus: AndroidAudioFocus.none,
+          ),
+        ));
         await player.setSource(AssetSource(clip.assetPath));
         _sfxPool[clip] = player;
       } catch (e, stackTrace) {

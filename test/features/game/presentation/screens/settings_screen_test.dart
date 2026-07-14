@@ -1,3 +1,4 @@
+import 'package:arrowconmango_front/core/audio/audio_service.dart';
 import 'package:arrowconmango_front/core/audio/audio_settings_cubit.dart';
 import 'package:arrowconmango_front/core/audio/audio_settings_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/screens/settings_screen.dart';
@@ -20,12 +21,15 @@ void main() {
   ) {
     return tester.pumpWidget(
       MaterialApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<PlayerCubit>.value(value: playerCubit),
-            BlocProvider<AudioSettingsCubit>.value(value: audioCubit),
-          ],
-          child: const SettingsScreen(),
+        home: RepositoryProvider<AudioService>.value(
+          value: FakeAudioService(),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<PlayerCubit>.value(value: playerCubit),
+              BlocProvider<AudioSettingsCubit>.value(value: audioCubit),
+            ],
+            child: const SettingsScreen(),
+          ),
         ),
       ),
     );

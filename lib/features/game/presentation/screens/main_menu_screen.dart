@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
+import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -34,6 +35,11 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     _audioService?.stopBgm();
     super.dispose();
   }
+
+  VoidCallback _withClick(VoidCallback action) => () {
+    _audioService?.playSfx(SfxClip.click);
+    action();
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -95,17 +101,19 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                               children: [
                                 _PlayButton(
                                   label: 'MODO CAMPAÑA',
-                                  onTap: () => context.push(AppRoutes.levels),
+                                  onTap: _withClick(
+                                    () => context.push(AppRoutes.levels),
+                                  ),
                                 ),
                                 const SizedBox(height: 14),
                                 _PlayButton(
                                   label: 'SUPERVIVENCIA',
                                   bg: AppColors.textDark,
                                   shadow: const Color(0xFF3E2723),
-                                  onTap: () {
+                                  onTap: _withClick(() {
                                     // Navigate to game with levelId -1 (endless mode)
                                     context.push(AppRoutes.gameFor(-1));
-                                  },
+                                  }),
                                 ),
                                 const SizedBox(height: 14),
                                 Row(
@@ -117,7 +125,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                         bg: AppColors.mango,
                                         fg: AppColors.textDark,
                                         shadow: const Color(0xFFD4A017),
-                                        onTap: () => context.push(AppRoutes.levels),
+                                        onTap: _withClick(
+                                          () => context.push(AppRoutes.levels),
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -128,7 +138,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                         bg: AppColors.success,
                                         fg: Colors.white,
                                         shadow: AppColors.successDark,
-                                        onTap: () => context.push(AppRoutes.ranking),
+                                        onTap: _withClick(
+                                          () => context.push(AppRoutes.ranking),
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -139,7 +151,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                         bg: AppColors.textDark,
                                         fg: AppColors.mango,
                                         shadow: const Color(0xFF3E2723),
-                                        onTap: () => context.push(AppRoutes.settings),
+                                        onTap: _withClick(
+                                          () => context.push(AppRoutes.settings),
+                                        ),
                                       ),
                                     ),
                                   ],

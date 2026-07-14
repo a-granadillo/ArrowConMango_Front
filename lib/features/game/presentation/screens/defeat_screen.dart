@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/audio/audio_service.dart';
+import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/game_bloc.dart';
@@ -30,6 +33,12 @@ class DefeatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final audioService = context.read<AudioService>();
+    VoidCallback withClick(VoidCallback action) => () {
+      audioService.playSfx(SfxClip.click);
+      action();
+    };
+
     final hasLivesRemaining = result.livesRemaining > 0;
     final isGameOver = result.isEndlessMode && !hasLivesRemaining;
     
@@ -95,7 +104,7 @@ class DefeatScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => context.go(AppRoutes.menu),
+                    onPressed: withClick(() => context.go(AppRoutes.menu)),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: AppColors.cream2,
@@ -116,7 +125,7 @@ class DefeatScreen extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: GestureDetector(
-                    onTap: () {
+                    onTap: withClick(() {
                       if (result.isEndlessMode && hasLivesRemaining) {
                         // En modo supervivencia con vidas restantes, reintentar reusando el bloc
                         if (bloc != null) {
@@ -132,7 +141,7 @@ class DefeatScreen extends StatelessWidget {
                           AppRoutes.gameFor(result.levelId),
                         );
                       }
-                    },
+                    }),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
