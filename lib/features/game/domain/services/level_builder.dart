@@ -1,4 +1,5 @@
 import '../entities/arrow_entity.dart';
+import '../entities/board_geometry.dart';
 import '../entities/board_state.dart';
 import '../entities/direction.dart';
 import '../entities/level.dart';
@@ -68,7 +69,11 @@ class LevelBuilder {
     }
 
     final board = BoardState(arrows: _arrows);
-    return Level(levelId: _levelId!, rows: _rows, cols: _cols, templateBoard: board);
+    return Level(
+      levelId: _levelId!,
+      geometry: BoardGeometry2D(rows: _rows, cols: _cols),
+      templateBoard: board,
+    );
   }
 
   /// Resets the builder to its initial state for reuse.

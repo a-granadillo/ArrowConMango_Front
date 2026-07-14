@@ -1,5 +1,6 @@
 import 'package:arrowconmango_front/features/game/data/models/board_size_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 
 import 'board_state_mapper.dart';
@@ -13,8 +14,10 @@ class LevelMapper {
     return Level(
       levelId: model.id,
       name: model.name,
-      rows: model.boardSize.rows,
-      cols: model.boardSize.cols,
+      geometry: BoardGeometry2D(
+        rows: model.boardSize.rows,
+        cols: model.boardSize.cols,
+      ),
       templateBoard: _boardStateMapper.toEntity(model.boardState),
     );
   }

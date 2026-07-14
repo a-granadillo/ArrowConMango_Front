@@ -1,4 +1,5 @@
 import 'package:arrowconmango_front/features/game/application/use_cases/start_game_session_use_case.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
@@ -23,8 +24,7 @@ class FakeLevel extends Level {
       _exceptionToThrow = exceptionToThrow,
       super(
         levelId: 1,
-        rows: 8,
-        cols: 8,
+        geometry: const BoardGeometry2D(rows: 8, cols: 8),
         templateBoard: BoardState(arrows: const []),
       );
 

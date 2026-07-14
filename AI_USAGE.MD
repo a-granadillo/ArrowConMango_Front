@@ -661,6 +661,38 @@
   - `lib/features/game/presentation/bloc/game_bloc.dart` — 5 líneas modificadas.
 - **Lecciones / limitaciones:** Ninguna. El cambio es puramente de constantes de juego.
 
+### Entrada #35 — Deuda Técnica 2D y Migración de Datos (Sealed BoardGeometry y Hive levels_v2) (Issue #20)
+
+- **Fecha / autor:** 14-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelos: gpt-5-mini para planificación, gemini-3.5-flash para ejecución)
+- **Rol en el flujo:** Arquitecto de Software / Desarrollador Frontend (Refactorización de Dominio, Mapeadores y Persistencia).
+- **Tarea/problema:** Preparar la base del frontend para soportar geometrías 3D en el futuro sin romper el comportamiento 2D actual, resolviendo la deuda técnica de representar dimensiones con enteros planos (`rows` y `cols`) en la entidad `Level`. Además, se necesitaba migrar el nombre de la caja Hive de niveles de `'levels'` a `'levels_v2'` para prevenir colisiones de esquemas/adaptadores de datos viejos con campos 3D futuros.
+- **Prompt (paráfrasis fiel):** > "Procedamos con el issue #20 [Pagar deuda técnica 2D y migrar Hive]" (enfoque SDD interactivo en memoria Engram, budget 400 líneas).
+- **Resultado obtenido:**
+  1. **Clase Sellada `BoardGeometry`:** Creado `lib/features/game/domain/entities/board_geometry.dart` con la jerarquía sellada de Dart 3 `BoardGeometry`, `BoardGeometry2D` (con `rows` y `cols`) y `BoardGeometry3D` (con `rows`, `cols` y `depth`), validando con `assert` que todas las dimensiones sean estrictamente positivas (`> 0`).
+  2. **Refactor de `Level` con Retrocompatibilidad:** Modificada la entidad `Level` para inyectar `BoardGeometry geometry` reemplazando los enteros de filas y columnas. Se expusieron getters delegados `int get rows` e `int get cols` que resuelven dinámicamente con un `switch` pattern matching sobre la geometría, aislando por completo el impacto en las vistas de juego preexistentes.
+  3. **Mappers Robustos y Retrocompatibilidad:** Refactorizados `LevelMapper` y `LevelModel.fromJson`. `fromJson` ahora analiza el JSON recibido y, si no encuentra la estructura `boardSize` pero sí los campos planos heredados de Hitos anteriores (`rows` y `cols`), construye de forma transparente un objeto `BoardGeometry2D` mitigando cualquier crash de datos antiguos.
+  4. **Caja de Hive `'levels_v2'`:** Se actualizó la constante en `hive_config.dart` de `'levels'` a `'levels_v2'`.
+  5. **Sembrado Idempotente:** En `service_locator.dart`, la carga del seed de campaña se condicionó con `if (levelsBox.isEmpty)` para garantizar que el sembrado sea puramente idempotente en arranques limpios y nunca sobreescriba datos.
+  6. **Tests Automatizados:** Se creó `test/domain/board_geometry_test.dart` (validación de constructor, excepciones y Equatable) y se agregaron escenarios de deserialización legacy en `level_mapper_test.dart`.
+
+- **Modificaciones del equipo:** Se detectó en el análisis estático un error de inicialización en `FakeLevel` (dentro de `start_game_session_use_case_test.dart`) que heredaba directamente de `Level` y usaba el constructor viejo. Se corrigió manualmente importando la geometría e instanciando `BoardGeometry2D`.
+- **Verificación:** Ejecución de `flutter analyze` dando 0 issues y suite de pruebas `flutter test` en verde (100% de tests unitarios y de widgets pasando sin regresiones).
+- **Archivos afectados:**
+  - `lib/features/game/domain/entities/board_geometry.dart` (nuevo)
+  - `test/domain/board_geometry_test.dart` (nuevo)
+  - `lib/features/game/domain/entities/level.dart`
+  - `lib/features/game/domain/services/level_builder.dart`
+  - `lib/features/game/data/models/level_model.dart`
+  - `lib/features/game/data/models/mappers/level_mapper.dart`
+  - `lib/core/database/hive_config.dart`
+  - `lib/core/di/service_locator.dart`
+  - `test/data/models/mappers/level_mapper_test.dart`
+  - `test/features/game/application/use_cases/start_game_session_use_case_test.dart`
+- **Lecciones / limitaciones:**
+  1. **Evitar el blast radius con abstracciones inteligentes:** Exponer propiedades delegadas (`get rows => ...`) usando switches de Dart 3 sobre clases selladas permite refactorizar la estructura de datos interna del dominio conservando la interfaz pública intacta. Esto ahorró tener que refactorizar decenas de archivos de UI.
+  2. **Hot-reload de configuración en sub-agentes:** Al reescribir `opencode.json` de manera local para pisar modelos incorrectos de la configuración global, OpenCode lee e inyecta la nueva configuración del proyecto en los arranques subsiguientes de los sub-agentes sin requerir reinicio forzado del chat padre.
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA

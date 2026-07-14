@@ -15,7 +15,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// Call [initialise] once at application startup before accessing
 /// any repository that depends on Hive boxes.
 class HiveConfig {
-  static const String levelsBoxName = 'levels';
+  static const String levelsBoxName = 'levels_v2';
   static const String progressBoxName = 'progress';
 
   HiveConfig._();

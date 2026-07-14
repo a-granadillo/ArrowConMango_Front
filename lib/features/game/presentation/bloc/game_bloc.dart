@@ -10,6 +10,7 @@ import 'package:arrowconmango_front/features/game/application/use_cases/start_ga
 import 'package:arrowconmango_front/features/game/application/use_cases/trigger_arrow_exit_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/undo_move_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
@@ -93,8 +94,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   Level _levelForState(GamePlaying state) {
     return Level(
       levelId: state.levelId,
-      rows: state.rows,
-      cols: state.cols,
+      geometry: BoardGeometry2D(rows: state.rows, cols: state.cols),
       templateBoard: state.boardState,
     );
   }

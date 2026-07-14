@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'board_geometry.dart';
 import 'board_state.dart';
 import 'game_session.dart';
 
@@ -14,19 +15,26 @@ class Level extends Equatable {
   /// compatibility with tests that build a [Level] without one.
   final String name;
 
-  final int rows;
-
-  final int cols;
+  final BoardGeometry geometry;
 
   final BoardState templateBoard;
 
   const Level({
     required this.levelId,
     this.name = '',
-    required this.rows,
-    required this.cols,
+    required this.geometry,
     required this.templateBoard,
   });
+
+  int get rows => switch (geometry) {
+        BoardGeometry2D(rows: final r) => r,
+        BoardGeometry3D(rows: final r) => r,
+      };
+
+  int get cols => switch (geometry) {
+        BoardGeometry2D(cols: final c) => c,
+        BoardGeometry3D(cols: final c) => c,
+      };
 
   /// Returns a human-readable difficulty label based on [levelId].
   ///
@@ -55,9 +63,9 @@ class Level extends Equatable {
   }
 
   @override
-  List<Object?> get props => [levelId, name, rows, cols, templateBoard];
+  List<Object?> get props => [levelId, name, geometry, templateBoard];
 
   @override
   String toString() =>
-      'Level(id: $levelId, difficulty: ${difficulty()}, board: $templateBoard)';
+      'Level(id: $levelId, difficulty: ${difficulty()}, geometry: $geometry, board: $templateBoard)';
 }
