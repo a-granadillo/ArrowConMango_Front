@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/app_info.dart';
+import '../../../../core/audio/audio_service.dart';
+import '../../../../core/audio/audio_track.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/mango_logo.dart';
@@ -32,6 +34,15 @@ class VictoryScreen extends StatefulWidget {
 }
 
 class _VictoryScreenState extends State<VictoryScreen> {
+  AudioService? _audioService;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _audioService ??= context.read<AudioService>()
+      ..playBgm(AudioTrack.victoryTheme);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +55,12 @@ class _VictoryScreenState extends State<VictoryScreen> {
             );
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _audioService?.stopBgm();
+    super.dispose();
   }
 
   @override
@@ -134,7 +151,10 @@ class _VictoryScreenState extends State<VictoryScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: AppColors.cream2,
                       foregroundColor: AppColors.textMuted,
-                      side: const BorderSide(color: Color(0xFFE8D5C0), width: 2),
+                      side: const BorderSide(
+                        color: Color(0xFFE8D5C0),
+                        width: 2,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -260,10 +280,8 @@ class _PoppingMangoIconState extends State<_PoppingMangoIcon>
     final anim = CurvedAnimation(parent: _controller, curve: Curves.elasticOut);
     return AnimatedBuilder(
       animation: anim,
-      builder: (context, child) => Transform.scale(
-        scale: anim.value.clamp(0.0, 1.2),
-        child: child,
-      ),
+      builder: (context, child) =>
+          Transform.scale(scale: anim.value.clamp(0.0, 1.2), child: child),
       child: const MangoLogo(size: 66),
     );
   }

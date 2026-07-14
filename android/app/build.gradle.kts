@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.arrowconmango_front"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/audio/audio_service.dart';
+import '../../../../core/audio/audio_track.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
 
 /// Main menu ("Home") — faithful reproduction of the design.
-class MainMenuScreen extends StatelessWidget {
+class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({super.key});
+
+  @override
+  State<MainMenuScreen> createState() => _MainMenuScreenState();
+}
+
+class _MainMenuScreenState extends State<MainMenuScreen> {
+  AudioService? _audioService;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _audioService ??= context.read<AudioService>()
+      ..playBgm(AudioTrack.menuTheme);
+  }
+
+  @override
+  void dispose() {
+    _audioService?.stopBgm();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -308,16 +331,16 @@ class _PageDots extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget dot(double w, Color color, [double opacity = 1]) => Opacity(
-          opacity: opacity,
-          child: Container(
-            width: w,
-            height: 8,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        );
+      opacity: opacity,
+      child: Container(
+        width: w,
+        height: 8,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
