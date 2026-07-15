@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -421,7 +422,7 @@ class _Cube3DVictorySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final points = state.score?.totalPoints ?? 0;
-    final rating = MangoRating.fromScore(points);
+    final rating = MangoRating.fromScore(points, context.l10n);
 
     return ResultSheet(
       confetti: true,
