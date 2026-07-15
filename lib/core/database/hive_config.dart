@@ -24,12 +24,16 @@ class HiveConfig {
   /// and opens the boxes required by the game feature.
   static Future<void> initialise() async {
     await Hive.initFlutter();
-    _registerAdapters();
+    registerAdapters();
     await Hive.openBox<LevelModel>(levelsBoxName);
     await Hive.openBox<AppProgressModel>(progressBoxName);
   }
 
-  static void _registerAdapters() {
+  /// Registers all Hive type adapters used by the game models.
+  ///
+  /// Public so tests can register adapters after calling [Hive.init] with a
+  /// temporary directory.
+  static void registerAdapters() {
     if (!Hive.isAdapterRegistered(0)) {
       Hive.registerAdapter(NodeModelAdapter());
     }

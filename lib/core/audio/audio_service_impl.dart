@@ -3,11 +3,14 @@
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:injectable/injectable.dart';
 
 import 'audio_service.dart';
 import 'audio_settings_local_data_source.dart';
 import 'audio_track.dart';
 import 'sfx_clip.dart';
+
+Future<void> disposeAudioService(AudioService service) => service.dispose();
 
 /// Concrete [AudioService] implementation powered by the `audioplayers` package.
 ///
@@ -15,6 +18,7 @@ import 'sfx_clip.dart';
 /// small pool so they can be fired with minimal latency. Every operation is
 /// guarded by a try/catch block: audio must never crash the app, even if the
 /// underlying asset is missing or the platform player fails.
+@LazySingleton(as: AudioService, dispose: disposeAudioService)
 class AudioServiceImpl implements AudioService {
   AudioServiceImpl({required AudioSettingsLocalDataSource settings})
     : _settings = settings,

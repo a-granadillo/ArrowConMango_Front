@@ -1,3 +1,5 @@
+import 'package:injectable/injectable.dart';
+
 import '../../player/domain/guest_player.dart';
 import '../domain/i_leaderboard_repository.dart';
 import '../domain/leaderboard_entry.dart';
@@ -8,6 +10,7 @@ import '../domain/leaderboard_entry.dart';
 /// This lets the Guest-First leaderboard UI ship before the backend
 /// (`GET /leaderboard`) exists; swapping in a real implementation is a
 /// data-layer change only.
+@LazySingleton(as: ILeaderboardRepository)
 class MockLeaderboardRepository implements ILeaderboardRepository {
   /// Fake global players (name, mangos, sub, color) — mirrors the approved
   /// design's `PLAYERS` array exactly. Deterministic for stable UI/tests.

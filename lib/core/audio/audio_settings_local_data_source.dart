@@ -2,12 +2,15 @@
 // Named params are assigned to private fields so the public API stays clean.
 
 import 'package:hive/hive.dart';
+import 'package:injectable/injectable.dart';
 
 /// Persists the user's global audio mute preference in a Hive box.
 ///
 /// Stores a plain boolean primitive, so no [TypeAdapter] is required.
+@lazySingleton
 class AudioSettingsLocalDataSource {
-  AudioSettingsLocalDataSource({required Box<dynamic> box}) : _box = box;
+  AudioSettingsLocalDataSource({@Named('audioBox') required Box<dynamic> box})
+      : _box = box;
 
   /// Name of the Hive box that backs the audio settings.
   static const String boxName = 'audio_settings';

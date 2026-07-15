@@ -1,7 +1,9 @@
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:injectable/injectable.dart';
 
+@lazySingleton
 class UndoMoveUseCase {
   const UndoMoveUseCase();
 

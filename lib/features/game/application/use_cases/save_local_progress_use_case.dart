@@ -2,12 +2,14 @@ import 'package:arrowconmango_front/features/game/domain/entities/app_progress.d
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:injectable/injectable.dart';
 
 /// Persists the player's progress using a local [IProgressRepository].
 ///
 /// The use case forwards the [AppProgress] entity to the repository and
 /// translates any unhandled exception into a [GenericFailure] wrapped in
 /// an [Error] result, keeping the domain contract explicit.
+@lazySingleton
 class SaveLocalProgressUseCase {
   final IProgressRepository _progressRepository;
 

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 
 import '../models/app_progress_model.dart';
 
@@ -8,6 +9,7 @@ import '../models/app_progress_model.dart';
 /// strings) differs from [AppProgressModel.toJson]/`fromJson`
 /// (`completedLevels`/`scores`, level IDs as ints), so this class maps
 /// fields explicitly instead of reusing those methods.
+@lazySingleton
 class RemoteProgressDataSource {
   RemoteProgressDataSource(this._dio);
 

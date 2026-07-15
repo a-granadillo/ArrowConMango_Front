@@ -5,11 +5,13 @@ import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.
 import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:hive/hive.dart';
+import 'package:injectable/injectable.dart';
 
 /// Hive-backed implementation of [IProgressRepository].
 ///
 /// Persists [AppProgressModel] objects in a [Box] under a single key
 /// and maps them to/from the domain [AppProgress] entity.
+@lazySingleton
 class HiveProgressRepository implements IProgressRepository {
   /// Hive key the single [AppProgressModel] record is stored under.
   static const String progressKey = 'app_progress';

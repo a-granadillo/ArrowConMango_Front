@@ -1,8 +1,11 @@
 import 'package:arrowconmango_front/features/game/application/dtos/game_evaluation.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/scoring_strategy.dart';
+import 'package:injectable/injectable.dart';
+
 import '../../domain/entities/score.dart';
 
+@lazySingleton
 class EvaluateGameStateUseCase {
   final ScoringStrategy _scoringStrategy;
 

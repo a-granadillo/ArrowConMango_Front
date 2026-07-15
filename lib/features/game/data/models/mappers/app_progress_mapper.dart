@@ -1,5 +1,6 @@
 import 'package:arrowconmango_front/features/game/data/models/app_progress_model.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:injectable/injectable.dart';
 
 /// Converts [AppProgressModel] to/from [AppProgress].
 ///
@@ -11,6 +12,7 @@ import 'package:arrowconmango_front/features/game/domain/entities/app_progress.d
 /// **TODO:** Consider adding a `currentLevel` field to [AppProgress] entity
 /// instead of repurposing `currentToken`, which is semantically meant for
 /// authentication/session state.
+@lazySingleton
 class AppProgressMapper {
   const AppProgressMapper();
 
