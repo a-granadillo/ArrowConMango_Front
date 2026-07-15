@@ -3,6 +3,7 @@
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/app_progress.dart';
 import '../../domain/repositories/i_progress_repository.dart';
@@ -19,13 +20,14 @@ import 'hive_progress_repository.dart';
 /// connectivity is restored. Loads merge the remote snapshot into the local
 /// one (union of unlocked levels, highest current level) so a fresh install
 /// picks up progress synced from another session.
+@LazySingleton(as: IProgressRepository)
 class SyncedProgressRepository implements IProgressRepository {
   SyncedProgressRepository({
     required HiveProgressRepository local,
     required RemoteProgressDataSource remote,
     required AppProgressMapper mapper,
     required Connectivity connectivity,
-    required Box<dynamic> pendingFlagBox,
+    @Named('playerBox') required Box<dynamic> pendingFlagBox,
   })  : _local = local,
         _remote = remote,
         _mapper = mapper,

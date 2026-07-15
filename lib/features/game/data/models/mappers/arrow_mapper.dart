@@ -5,11 +5,13 @@ import 'package:arrowconmango_front/features/game/data/models/trajectory_segment
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/arrow_entity.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
+import 'package:injectable/injectable.dart';
 
 /// Converts [ArrowModel] to/from [ArrowEntity].
 ///
 /// This mapper assumes a 2D rectangular board: node models are mapped to
 /// [Grid2DNodeId] and direction labels are mapped to [CardinalDirection].
+@lazySingleton
 class ArrowMapper {
   const ArrowMapper();
 

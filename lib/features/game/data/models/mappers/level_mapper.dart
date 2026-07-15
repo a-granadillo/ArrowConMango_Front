@@ -2,9 +2,11 @@ import 'package:arrowconmango_front/features/game/data/models/board_size_model.d
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
+import 'package:injectable/injectable.dart';
 
 import 'board_state_mapper.dart';
 
+@lazySingleton
 class LevelMapper {
   final BoardStateMapper _boardStateMapper;
 

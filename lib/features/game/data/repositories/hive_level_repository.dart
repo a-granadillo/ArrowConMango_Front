@@ -6,11 +6,13 @@ import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.
 import 'package:arrowconmango_front/features/game/domain/repositories/i_level_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:hive/hive.dart';
+import 'package:injectable/injectable.dart';
 
 /// Hive-backed implementation of [ILevelRepository].
 ///
 /// Stores [LevelModel] objects in a [Box] keyed by level ID and maps them
 /// to domain [Level] / [GameSession] entities on read.
+@LazySingleton(as: ILevelRepository)
 class HiveLevelRepository implements ILevelRepository {
   final Box<LevelModel> _levelsBox;
   final LevelMapper _levelMapper;
