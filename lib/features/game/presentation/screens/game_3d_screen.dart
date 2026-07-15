@@ -9,6 +9,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/level_definitions/cube_levels.dart';
 import '../../domain/services/cube_mango_scoring.dart';
 import '../bloc/cube3d/cube3d_game_cubit.dart';
@@ -421,7 +422,10 @@ class _Cube3DVictorySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final points = state.score?.totalPoints ?? 0;
-    final rating = MangoRating.fromScore(points);
+    final rating = MangoRating.fromScore(
+      points,
+      AppLocalizations.of(context)!,
+    );
 
     return ResultSheet(
       confetti: true,
