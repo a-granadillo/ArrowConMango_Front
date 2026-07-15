@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/game_test_setup.dart';
+import '../../../../helpers/pump_localized_app.dart';
 
 class MockGameBloc extends MockBloc<GameEvent, GameState> implements GameBloc {}
 
@@ -32,12 +33,11 @@ void main() {
   tearDown(() => bloc.close());
 
   Future<void> pumpGame(WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider<GameBloc>.value(
-          value: bloc,
-          child: const GameScreen(levelId: 1),
-        ),
+    await pumpLocalizedApp(
+      tester,
+      BlocProvider<GameBloc>.value(
+        value: bloc,
+        child: const GameScreen(levelId: 1),
       ),
     );
     await tester.pump();
