@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
 import '../../../../core/audio/sfx_clip.dart';
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/game_bloc.dart';
@@ -13,6 +14,7 @@ import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
 import '../widgets/result_sheet.dart';
 import '../widgets/result_stat.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Defeat screen: explains why the level was lost and offers a retry.
 ///
@@ -26,14 +28,15 @@ class DefeatScreen extends StatelessWidget {
   final GameDefeat result;
   final GameBloc? bloc;
 
-  String get _reasonText => switch (result.reason) {
-        DefeatReason.timeExpired => '¡Se acabó el tiempo!',
-        DefeatReason.noMovesAvailable => 'No quedan movimientos posibles.',
-        DefeatReason.outOfLives => '¡Te quedaste sin vidas!',
+  String _reasonText(AppLocalizations l10n) => switch (result.reason) {
+        DefeatReason.timeExpired => l10n.defeatTimeExpired,
+        DefeatReason.noMovesAvailable => l10n.defeatNoMoves,
+        DefeatReason.outOfLives => l10n.defeatOutOfLives,
       };
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final audioService = context.read<AudioService>();
     VoidCallback withClick(VoidCallback action) => () {
       audioService.playSfx(SfxClip.click);
@@ -42,7 +45,7 @@ class DefeatScreen extends StatelessWidget {
 
     final hasLivesRemaining = result.livesRemaining > 0;
     final isGameOver = result.isEndlessMode && !hasLivesRemaining;
-    
+
     return Scaffold(
       body: ResultSheet(
         child: Column(
@@ -51,7 +54,7 @@ class DefeatScreen extends StatelessWidget {
             Text(isGameOver ? '💀' : '😵', style: const TextStyle(fontSize: 56)),
             const SizedBox(height: 10),
             Text(
-              isGameOver ? '¡Game Over!' : '¡Oh no!',
+              isGameOver ? l10n.defeatGameOver : l10n.defeatOhNo,
               textAlign: TextAlign.center,
               style: GoogleFonts.fredoka(
                 fontSize: 36,
@@ -62,7 +65,7 @@ class DefeatScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              isGameOver ? 'Te quedaste sin vidas' : _reasonText,
+              isGameOver ? l10n.defeatNoLivesMessage : _reasonText(l10n),
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 14,
@@ -76,24 +79,24 @@ class DefeatScreen extends StatelessWidget {
                 if (result.isEndlessMode) ...[
                   ResultStat(
                     value: '${result.levelsCompleted}',
-                    label: 'Niveles',
+                    label: l10n.defeatStatLevels,
                     color: AppColors.primary,
                   ),
                   ResultStat(
                     value: '${result.livesRemaining}',
-                    label: 'Vidas',
+                    label: l10n.defeatStatLives,
                     color: AppColors.danger,
                     showDivider: false,
                   ),
                 ] else ...[
                   ResultStat(
                     value: '${result.moveCount}',
-                    label: 'Toques',
+                    label: l10n.defeatStatTaps,
                     color: AppColors.primary,
                   ),
                   ResultStat(
                     value: formatDuration(result.elapsedSeconds),
-                    label: 'Tiempo',
+                    label: l10n.defeatStatTime,
                     color: AppColors.success,
                     showDivider: false,
                   ),
@@ -122,7 +125,7 @@ class DefeatScreen extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    child: const Text('Menú'),
+                    child: Text(l10n.defeatMenu),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -163,7 +166,7 @@ class DefeatScreen extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        isGameOver ? 'Reiniciar' : 'Reintentar',
+                        isGameOver ? l10n.defeatRestart : l10n.defeatRetry,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.fredoka(
                           fontSize: 20,
