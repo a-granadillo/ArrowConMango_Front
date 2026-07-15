@@ -132,7 +132,7 @@ Future<void> setupServiceLocator() async {
     );
 
   // --- Domain services ---
-  final maxSize = _maxBoardSize();
+  final maxSize = _maxBoardSize(levelsBox);
   sl
     ..registerLazySingleton<scoring.ScoringStrategy>(MoveBasedScoring.new)
     ..registerLazySingleton<CollisionValidator>(
@@ -246,9 +246,13 @@ void _seedLevels(Box<LevelModel> box) {
 
 /// Largest board dimension across all levels; used to size the single shared
 /// collision topology so every level's exit trajectories resolve correctly.
-int _maxBoardSize() {
+///
+/// Reads from the already-seeded [levelsBox] rather than regenerating
+/// [LevelDefinitions.campaignLevels] on every launch — `_seedLevels` runs
+/// before this, so the box is always populated by this point.
+int _maxBoardSize(Box<LevelModel> levelsBox) {
   var maxDim = 1;
-  for (final level in LevelDefinitions.campaignLevels) {
+  for (final level in levelsBox.values) {
     maxDim = math.max(maxDim, math.max(level.boardSize.rows, level.boardSize.cols));
   }
   return maxDim;

@@ -1,5 +1,18 @@
+import 'dart:io';
+
 import 'package:arrowconmango_front/core/app_info.dart';
 import 'package:arrowconmango_front/core/audio/audio_service.dart';
+import 'package:arrowconmango_front/core/database/hive_config.dart';
+import 'package:arrowconmango_front/features/game/data/models/adapters/arrow_model_adapter.dart';
+import 'package:arrowconmango_front/features/game/data/models/adapters/arrow_trajectory_adapter.dart';
+import 'package:arrowconmango_front/features/game/data/models/adapters/board_size_model_adapter.dart';
+import 'package:arrowconmango_front/features/game/data/models/adapters/board_state_model_adapter.dart';
+import 'package:arrowconmango_front/features/game/data/models/adapters/level_model_adapter.dart';
+import 'package:arrowconmango_front/features/game/data/models/adapters/node_model_adapter.dart';
+import 'package:arrowconmango_front/features/game/data/models/adapters/trajectory_segment_adapter.dart';
+import 'package:arrowconmango_front/features/game/data/models/board_size_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/score.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
@@ -12,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fakes/fake_audio_service.dart';
@@ -20,7 +34,43 @@ class MockProgressBloc extends MockBloc<ProgressEvent, ProgressState>
     implements ProgressBloc {}
 
 void main() {
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
+  late Directory levelsDir;
+  late Box<LevelModel> levelsBox;
+
+  setUpAll(() async {
+    GoogleFonts.config.allowRuntimeFetching = false;
+    // AppInfo.totalLevels reads the already-open levels_v2 box (see
+    // core/app_info.dart) rather than regenerating the level catalogue, so
+    // this pure widget test backs it with a real temp-dir Hive box instead
+    // of pulling in HiveConfig.initialise()'s platform-channel dependencies.
+    levelsDir = Directory.systemTemp.createTempSync('acm_victory_test');
+    Hive.init(levelsDir.path);
+    Hive.registerAdapter(NodeModelAdapter());
+    Hive.registerAdapter(ArrowModelAdapter());
+    Hive.registerAdapter(BoardStateModelAdapter());
+    Hive.registerAdapter(LevelModelAdapter());
+    Hive.registerAdapter(TrajectorySegmentAdapter());
+    Hive.registerAdapter(ArrowTrajectoryAdapter());
+    Hive.registerAdapter(BoardSizeModelAdapter());
+    levelsBox = await Hive.openBox<LevelModel>(HiveConfig.levelsBoxName);
+    await levelsBox.putAll({
+      for (var i = 1; i <= 3; i++)
+        i: LevelModel(
+          id: i,
+          name: 'Test Level $i',
+          difficulty: 'Easy',
+          boardSize: const BoardSizeModel(rows: 3, cols: 3),
+          boardState: const BoardStateModel(arrows: []),
+        ),
+    });
+  });
+
+  tearDownAll(() async {
+    await levelsBox.close();
+    try {
+      levelsDir.deleteSync(recursive: true);
+    } catch (_) {}
+  });
 
   late MockProgressBloc progressBloc;
 

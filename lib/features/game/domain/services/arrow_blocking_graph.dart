@@ -1,5 +1,10 @@
 import 'dart:math' as math;
 
+/// Alias for [ArrowBlockingGraph], matching the domain vocabulary used by
+/// issue #43 ("ArrowGraph domain service, Kahn algorithm for hasCycle").
+/// Topology-agnostic: the same graph serves 2D and 3D boards alike.
+typedef ArrowGraph = ArrowBlockingGraph;
+
 /// Represents a directed dependency graph where nodes are arrow IDs
 /// and directed edges represent blocking relationships.
 ///
