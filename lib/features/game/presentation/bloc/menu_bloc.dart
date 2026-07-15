@@ -1,8 +1,11 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'package:arrowconmango_front/features/game/application/use_cases/get_level_list_use_case.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/menu_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/menu_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 
 /// {@template menu_bloc}
 /// BLoC that provides the list of levels with their unlock state for the
@@ -11,11 +14,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// It receives [MenuEvent]s from the UI, delegates domain work to the
 /// injected use case, and emits immutable [MenuState]s.
 /// {@endtemplate}
+@injectable
 class MenuBloc extends Bloc<MenuEvent, MenuState> {
   /// {@macro menu_bloc}
   MenuBloc({
-    required this._getLevelListUseCase,
-  })  : super(const MenuInitial()) {
+    required GetLevelListUseCase getLevelListUseCase,
+  })  : _getLevelListUseCase = getLevelListUseCase,
+        super(const MenuInitial()) {
     on<MenuLevelsRequested>(_onMenuLevelsRequested);
     on<MenuLevelsRefreshed>(_onMenuLevelsRefreshed);
   }

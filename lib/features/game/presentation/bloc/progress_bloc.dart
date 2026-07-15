@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'package:arrowconmango_front/features/game/application/use_cases/load_progress_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/save_local_progress_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
@@ -6,6 +8,7 @@ import 'package:arrowconmango_front/features/game/domain/repositories/result.dar
 import 'package:arrowconmango_front/features/game/presentation/bloc/progress_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/progress_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 
 /// {@template progress_bloc}
 /// BLoC that manages the player's global progress across levels.
@@ -13,13 +16,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// It receives [ProgressEvent]s from the UI, delegates domain work to the
 /// injected use cases, and emits immutable [ProgressState]s.
 /// {@endtemplate}
+@lazySingleton
 class ProgressBloc extends Bloc<ProgressEvent, ProgressState> {
   /// {@macro progress_bloc}
   ProgressBloc({
-    required this._loadProgressUseCase,
-    required this._saveLocalProgressUseCase,
-    required this._unlockNextLevelUseCase,
-  })  : super(const ProgressInitial()) {
+    required LoadProgressUseCase loadProgressUseCase,
+    required SaveLocalProgressUseCase saveLocalProgressUseCase,
+    required UnlockNextLevelUseCase unlockNextLevelUseCase,
+  })  : _loadProgressUseCase = loadProgressUseCase,
+        _saveLocalProgressUseCase = saveLocalProgressUseCase,
+        _unlockNextLevelUseCase = unlockNextLevelUseCase,
+        super(const ProgressInitial()) {
     on<ProgressLoadStarted>(_onProgressLoadStarted);
     on<ProgressLevelCompleted>(_onProgressLevelCompleted);
     on<ProgressUpdatedExternally>(_onProgressUpdatedExternally);
