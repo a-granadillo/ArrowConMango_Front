@@ -20,13 +20,22 @@ class LevelModel extends Equatable {
   });
 
   factory LevelModel.fromJson(Map<String, dynamic> json) {
+    BoardSizeModel size;
+    if (json['boardSize'] != null) {
+      size = BoardSizeModel.fromJson(json['boardSize'] as Map<String, dynamic>);
+    } else if (json['rows'] != null && json['cols'] != null) {
+      size = BoardSizeModel(rows: json['rows'] as int, cols: json['cols'] as int);
+    } else {
+      throw const FormatException(
+        'Missing required layout dimensions (boardSize or legacy rows/cols)',
+      );
+    }
+
     return LevelModel(
       id: json['id'] as int,
       name: json['name'] as String,
       difficulty: json['difficulty'] as String,
-      boardSize: BoardSizeModel.fromJson(
-        json['boardSize'] as Map<String, dynamic>,
-      ),
+      boardSize: size,
       boardState: BoardStateModel.fromJson(
         json['boardState'] as Map<String, dynamic>,
       ),

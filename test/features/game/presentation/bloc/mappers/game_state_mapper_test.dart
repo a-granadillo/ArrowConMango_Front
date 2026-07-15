@@ -4,6 +4,7 @@ import 'package:arrowconmango_front/features/game/domain/entities/board_state.da
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/command_history.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/move_command.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/score.dart';
@@ -48,8 +49,7 @@ void main() {
   Level dummyLevel({int levelId = 3, BoardState? templateBoard}) {
     return Level(
       levelId: levelId,
-      rows: 7,
-      cols: 7,
+      geometry: const BoardGeometry2D(rows: 7, cols: 7),
       templateBoard: templateBoard ?? dummyBoardState(),
     );
   }

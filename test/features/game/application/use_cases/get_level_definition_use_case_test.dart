@@ -1,4 +1,5 @@
 import 'package:arrowconmango_front/features/game/application/use_cases/get_level_definition_use_case.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
@@ -18,8 +19,7 @@ void main() {
       useCase = GetLevelDefinitionUseCase(fakeRepository);
       testLevel = Level(
         levelId: 1,
-        rows: 7,
-        cols: 7,
+        geometry: const BoardGeometry2D(rows: 7, cols: 7),
         templateBoard: BoardState(arrows: const []),
       );
     });

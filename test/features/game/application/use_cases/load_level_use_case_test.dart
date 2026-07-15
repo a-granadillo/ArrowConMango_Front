@@ -1,6 +1,7 @@
 import 'package:arrowconmango_front/features/game/application/use_cases/load_level_use_case.dart';
 import 'package:arrowconmango_front/features/game/data/models/level_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/level_mapper.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/game_session.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
@@ -43,8 +44,10 @@ class MockLevelMapper implements LevelMapper {
   Level toEntity(LevelModel model) {
     return Level(
       levelId: model.id,
-      rows: model.boardSize.rows,
-      cols: model.boardSize.cols,
+      geometry: BoardGeometry2D(
+        rows: model.boardSize.rows,
+        cols: model.boardSize.cols,
+      ),
       templateBoard: BoardState(arrows: const []),
     );
   }
@@ -68,8 +71,7 @@ void main() {
       useCase = LoadLevelUseCase(mockRepository, mockMapper);
       testLevel = Level(
         levelId: 1,
-        rows: 7,
-        cols: 7,
+        geometry: const BoardGeometry2D(rows: 7, cols: 7),
         templateBoard: BoardState(arrows: const []),
       );
     });

@@ -10,6 +10,7 @@ import 'package:arrowconmango_front/features/game/data/models/node_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/trajectory_segment.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/cardinal_direction.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/board_geometry.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/level.dart';
 import 'package:test/test.dart';
 
@@ -51,8 +52,7 @@ void main() {
       // Arrange
       final entity = Level(
         levelId: 5,
-        rows: 7,
-        cols: 7,
+        geometry: const BoardGeometry2D(rows: 7, cols: 7),
         templateBoard: BoardState(arrows: const []),
       );
 
@@ -105,8 +105,7 @@ void main() {
       // Arrange
       final entity = Level(
         levelId: 12,
-        rows: 7,
-        cols: 7,
+        geometry: const BoardGeometry2D(rows: 7, cols: 7),
         templateBoard: BoardState(arrows: const []),
       );
 
@@ -115,6 +114,30 @@ void main() {
 
       // Assert
       expect(model.difficulty, equals('Hard'));
+    });
+
+    test('should_deserialize_legacy_json_with_flat_rows_and_cols_correctly', () {
+      // Arrange
+      final legacyJson = {
+        'id': 1,
+        'name': 'Legacy Level',
+        'difficulty': 'Easy',
+        'rows': 5,
+        'cols': 6,
+        'boardState': {
+          'arrows': <Map<String, dynamic>>[]
+        }
+      };
+
+      // Act
+      final model = LevelModel.fromJson(legacyJson);
+      final entity = mapper.toEntity(model);
+
+      // Assert
+      expect(entity.levelId, equals(1));
+      expect(entity.rows, equals(5));
+      expect(entity.cols, equals(6));
+      expect(entity.geometry, isA<BoardGeometry2D>());
     });
   });
 }
