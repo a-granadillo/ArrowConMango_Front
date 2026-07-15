@@ -111,6 +111,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                   }),
                                 ),
                                 const SizedBox(height: 14),
+                                _PlayButton(
+                                  label: 'CUBO 3D',
+                                  bg: AppColors.success,
+                                  shadow: AppColors.successDark,
+                                  onTap: _withClick(
+                                    () => context.push(AppRoutes.game3d),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
                                 Row(
                                   children: [
                                     Expanded(

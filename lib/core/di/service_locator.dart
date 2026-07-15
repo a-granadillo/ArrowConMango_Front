@@ -27,11 +27,13 @@ import '../../features/game/data/repositories/hive_level_repository.dart';
 import '../../features/game/data/repositories/hive_progress_repository.dart';
 import '../../features/game/data/repositories/synced_progress_repository.dart';
 import '../../features/game/data/topologies/grid_2d_topology.dart';
+import '../../features/game/data/topologies/grid_3d_topology.dart';
 import '../../features/game/domain/repositories/i_level_repository.dart';
 import '../../features/game/domain/repositories/i_progress_repository.dart';
 import '../../features/game/domain/services/collision_validator.dart';
 import '../../features/game/domain/entities/scoring_strategy.dart' as scoring;
 import '../../features/game/domain/services/move_based_scoring.dart';
+import '../../features/game/presentation/bloc/cube3d/cube3d_game_cubit.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
 import '../../features/game/presentation/bloc/progress_bloc.dart';
@@ -229,6 +231,35 @@ Future<void> setupServiceLocator() async {
         calculateScoreUseCase: sl<CalculateScoreUseCase>(),
         unlockNextLevelUseCase: sl<UnlockNextLevelUseCase>(),
         collisionValidator: sl<CollisionValidator>(),
+        audioService: sl<AudioService>(),
+      ),
+    );
+
+  // --- 3D Cube mode (issue #44) ---
+  // Separate instances from the 2D ones above (GetIt requires an
+  // `instanceName` to register a second object of the same type): the cube
+  // UI needs a Grid3DTopology-backed validator, not the 2D one.
+  // 6 covers every CubeLevels dimension (currently up to 5) with headroom.
+  const cubeMaxDim = 6;
+  sl
+    ..registerLazySingleton<CollisionValidator>(
+      () => CollisionValidator(
+        Grid3DTopology(width: cubeMaxDim, height: cubeMaxDim, depth: cubeMaxDim),
+      ),
+      instanceName: 'cube3d',
+    )
+    ..registerLazySingleton<TriggerArrowExitUseCase>(
+      () => TriggerArrowExitUseCase(
+        sl<CollisionValidator>(instanceName: 'cube3d'),
+      ),
+      instanceName: 'cube3d',
+    )
+    ..registerFactory<Cube3DGameCubit>(
+      () => Cube3DGameCubit(
+        triggerArrowExitUseCase: sl<TriggerArrowExitUseCase>(
+          instanceName: 'cube3d',
+        ),
+        collisionValidator: sl<CollisionValidator>(instanceName: 'cube3d'),
         audioService: sl<AudioService>(),
       ),
     );
