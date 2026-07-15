@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../helpers/fakes/fake_audio_service.dart';
+import '../../../../helpers/pump_localized_app.dart';
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
@@ -15,10 +16,11 @@ void main() {
     final audioService = FakeAudioService();
 
     // Act
-    await tester.pumpWidget(
+    await pumpLocalizedApp(
+      tester,
       RepositoryProvider<AudioService>.value(
         value: audioService,
-        child: const MaterialApp(home: MainMenuScreen()),
+        child: const MainMenuScreen(),
       ),
     );
     await tester.pump();

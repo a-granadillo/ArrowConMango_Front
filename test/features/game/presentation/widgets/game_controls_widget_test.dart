@@ -2,17 +2,18 @@ import 'package:arrowconmango_front/features/game/presentation/widgets/game_cont
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/pump_localized_app.dart';
+
 void main() {
   Future<void> pumpControls(
     WidgetTester tester, {
     required bool canUndo,
     required VoidCallback onUndo,
   }) {
-    return tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: GameControlsWidget(canUndo: canUndo, onUndo: onUndo),
-        ),
+    return pumpLocalizedApp(
+      tester,
+      Scaffold(
+        body: GameControlsWidget(canUndo: canUndo, onUndo: onUndo),
       ),
     );
   }

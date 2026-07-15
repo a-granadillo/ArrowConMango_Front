@@ -5,13 +5,13 @@ import 'package:arrowconmango_front/features/leaderboard/presentation/leaderboar
 import 'package:arrowconmango_front/features/player/domain/guest_player.dart';
 import 'package:arrowconmango_front/features/player/presentation/player_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/player_test_setup.dart';
+import '../../helpers/pump_localized_app.dart';
 
 class MockLeaderboardCubit extends MockCubit<LeaderboardState>
     implements LeaderboardCubit {}
@@ -79,15 +79,14 @@ void main() {
   tearDown(() => player.close());
 
   Future<void> pumpScreen(WidgetTester tester) {
-    return tester.pumpWidget(
-      MaterialApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<LeaderboardCubit>.value(value: cubit),
-            BlocProvider<PlayerCubit>.value(value: player),
-          ],
-          child: const LeaderboardScreen(),
-        ),
+    return pumpLocalizedApp(
+      tester,
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<LeaderboardCubit>.value(value: cubit),
+          BlocProvider<PlayerCubit>.value(value: player),
+        ],
+        child: const LeaderboardScreen(),
       ),
     );
   }

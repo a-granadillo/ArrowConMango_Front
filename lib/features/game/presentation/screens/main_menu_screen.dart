@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
 import '../../../../core/audio/sfx_clip.dart';
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -80,7 +81,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '¡EL LABERINTO MÁS SABROSO!',
+                            context.l10n.menuSubtitle,
                             style: GoogleFonts.nunito(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -94,14 +95,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             child: Column(
                               children: [
                                 _PlayButton(
-                                  label: 'MODO CAMPAÑA',
+                                  label: context.l10n.menuCampaignMode,
                                   onTap: _withClick(
                                     () => context.push(AppRoutes.levels),
                                   ),
                                 ),
                                 const SizedBox(height: 14),
                                 _PlayButton(
-                                  label: 'SUPERVIVENCIA',
+                                  label: context.l10n.menuSurvivalMode,
                                   bg: AppColors.textDark,
                                   shadow: const Color(0xFF3E2723),
                                   onTap: _withClick(() {
@@ -122,9 +123,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: _NavButton(
+                                      child:                                       _NavButton(
                                         svg: AppSvgs.niveles,
-                                        label: 'Niveles',
+                                        label: context.l10n.menuLevels,
                                         bg: AppColors.mango,
                                         fg: AppColors.textDark,
                                         shadow: const Color(0xFFD4A017),
@@ -135,9 +136,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: _NavButton(
+                                      child:                                       _NavButton(
                                         svg: AppSvgs.ranking,
-                                        label: 'Ranking',
+                                        label: context.l10n.menuRanking,
                                         bg: AppColors.success,
                                         fg: Colors.white,
                                         shadow: AppColors.successDark,
@@ -148,9 +149,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: _NavButton(
+                                      child:                                       _NavButton(
                                         svg: AppSvgs.ajustes,
-                                        label: 'Ajustes',
+                                        label: context.l10n.menuSettings,
                                         bg: AppColors.textDark,
                                         fg: AppColors.mango,
                                         shadow: const Color(0xFF3E2723),

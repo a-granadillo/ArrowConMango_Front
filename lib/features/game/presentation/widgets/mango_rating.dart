@@ -1,3 +1,5 @@
+import '../../../../l10n/app_localizations.dart';
+
 /// Maps a level's final score to the design's 1–3 mango performance rating
 /// and celebration message.
 ///
@@ -14,19 +16,13 @@ class MangoRating {
   /// Celebration message matching the design's copy for this tier.
   final String message;
 
-  factory MangoRating.fromScore(int totalPoints) {
+  factory MangoRating.fromScore(int totalPoints, AppLocalizations l10n) {
     if (totalPoints >= 700) {
-      return const MangoRating._(
-        3,
-        '¡Cosecha perfecta! Eres un maestro del mango',
-      );
+      return MangoRating._(3, l10n.ratingPerfect);
     }
     if (totalPoints >= 400) {
-      return const MangoRating._(2, '¡Muy bien! Casi una cosecha perfecta');
+      return MangoRating._(2, l10n.ratingGreat);
     }
-    return const MangoRating._(
-      1,
-      '¡Nivel superado! Sé más rápido y preciso para más mangos',
-    );
+    return MangoRating._(1, l10n.ratingPass);
   }
 }

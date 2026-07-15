@@ -29,6 +29,7 @@ import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fakes/fake_audio_service.dart';
+import '../../../../helpers/pump_localized_app.dart';
 
 class MockProgressBloc extends MockBloc<ProgressEvent, ProgressState>
     implements ProgressBloc {}
@@ -88,14 +89,13 @@ void main() {
   tearDown(() => progressBloc.close());
 
   Future<void> pumpVictory(WidgetTester tester, GameVictory result) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RepositoryProvider<AudioService>.value(
-          value: FakeAudioService(),
-          child: BlocProvider<ProgressBloc>.value(
-            value: progressBloc,
-            child: VictoryScreen(result: result),
-          ),
+    await pumpLocalizedApp(
+      tester,
+      RepositoryProvider<AudioService>.value(
+        value: FakeAudioService(),
+        child: BlocProvider<ProgressBloc>.value(
+          value: progressBloc,
+          child: VictoryScreen(result: result),
         ),
       ),
     );

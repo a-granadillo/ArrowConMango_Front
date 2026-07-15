@@ -7,17 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../helpers/fakes/fake_audio_service.dart';
+import '../../../../helpers/pump_localized_app.dart';
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
   Future<void> pumpDefeat(WidgetTester tester, GameDefeat result) {
-    return tester.pumpWidget(
-      MaterialApp(
-        home: RepositoryProvider<AudioService>.value(
-          value: FakeAudioService(),
-          child: DefeatScreen(result: result),
-        ),
+    return pumpLocalizedApp(
+      tester,
+      RepositoryProvider<AudioService>.value(
+        value: FakeAudioService(),
+        child: DefeatScreen(result: result),
       ),
     );
   }

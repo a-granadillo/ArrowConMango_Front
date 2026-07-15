@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/audio/audio_service.dart';
 import 'core/audio/audio_settings_cubit.dart';
 import 'core/di/service_locator.dart';
+import 'core/i18n/locale_cubit.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/game/presentation/bloc/progress_bloc.dart';
 import 'features/game/presentation/bloc/progress_event.dart';
 import 'features/player/presentation/player_cubit.dart';
+import 'l10n/app_localizations.dart';
 
 /// Root application widget.
 ///
@@ -58,6 +61,7 @@ class _ArrowConMangoAppState extends State<ArrowConMangoApp>
       value: sl<AudioService>(),
       child: MultiBlocProvider(
         providers: [
+          BlocProvider<LocaleCubit>(create: (_) => LocaleCubit()),
           BlocProvider<ProgressBloc>.value(
             value: sl<ProgressBloc>()..add(const ProgressLoadStarted()),
           ),
@@ -66,11 +70,24 @@ class _ArrowConMangoAppState extends State<ArrowConMangoApp>
             value: sl<AudioSettingsCubit>(),
           ),
         ],
-        child: MaterialApp.router(
-          title: 'Arrow con Mango',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          routerConfig: _router,
+        child: BlocBuilder<LocaleCubit, Locale>(
+          builder: (context, locale) => MaterialApp.router(
+            title: 'Arrow con Mango',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            routerConfig: _router,
+            locale: locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('es'),
+              Locale('en'),
+            ],
+          ),
         ),
       ),
     );

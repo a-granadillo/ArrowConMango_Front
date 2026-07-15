@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -62,7 +65,7 @@ dependencies:
   dio: ^5.7.0
 
   # Network status detection for the offline-fallback sync flow.
-  connectivity_plus: ^6.1.0
+  connectivity_plus: ^7.2.0
 
   # Matrix/vector math for the rotatable 3D cube projection (CustomPainter).
   vector_math: ^2.2.0
@@ -92,6 +95,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

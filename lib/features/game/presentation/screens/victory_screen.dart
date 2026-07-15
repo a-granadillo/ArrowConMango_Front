@@ -7,6 +7,7 @@ import '../../../../core/app_info.dart';
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
 import '../../../../core/audio/sfx_clip.dart';
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/mango_logo.dart';
@@ -66,8 +67,9 @@ class _VictoryScreenState extends State<VictoryScreen> {
   @override
   Widget build(BuildContext context) {
     final result = widget.result;
+    final l10n = context.l10n;
     final hasNext = result.levelId < AppInfo.totalLevels;
-    final rating = MangoRating.fromScore(result.score.totalPoints);
+    final rating = MangoRating.fromScore(result.score.totalPoints, l10n);
 
     return Scaffold(
       body: ResultSheet(
@@ -77,14 +79,19 @@ class _VictoryScreenState extends State<VictoryScreen> {
           children: [
             const _PoppingMangoIcon(),
             const SizedBox(height: 10),
-            Text(
-              result.isEndlessMode ? '¡NIVEL COMPLETADO!' : '¡ENHORABUENA!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.fredoka(
-                fontSize: 36,
-                height: 1,
-                letterSpacing: 1.5,
-                color: AppColors.primary,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                result.isEndlessMode
+                    ? l10n.victoryLevelCompleted
+                    : l10n.victoryTitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.fredoka(
+                  fontSize: 36,
+                  height: 1,
+                  letterSpacing: 1.5,
+                  color: AppColors.primary,
+                ),
               ),
             ),
             const SizedBox(height: 6),
@@ -101,7 +108,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
             MangoSlots(filled: rating.stars),
             const SizedBox(height: 8),
             Text(
-              '${rating.stars}/3 MANGOS',
+              l10n.victoryMangosLabel(rating.stars),
               style: GoogleFonts.nunito(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -114,29 +121,29 @@ class _VictoryScreenState extends State<VictoryScreen> {
               stats: [
                 ResultStat(
                   value: '${result.moveCount}',
-                  label: 'Toques',
+                  label: l10n.victoryStatTaps,
                   color: AppColors.primary,
                 ),
                 ResultStat(
                   value: formatDuration(result.elapsedSeconds),
-                  label: 'Tiempo',
+                  label: l10n.victoryStatTime,
                   color: AppColors.success,
                 ),
                 if (result.isEndlessMode) ...[
                   ResultStat(
                     value: '${result.levelsCompleted}',
-                    label: 'Niveles',
+                    label: l10n.victoryStatLevels,
                     color: AppColors.mango,
                   ),
                   ResultStat(
                     value: '${result.livesRemaining}',
-                    label: 'Vidas',
+                    label: l10n.victoryStatLives,
                     color: AppColors.danger,
                   ),
                 ] else
                   ResultStat(
                     value: '${result.score.totalPoints}',
-                    label: 'Mangos',
+                    label: l10n.victoryStatMangos,
                     color: AppColors.mango,
                   ),
               ],
@@ -166,7 +173,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    child: const Text('Menú'),
+                    child: Text(l10n.victoryMenu),
                   ),
                 ),
                 if (result.isEndlessMode) ...[
@@ -201,7 +208,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
                           ],
                         ),
                         child: Text(
-                          'Siguiente nivel',
+                          l10n.victoryNextLevel,
                           textAlign: TextAlign.center,
                           style: GoogleFonts.fredoka(
                             fontSize: 20,
@@ -237,7 +244,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
                           ],
                         ),
                         child: Text(
-                          'Siguiente nivel',
+                          l10n.victoryNextLevel,
                           textAlign: TextAlign.center,
                           style: GoogleFonts.fredoka(
                             fontSize: 20,

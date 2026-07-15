@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_gradients.dart';
@@ -68,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
                 const SizedBox(height: 36),
                 Text(
-                  'Toca para continuar',
+                  context.l10n.splashTapToContinue,
                   style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

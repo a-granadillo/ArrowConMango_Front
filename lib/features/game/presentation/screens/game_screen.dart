@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -17,6 +18,7 @@ import '../bloc/game_state.dart';
 import '../widgets/arrow_color_assigner.dart';
 import '../widgets/board_grid_widget.dart';
 import '../widgets/game_controls_widget.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// The main gameplay screen. Loads a level into [GameBloc], drives the timer,
 /// renders the board and controls, and navigates to the result screens.
@@ -178,20 +180,19 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
               const SizedBox(height: 13),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Text(
-                  'Toca una flecha para sacarla del tablero.\n'
-                  'Solo queda bloqueada si otra flecha cruza su salida.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    height: 1.5,
-                    color: AppColors.textMuted,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Text(
+                    context.l10n.gameInstructions,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      height: 1.5,
+                      color: AppColors.textMuted,
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 10),
               GameControlsWidget(
                 canUndo: state.canUndo,
@@ -218,7 +219,7 @@ class _GameScreenState extends State<GameScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => context.go(AppRoutes.menu),
-            child: const Text('Menú'),
+            child: Text(context.l10n.gameMenuButton),
           ),
         ],
       ),
@@ -243,19 +244,21 @@ class _Header extends StatelessWidget {
     return '$m:$s';
   }
 
-  static String _difficultyEs(String difficulty) => switch (difficulty) {
-        'Easy' => 'Fácil',
-        'Medium' => 'Medio',
-        'Hard' => 'Difícil',
+  static String _difficultyEs(String difficulty, AppLocalizations l10n) =>
+      switch (difficulty) {
+        'Easy' => l10n.difficultyEasy,
+        'Medium' => l10n.difficultyMedium,
+        'Hard' => l10n.difficultyHard,
         _ => difficulty,
       };
 
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final l10n = context.l10n;
     final title = state.levelName.isNotEmpty
         ? state.levelName
-        : 'Nivel ${state.levelId}';
+        : l10n.gameLevelLabel(state.levelId);
     return Container(
       padding: EdgeInsets.fromLTRB(16, top + 20, 16, 14),
       decoration: const BoxDecoration(
@@ -283,7 +286,10 @@ class _Header extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Nivel ${state.levelId} · ${_difficultyEs(state.difficulty)}',
+                      l10n.gameLevelSubtitle(
+                        state.levelId,
+                        _difficultyEs(state.difficulty, l10n),
+                      ),
                       style: GoogleFonts.nunito(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -303,7 +309,7 @@ class _Header extends StatelessWidget {
                 child: _StatChip(
                   svg: AppSvgs.arrowsRemaining,
                   value: '${state.arrowsRemaining}',
-                  label: 'flechas',
+                  label: l10n.gameStatArrows,
                 ),
               ),
               const SizedBox(width: 8),
@@ -311,7 +317,7 @@ class _Header extends StatelessWidget {
                 child: _StatChip(
                   svg: AppSvgs.taps,
                   value: '${state.moveCount}',
-                  label: 'toques',
+                  label: l10n.gameStatTaps,
                 ),
               ),
               const SizedBox(width: 8),
@@ -345,7 +351,7 @@ class _Header extends StatelessWidget {
                   child: _StatChip(
                     svg: AppSvgs.niveles,
                     value: '${state.levelsCompleted}',
-                    label: 'niveles',
+                    label: l10n.gameStatLevels,
                   ),
                 ),
               ],
@@ -387,7 +393,7 @@ class _LivesIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Vidas: $lives de 3',
+      label: context.l10n.gameLivesLabel(lives),
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
