@@ -79,16 +79,19 @@ class _VictoryScreenState extends State<VictoryScreen> {
           children: [
             const _PoppingMangoIcon(),
             const SizedBox(height: 10),
-            Text(
-              result.isEndlessMode
-                  ? l10n.victoryLevelCompleted
-                  : l10n.victoryTitle,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.fredoka(
-                fontSize: 36,
-                height: 1,
-                letterSpacing: 1.5,
-                color: AppColors.primary,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                result.isEndlessMode
+                    ? l10n.victoryLevelCompleted
+                    : l10n.victoryTitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.fredoka(
+                  fontSize: 36,
+                  height: 1,
+                  letterSpacing: 1.5,
+                  color: AppColors.primary,
+                ),
               ),
             ),
             const SizedBox(height: 6),
