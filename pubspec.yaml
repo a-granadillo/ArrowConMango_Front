@@ -65,7 +65,7 @@ dependencies:
   dio: ^5.7.0
 
   # Network status detection for the offline-fallback sync flow.
-  connectivity_plus: ^6.1.0
+  connectivity_plus: ^7.2.0
 
 dev_dependencies:
   flutter_test:
