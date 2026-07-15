@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/mango_background.dart';
@@ -18,6 +19,7 @@ class RankingPlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return MangoBackground(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -33,7 +35,7 @@ class RankingPlaceholderScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Clasificación',
+                l10n.rankingTitle,
                 style:
                     AppTypography.display(26, color: AppColors.textOnPrimary),
               ),
@@ -46,14 +48,14 @@ class RankingPlaceholderScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Los mejores cosechadores llegarán pronto 🥭',
+            l10n.rankingComingSoon,
             textAlign: TextAlign.center,
             style: AppTypography.body(16, color: AppColors.textOnPrimary),
           ),
           const SizedBox(height: 8),
           BlocBuilder<PlayerCubit, GuestPlayer>(
             builder: (context, player) => Text(
-              'Jugarás como: ${player.displayName}',
+              l10n.rankingPlayAs(player.displayName),
               textAlign: TextAlign.center,
               style: AppTypography.body(
                 14,

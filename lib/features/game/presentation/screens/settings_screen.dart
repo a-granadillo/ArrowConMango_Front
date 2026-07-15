@@ -7,6 +7,8 @@ import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_settings_cubit.dart';
 import '../../../../core/audio/audio_settings_state.dart';
 import '../../../../core/audio/sfx_clip.dart';
+import '../../../../core/i18n/app_localizations_extension.dart';
+import '../../../../core/i18n/locale_cubit.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -23,13 +25,14 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _language = 'es';
+  Locale _language = const Locale('es');
   AudioService? _audioService;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _audioService ??= context.read<AudioService>();
+    _language = context.read<LocaleCubit>().state;
   }
 
   VoidCallback _withClick(VoidCallback action) => () {
@@ -40,15 +43,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _editName(BuildContext context) async {
     final cubit = context.read<PlayerCubit>();
     final controller = TextEditingController(text: cubit.state.displayName);
+    final l10n = context.l10n;
     final newName = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Nombre de jugador'),
+        title: Text(l10n.settingsDialogPlayerName),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 20,
-          decoration: const InputDecoration(hintText: 'Tu nombre'),
+          decoration: InputDecoration(hintText: l10n.settingsDialogHint),
         ),
         actions: [
           TextButton(
@@ -56,14 +60,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _audioService?.playSfx(SfxClip.click);
               Navigator.of(dialogContext).pop();
             },
-            child: const Text('Cancelar'),
+            child: Text(l10n.settingsDialogCancel),
           ),
           TextButton(
             onPressed: () {
               _audioService?.playSfx(SfxClip.click);
               Navigator.of(dialogContext).pop(controller.text.trim());
             },
-            child: const Text('Guardar'),
+            child: Text(l10n.settingsDialogSave),
           ),
         ],
       ),
@@ -88,18 +92,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 BlocBuilder<PlayerCubit, GuestPlayer>(
                   builder: (context, player) => _SettingCard(
                     icon: Icons.person_rounded,
-                    title: 'Nombre de jugador',
+                    title: context.l10n.settingsPlayerName,
                     subtitle: player.displayName,
                     trailing: TextButton(
                       onPressed: _withClick(() => _editName(context)),
-                      child: const Text('Editar'),
+                      child: Text(context.l10n.settingsEdit),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 _SettingCard(
                   icon: Icons.volume_up_rounded,
-                  title: 'Sonido',
+                  title: context.l10n.settingsSound,
                   trailing: BlocBuilder<AudioSettingsCubit, AudioSettingsState>(
                     builder: (context, audioState) => Switch(
                       value: !audioState.isMuted,
@@ -112,23 +116,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 12),
                 _SettingCard(
                   icon: Icons.language_rounded,
-                  title: 'Idioma',
-                  trailing: DropdownButton<String>(
+                  title: context.l10n.settingsLanguage,
+                  trailing: DropdownButton<Locale>(
                     value: _language,
                     underline: const SizedBox.shrink(),
-                    onChanged: (v) =>
-                        setState(() => _language = v ?? _language),
+                    onChanged: (locale) {
+                      if (locale == null) return;
+                      setState(() => _language = locale);
+                      context.read<LocaleCubit>().setLocale(locale);
+                    },
                     items: const [
-                      DropdownMenuItem(value: 'es', child: Text('Español')),
-                      DropdownMenuItem(value: 'en', child: Text('English')),
+                      DropdownMenuItem(
+                        value: Locale('es'),
+                        child: Text('Español'),
+                      ),
+                      DropdownMenuItem(
+                        value: Locale('en'),
+                        child: Text('English'),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
                 _SettingCard(
                   icon: Icons.view_in_ar_rounded,
-                  title: 'Tablero 3D (demo)',
-                  subtitle: 'Vista previa del renderizado por capas Z',
+                  title: context.l10n.settingsBoard3D,
+                  subtitle: context.l10n.settingsBoard3DSubtitle,
                   trailing: IconButton(
                     icon: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
                     onPressed: _withClick(
@@ -178,7 +191,7 @@ class _Header extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Ajustes',
+              context.l10n.settingsTitle,
               style: GoogleFonts.fredoka(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,

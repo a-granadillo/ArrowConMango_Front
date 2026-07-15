@@ -6,13 +6,13 @@ import 'package:arrowconmango_front/features/game/presentation/bloc/menu_event.d
 import 'package:arrowconmango_front/features/game/presentation/bloc/menu_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/screens/level_selection_screen.dart';
 import 'package:arrowconmango_front/features/game/presentation/widgets/level_card.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../helpers/fakes/fake_level_repository.dart';
 import '../../../../helpers/fakes/fake_progress_repository.dart';
+import '../../../../helpers/pump_localized_app.dart';
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
@@ -42,12 +42,11 @@ void main() {
       menuBloc.add(const MenuLevelsRequested());
       await menuBloc.stream.firstWhere((s) => s is MenuLoaded);
     });
-    await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider<MenuBloc>.value(
-          value: menuBloc,
-          child: const LevelSelectionScreen(),
-        ),
+    await pumpLocalizedApp(
+      tester,
+      BlocProvider<MenuBloc>.value(
+        value: menuBloc,
+        child: const LevelSelectionScreen(),
       ),
     );
     await tester.pump();

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/i18n/app_localizations_extension.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_svgs.dart';
 import '../../player/presentation/player_cubit.dart';
@@ -37,8 +38,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   void _onSignIn() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Inicio de sesión con Google/Apple — próximamente 🥭'),
+      SnackBar(
+        content: Text(context.l10n.leaderboardSignInComingSoon),
       ),
     );
   }
@@ -91,10 +92,10 @@ class _LeaderboardBody extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: TextButton.icon(
+          child:           TextButton.icon(
             onPressed: onSignIn,
             icon: const Icon(Icons.login_rounded, size: 18),
-            label: const Text('Vincular cuenta (Google / Apple)'),
+            label: Text(context.l10n.leaderboardLinkAccount),
             style: TextButton.styleFrom(foregroundColor: AppColors.textMuted),
           ),
         ),
@@ -110,6 +111,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final top = MediaQuery.of(context).padding.top;
     // Design order left-to-right: 2nd, 1st, 3rd.
     final ordered = [
@@ -149,7 +151,7 @@ class _Header extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Clasificación',
+                      l10n.leaderboardTitle,
                       style: GoogleFonts.fredoka(
                         fontSize: 22,
                         height: 1.1,
@@ -158,7 +160,7 @@ class _Header extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Los mejores cosechadores',
+                      l10n.leaderboardSubtitle,
                       style: GoogleFonts.nunito(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -326,7 +328,9 @@ class _LeaderboardRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  highlighted ? '${entry.displayName} (Tú)' : entry.displayName,
+                  highlighted
+                      ? context.l10n.leaderboardCurrentPlayer(entry.displayName)
+                      : entry.displayName,
                   style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,

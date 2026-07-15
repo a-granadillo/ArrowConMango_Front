@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/sfx_clip.dart';
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
@@ -14,16 +15,17 @@ import '../bloc/menu_bloc.dart';
 import '../bloc/menu_event.dart';
 import '../bloc/menu_state.dart';
 import '../widgets/level_card.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Level selection — faithful reproduction of the design.
 class LevelSelectionScreen extends StatelessWidget {
   const LevelSelectionScreen({super.key});
 
-  /// Spanish difficulty label matching the design.
-  static String difficultyFor(int levelId) {
-    if (levelId <= 5) return 'Fácil';
-    if (levelId <= 10) return 'Medio';
-    return 'Difícil';
+  /// Difficulty label matching the current locale.
+  static String difficultyFor(int levelId, AppLocalizations l10n) {
+    if (levelId <= 5) return l10n.difficultyEasy;
+    if (levelId <= 10) return l10n.difficultyMedium;
+    return l10n.difficultyHard;
   }
 
   @override
@@ -75,7 +77,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Seleccionar Nivel',
+                  context.l10n.levelSelectTitle,
                   style: GoogleFonts.fredoka(
                     fontSize: 22,
                     height: 1.1,
@@ -90,7 +92,7 @@ class _Header extends StatelessWidget {
                         : 0;
                     final total = state is MenuLoaded ? state.levels.length : 15;
                     return Text(
-                      '$unlocked de $total disponibles',
+                      context.l10n.levelSelectAvailable(unlocked, total),
                       style: GoogleFonts.nunito(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -159,7 +161,10 @@ class _LevelGrid extends StatelessWidget {
         return LevelCard(
           levelId: level.levelId,
           state: _stateFor(index),
-          difficulty: LevelSelectionScreen.difficultyFor(level.levelId),
+          difficulty: LevelSelectionScreen.difficultyFor(
+            level.levelId,
+            context.l10n,
+          ),
           onTap: () {
             context.read<AudioService>().playSfx(SfxClip.click);
             context.push(AppRoutes.gameFor(level.levelId));
@@ -191,7 +196,7 @@ class _ErrorView extends StatelessWidget {
           ElevatedButton(
             onPressed: () =>
                 context.read<MenuBloc>().add(const MenuLevelsRequested()),
-            child: const Text('Reintentar'),
+            child: Text(context.l10n.levelSelectRetry),
           ),
         ],
       ),

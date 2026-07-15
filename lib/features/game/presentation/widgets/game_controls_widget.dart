@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 
@@ -40,7 +41,7 @@ class GameControlsWidget extends StatelessWidget {
             AppSvgs.icon(AppSvgs.undo, 16),
             const SizedBox(width: 6),
             Text(
-              'Deshacer',
+              context.l10n.gameUndo,
               style: GoogleFonts.nunito(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
