@@ -4,9 +4,11 @@ import 'package:arrowconmango_front/features/game/domain/errors/arrow_not_found_
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:injectable/injectable.dart';
+
 import '../../domain/services/collision_validator.dart';
 
-
+@lazySingleton
 class TriggerArrowExitUseCase {
   final CollisionValidator _collisionValidator;
 

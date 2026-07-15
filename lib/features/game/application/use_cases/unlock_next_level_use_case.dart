@@ -4,6 +4,7 @@ import 'package:arrowconmango_front/features/game/domain/errors/level_not_found_
 import 'package:arrowconmango_front/features/game/domain/repositories/i_level_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:injectable/injectable.dart';
 
 /// Unlocks the level that follows [currentLevelId] and persists the progress.
 ///
@@ -16,6 +17,7 @@ import 'package:arrowconmango_front/features/game/domain/repositories/result.dar
 ///
 /// Any repository failure or unhandled exception is surfaced as a domain
 /// [Failure] wrapped in an [Error].
+@lazySingleton
 class UnlockNextLevelUseCase {
   final IProgressRepository _progressRepository;
   final ILevelRepository _levelRepository;

@@ -2,10 +2,12 @@
 import 'package:arrowconmango_front/features/game/data/level_definitions/level_definitions.dart';
 import 'package:arrowconmango_front/features/game/data/models/mappers/level_mapper.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/level.dart';
 import '../../domain/repositories/i_level_repository.dart';
 
+@lazySingleton
 class LoadLevelUseCase {
   final ILevelRepository _levelRepository;
   final LevelMapper _levelMapper;

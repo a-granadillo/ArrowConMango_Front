@@ -4,6 +4,7 @@ import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.
 import 'package:arrowconmango_front/features/game/domain/repositories/i_level_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:injectable/injectable.dart';
 
 /// Returns a list of [LevelSummary] entries for every level available.
 ///
@@ -13,6 +14,7 @@ import 'package:arrowconmango_front/features/game/domain/repositories/result.dar
 ///
 /// Repository failures are propagated directly so their concrete type is
 /// preserved; unhandled exceptions are surfaced as a [GenericFailure].
+@lazySingleton
 class GetLevelListUseCase {
   final ILevelRepository _levelRepository;
   final IProgressRepository _progressRepository;
