@@ -741,7 +741,39 @@
   - `test/features/game/presentation/bloc/game_bloc_test.dart` (esperas en tests de BLoC)
   - `test/features/game/data/repositories/synced_progress_repository_test.dart` (tests adaptados a background futures)
 
-  ### Entrada #38 — Balanceo del Modo Campaña (Penalización por errores y Bugfix de Amnesia)                                            
+### Entrada #38 — AOP Logging & Error Handling (Issue #14)
+
+- **Fecha / autor:** 16-07-2026 / Abraham Granadillo
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Arquitecto de Software / Desarrollador Senior Dart (Capa Transversal).
+- **Tarea/problema:** Implementar el Issue #14: añadir aspectos transversales de logging y manejo centralizado de errores sin contaminar la lógica de negocio de los repositorios ni los BLoCs. El reto era hacerlo 100% en Dart/Flutter sin reflection ni bytecode weaving, manteniendo las firmas públicas intactas y respetando el Service Locator existente.
+- **Prompt (paráfrasis fiel):** > "Necesito empezar con el Issue de AOP, recuerda crear la rama correspondiente primero." Seguido de planificación SDD manual por fases y ejecución directa en la rama `feat/aop-logging-error-handling`.
+- **Resultado obtenido:**
+  1. Nuevo directorio transversal `lib/core/aop/`:
+     - `aop_logger.dart` — logger interno que usa `dart:developer` y se silencia completamente en `kReleaseMode`.
+     - `aop_invoker.dart` — helper central con dos caminos tipados:
+       - `invokeResult<R>` para métodos que devuelven `Result<R>`: captura excepciones de infraestructura (`HiveError`, `DioException`, etc.) y las traduce en `Error<R>(GenericFailure(...))`.
+       - `invoke<R>` / `invokeSync<T>` para métodos comunes: loguea y re-lanza para no ocultar errores de programación.
+     - `app_bloc_observer.dart` — `BlocObserver` global que loguea create, close, event, transition y error usando solo tipos de runtime (sin volcar estados completos).
+     - Decoradores concretos por interfaz: `AopProgressRepository`, `AopLevelRepository`, `AopPlayerRepository`, `AopLeaderboardRepository`.
+  2. Registro del observador en `lib/main.dart` mediante `Bloc.observer = AppBlocObserver();`.
+  3. Wireado en `lib/core/di/service_locator.dart` después de `sl.init()`, envolviendo `IProgressRepository`, `ILevelRepository`, `ILeaderboardRepository` y `IPlayerRepository`/`PlayerLocalDataSource` de forma transparente para casos de uso y BLoCs.
+  4. Artefactos SDD en `openspec/changes/aop-logging-error-handling/` (proposal, specs, design, tasks) y `openspec/config.yaml`.
+  5. 6 archivos de test en `test/core/aop/` cubriendo logging, mapeo de excepciones a `GenericFailure`, propagación de errores no-Result y observación de transiciones de BLoC.
+- **Modificaciones del equipo:**
+  - El wireado de `IPlayerRepository` requirió un caso especial porque el composition root registraba `PlayerLocalDataSource` (concreto) y `PlayerCubit` se armaba directamente con esa instancia. Se re-registraron tanto la abstracción como el cubit apuntando al repositorio decorado.
+  - Se ajustó la firma del logger al ser una función de top-level (`void aopLog(...)`) para evitar mutable state en tests.
+- **Verificación:** No se pudo ejecutar `flutter analyze` ni `flutter test` en la sesión de WSL porque Flutter CLI falló al intentar arrancar el SDK de Dart como root. Queda pendiente correr `flutter test` desde Windows.
+- **Archivos afectados:**
+  - Nuevos: `lib/core/aop/aop_logger.dart`, `lib/core/aop/aop_invoker.dart`, `lib/core/aop/app_bloc_observer.dart`, `lib/core/aop/aop_progress_repository.dart`, `lib/core/aop/aop_level_repository.dart`, `lib/core/aop/aop_player_repository.dart`, `lib/core/aop/aop_leaderboard_repository.dart`, y 6 archivos de test bajo `test/core/aop/`.
+  - Modificados: `lib/main.dart`, `lib/core/di/service_locator.dart`, `AI_USAGE.MD`.
+- **Lecciones / limitaciones:**
+  1. **Dart no tiene proxies dinámicos multiplataforma**; el Decorator concreto por interfaz es la forma más limpia y type-safe de hacer AOP en Flutter.
+  2. **Re-registrar servicios en get_it después de la generación de injectable** permite interceptar dependencias sin tocar los constructores de los consumidores, pero hay que tener cuidado con las dependencias que se resuelven temprano (como `PlayerCubit`).
+  3. **El logger debe ser release-safe por diseño**, no por configuración: usar `kReleaseMode` como guard de primer nivel evita que logs sensibles o de debug se filtren en producción.
+
+---
+  ### Entrada #39 — Balanceo del Modo Campaña (Penalización por errores y Bugfix de Amnesia)                                            
                                                                                                                                       
     - **Fecha / autor:** 16-07-2026 / Alberto Monasterio                                                                                  
     - **Herramienta:** OpenCode (Modelo: Gemini 1.5 Pro - Antigravity)                                                                    
@@ -777,7 +809,7 @@
 | Dominio (Entidades v2, Topología, Failures, Repos, Builder, Scoring, Validaciones, Session) | 85% | 15% |
 | Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
 | Hive Repositories (2 repos, 5 adapters, 8 tests) | 95% | 5% |
-| Casos de Uso y AOP Decorators | ~% | ~% |
+| AOP Logging & Error Handling decorators (4 repos, BlocObserver, 6 tests) | 90% | 10% |
 | BLoC (Events, States, Mappers) | ~% | ~% |
 | Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
 | Configuración CI/CD (GitHub Actions) | 70% | 30% |
