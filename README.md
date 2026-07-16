@@ -35,6 +35,23 @@ graph TD
     APP --> DOM["Domain (Pure Dart)"]
 ```
 
+### Project Structure (Directorios)
+La estructura de carpetas refleja visualmente la separación de capas por cada *feature*, facilitando la navegación y el mantenimiento del código:
+
+```text
+lib/
+├── core/               # Código transversal: Tema, AOP, Inyección de Dependencias, Router
+├── features/
+│   ├── game/           # Core del juego (Arrow Maze)
+│   │   ├── data/       # Modelos DTO, TypeAdapters y Repositorios (Hive)
+│   │   ├── domain/     # Entidades puras, Interfaces de repositorios y Errores
+│   │   ├── application/# Casos de Uso (Use Cases) que orquestan el negocio
+│   │   └── presentation/# Widgets, Pantallas y Gestores de estado (BLoC)
+│   ├── leaderboard/    # Funcionalidad de tabla de clasificaciones
+│   └── player/         # Funcionalidad de gestión de jugador
+└── main.dart           # Punto de entrada principal
+```
+
 ---
 
 ## Design Patterns
