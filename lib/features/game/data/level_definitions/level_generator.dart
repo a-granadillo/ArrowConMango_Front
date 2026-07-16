@@ -128,7 +128,7 @@ class LevelGenerator {
   LevelGenerator._();
 
   /// Builds a level using the provided configuration.
-  /// Uses up to 1000 seeds to find a solvable board that meets the target
+  /// Uses up to 150 seeds to find a solvable board that meets the target
   /// complexity (minGraphDepth). If no board satisfies both, falls back to
   /// a simpler configuration that guarantees solvability.
   static LevelModel generate({
