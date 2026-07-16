@@ -741,6 +741,33 @@
   - `test/features/game/presentation/bloc/game_bloc_test.dart` (esperas en tests de BLoC)
   - `test/features/game/data/repositories/synced_progress_repository_test.dart` (tests adaptados a background futures)
 
+  ### Entrada #38 — Balanceo del Modo Campaña (Penalización por errores y Bugfix de Amnesia)                                            
+                                                                                                                                      
+    - **Fecha / autor:** 16-07-2026 / Alberto Monasterio                                                                                  
+    - **Herramienta:** OpenCode (Modelo: Gemini 1.5 Pro - Antigravity)                                                                    
+    - **Rol en el flujo:** Desarrollador Senior en Dart y Game Designer (Capas de Dominio, Aplicación y Presentación).                    
+    - **Tarea/problema:** El modo campaña (2D) estaba calculando los puntos sin penalizar los toques en flechas bloqueadas (errores), lo  
+  que permitía obtener la máxima puntuación (3 mangos) simplemente tocando al azar. Además, el BLoC sufría de un "bug de amnesia" donde el
+  contador de errores se reiniciaba a 0 tras cada movimiento porque el estado `GamePlaying` no persistía esa propiedad.                   
+    - **Prompt (paráfrasis fiel):**                                                                                                       
+      > "Modifica el sistema de puntuación 2D para castigar las equivocaciones. Añade el registro de errores (`mistakes`) a `GameSession` 
+  y pásalos a la estrategia de puntuación. Propón un balanceo matemático justo para que obtener los 3 mangos requiera un nivel perfecto.  
+  Después, investiga y corrige por qué el juego sigue evaluando los errores como 0 al final de la partida."                               
+    - **Resultado obtenido:**                                                                                                             
+      1. Integración de `mistakes` en `GameSession` con el método inmutable `afterMistake()`.                                             
+      2. Refactorización de la firma de `ScoringStrategy` y los casos de uso (`CalculateScore`, `EvaluateGameState`) para propagar los    
+  errores.                                                                                                                                
+      3. Rebalanceo de `MoveBasedScoring` (Base: 1000, Tiempo: -10/s, Error: -150, Movimiento: 0) para no castigar el tamaño del nivel,   
+  sino la torpeza y lentitud.                                                                                                             
+      4. Solución del bug de amnesia inyectando `mistakes` dentro del `GamePlaying` state y el `GameStateMapper`.                         
+    - **Modificaciones del equipo:** Se decidió eliminar por completo el castigo por movimientos exitosos para nivelar la dificultad entre
+  tableros pequeños y grandes. El equipo ajustó previamente el umbral visual de perfección a 900 puntos en `mango_rating.dart`.           
+    - **Verificación:** Pruebas manuales exitosas. Realizar un nivel sin errores en menos de 10 segundos garantiza los 3 mangos. Cometer  
+  un solo error (-150 puntos) inhabilita automáticamente el rango perfecto.                                                               
+    - **Lecciones / limitaciones:** Las reconstrucciones de sesión a partir del estado de UI son propensas a pérdida de datos si el mapper
+  de estado a dominio no incluye absolutamente todas las propiedades transitorias (como el contador de errores).                          
+                                                                                                                 
+
 ## Evaluación crítica
 
 ### Porcentaje aproximado de código asistido por IA
