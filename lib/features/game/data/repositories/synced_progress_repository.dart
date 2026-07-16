@@ -56,6 +56,14 @@ class SyncedProgressRepository implements IProgressRepository {
   @override
   Future<Result<AppProgress>> loadProgress() async {
     final localResult = await _local.loadProgress();
+    
+    // Fire and forget background sync so we don't block the UI
+    _syncWithRemote(localResult);
+    
+    return localResult;
+  }
+
+  Future<void> _syncWithRemote(Result<AppProgress> localResult) async {
     final localEntity = switch (localResult) {
       Success(:final value) => value,
       Error() => const AppProgress(),
@@ -65,10 +73,14 @@ class SyncedProgressRepository implements IProgressRepository {
       final remoteModel = await _remote.fetch();
       final remoteEntity = _mapper.toEntity(remoteModel);
       final merged = _merge(localEntity, remoteEntity);
-      await _local.saveProgress(merged);
-      return Success<AppProgress>(merged);
+      
+      // If remote had more progress, save it locally.
+      // (The UI will pick it up on the next reload, or via a stream if we add one later)
+      if (merged.unlockedLevels.length > localEntity.unlockedLevels.length) {
+        await _local.saveProgress(merged);
+      }
     } catch (_) {
-      return localResult;
+      // Ignore network errors in background
     }
   }
 
@@ -77,12 +89,13 @@ class SyncedProgressRepository implements IProgressRepository {
     final localSaveResult = await _local.saveProgress(progress);
     if (localSaveResult is Error<void>) return localSaveResult;
 
-    try {
-      await _remote.push(_mapper.toModel(progress));
-      await _markPending(false);
-    } catch (_) {
-      await _markPending(true);
-    }
+    // Fire and forget remote push to avoid blocking the UI on victory screens
+    _remote.push(_mapper.toModel(progress)).then((_) {
+      _markPending(false);
+    }).catchError((_) {
+      _markPending(true);
+    });
+
     return localSaveResult;
   }
 

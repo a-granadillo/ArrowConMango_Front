@@ -22,8 +22,8 @@ class MoveBasedScoring implements ScoringStrategy {
 
   const MoveBasedScoring({
     this.basePoints = 1000,
-    this.movePenalty = 50,
-    this.timePenalty = 10,
+    this.movePenalty = 5,
+    this.timePenalty = 1,
     this.minPoints = 100,
   });
 

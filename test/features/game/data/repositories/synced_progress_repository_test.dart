@@ -82,6 +82,7 @@ void main() {
       const progress = AppProgress(unlockedLevels: [1], currentToken: '1');
 
       final result = await repo.saveProgress(progress);
+      await Future.delayed(Duration.zero); // Wait for async push
 
       expect(result, isA<Success<void>>());
       verify(() => local.saveProgress(progress)).called(1);
@@ -98,6 +99,7 @@ void main() {
       const progress = AppProgress(unlockedLevels: [1], currentToken: '1');
 
       final result = await repo.saveProgress(progress);
+      await Future.delayed(Duration.zero); // Wait for async push
 
       expect(result, isA<Success<void>>());
       verify(() => local.saveProgress(progress)).called(1);
