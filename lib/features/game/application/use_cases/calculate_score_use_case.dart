@@ -15,7 +15,7 @@ class CalculateScoreUseCase {
 
   const CalculateScoreUseCase(this._scoringStrategy);
 
-  Result<Score> call({required int moves, required int elapsedSeconds}) {
+  Result<Score> call({required int moves, required int elapsedSeconds, int mistakes = 0}) {
     if (moves < 0 || elapsedSeconds < 0) {
       return Error<Score>(
         GenericFailure('Moves and elapsed seconds must be non-negative'),
@@ -23,7 +23,7 @@ class CalculateScoreUseCase {
     }
 
     try {
-      final score = _scoringStrategy.calculateScore(moves, elapsedSeconds);
+      final score = _scoringStrategy.calculateScore(moves, elapsedSeconds, mistakes: mistakes);
       return Success<Score>(score);
     } catch (e) {
       return Error<Score>(
