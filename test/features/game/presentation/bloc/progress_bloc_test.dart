@@ -1,5 +1,6 @@
 import 'package:arrowconmango_front/features/game/application/use_cases/load_progress_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/save_local_progress_use_case.dart';
+import 'package:arrowconmango_front/features/game/application/use_cases/submit_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
@@ -64,15 +65,30 @@ class FakeUnlockNextLevelUseCase implements UnlockNextLevelUseCase {
   }
 }
 
+class FakeSubmitScoreUseCase implements SubmitScoreUseCase {
+  ({int levelId, int moves, int elapsedSeconds})? calledWith;
+
+  @override
+  Future<void> call({
+    required int levelId,
+    required int moves,
+    required int elapsedSeconds,
+  }) async {
+    calledWith = (levelId: levelId, moves: moves, elapsedSeconds: elapsedSeconds);
+  }
+}
+
 void main() {
   late FakeLoadProgressUseCase fakeLoad;
   late FakeSaveLocalProgressUseCase fakeSave;
   late FakeUnlockNextLevelUseCase fakeUnlock;
+  late FakeSubmitScoreUseCase fakeSubmitScore;
 
   setUp(() {
     fakeLoad = FakeLoadProgressUseCase();
     fakeSave = FakeSaveLocalProgressUseCase();
     fakeUnlock = FakeUnlockNextLevelUseCase();
+    fakeSubmitScore = FakeSubmitScoreUseCase();
   });
 
   ProgressBloc buildBloc() {
@@ -80,6 +96,7 @@ void main() {
       loadProgressUseCase: fakeLoad,
       saveLocalProgressUseCase: fakeSave,
       unlockNextLevelUseCase: fakeUnlock,
+      submitScoreUseCase: fakeSubmitScore,
     );
   }
 
@@ -157,7 +174,13 @@ void main() {
         progress: AppProgress(unlockedLevels: [1, 2], currentToken: 'token-c'),
       ),
       // Act
-      act: (bloc) => bloc.add(const ProgressLevelCompleted(currentLevelId: 2)),
+      act: (bloc) => bloc.add(
+        const ProgressLevelCompleted(
+          currentLevelId: 2,
+          moves: 10,
+          elapsedSeconds: 20,
+        ),
+      ),
       // Assert
       expect: () => [
         const ProgressLoaded(
@@ -177,6 +200,10 @@ void main() {
               currentToken: 'token-c',
             ),
           ),
+        );
+        expect(
+          fakeSubmitScore.calledWith,
+          equals((levelId: 2, moves: 10, elapsedSeconds: 20)),
         );
       },
     );
@@ -198,7 +225,13 @@ void main() {
         ),
       ),
       // Act
-      act: (bloc) => bloc.add(const ProgressLevelCompleted(currentLevelId: 15)),
+      act: (bloc) => bloc.add(
+        const ProgressLevelCompleted(
+          currentLevelId: 15,
+          moves: 3,
+          elapsedSeconds: 5,
+        ),
+      ),
       // Assert
       expect: () => <ProgressState>[],
       verify: (bloc) {
@@ -235,7 +268,13 @@ void main() {
         progress: AppProgress(unlockedLevels: [1], currentToken: 'token-e'),
       ),
       // Act
-      act: (bloc) => bloc.add(const ProgressLevelCompleted(currentLevelId: 1)),
+      act: (bloc) => bloc.add(
+        const ProgressLevelCompleted(
+          currentLevelId: 1,
+          moves: 8,
+          elapsedSeconds: 12,
+        ),
+      ),
       // Assert
       expect: () => [
         const ProgressError(message: 'save failed'),

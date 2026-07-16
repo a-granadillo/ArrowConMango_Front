@@ -31,12 +31,16 @@ import '../../features/game/application/use_cases/save_local_progress_use_case.d
     as _i16;
 import '../../features/game/application/use_cases/start_game_session_use_case.dart'
     as _i469;
+import '../../features/game/application/use_cases/submit_score_use_case.dart'
+    as _i908;
 import '../../features/game/application/use_cases/trigger_arrow_exit_use_case.dart'
     as _i47;
 import '../../features/game/application/use_cases/undo_move_use_case.dart'
     as _i457;
 import '../../features/game/application/use_cases/unlock_next_level_use_case.dart'
     as _i1015;
+import '../../features/game/data/datasources/remote_leaderboard_data_source.dart'
+    as _i924;
 import '../../features/game/data/datasources/remote_progress_data_source.dart'
     as _i1063;
 import '../../features/game/data/models/app_progress_model.dart' as _i358;
@@ -115,6 +119,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i651.ILeaderboardRepository>(
       () => _i328.MockLeaderboardRepository(),
     );
+    gh.lazySingleton<_i924.RemoteLeaderboardDataSource>(
+      () => _i924.RemoteLeaderboardDataSource(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i1063.RemoteProgressDataSource>(
       () => _i1063.RemoteProgressDataSource(gh<_i361.Dio>()),
     );
@@ -144,6 +151,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i598.AudioSettingsLocalDataSource(
         box: gh<_i979.Box<dynamic>>(instanceName: 'audioBox'),
       ),
+    );
+    gh.lazySingleton<_i908.SubmitScoreUseCase>(
+      () => _i908.SubmitScoreUseCase(gh<_i924.RemoteLeaderboardDataSource>()),
     );
     gh.lazySingleton<_i329.HiveProgressRepository>(
       () => _i329.HiveProgressRepository(
@@ -221,6 +231,7 @@ extension GetItInjectableX on _i174.GetIt {
         loadProgressUseCase: gh<_i739.LoadProgressUseCase>(),
         saveLocalProgressUseCase: gh<_i16.SaveLocalProgressUseCase>(),
         unlockNextLevelUseCase: gh<_i1015.UnlockNextLevelUseCase>(),
+        submitScoreUseCase: gh<_i908.SubmitScoreUseCase>(),
       ),
     );
     return this;

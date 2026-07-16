@@ -53,7 +53,11 @@ class _VictoryScreenState extends State<VictoryScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         context.read<ProgressBloc>().add(
-              ProgressLevelCompleted(currentLevelId: widget.result.levelId),
+              ProgressLevelCompleted(
+                currentLevelId: widget.result.levelId,
+                moves: widget.result.moveCount,
+                elapsedSeconds: widget.result.elapsedSeconds,
+              ),
             );
       });
     }
