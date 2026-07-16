@@ -1,5 +1,10 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:dio/dio.dart';
+import 'package:hive/hive.dart';
 
 import 'aop_logger.dart';
 
@@ -13,6 +18,16 @@ import 'aop_logger.dart';
 ///     are logged and rethrown so programming errors are not swallowed.
 abstract final class AopInvoker {
   const AopInvoker._();
+
+  /// Helper to determine if an caught error is a known infrastructure failure
+  /// (database, network, file system, or timeouts).
+  static bool _isInfrastructureException(Object error) {
+    return error is DioException ||
+        error is HiveError ||
+        error is FileSystemException ||
+        error is SocketException ||
+        error is TimeoutException;
+  }
 
   /// Sync helper used for non-Future repository methods.
   static T invokeSync<T>(
@@ -67,8 +82,11 @@ abstract final class AopInvoker {
 
   /// Helper for Future-returning repository methods that produce [Result<R>].
   ///
-  /// Infrastructure exceptions (Hive, Dio, file system) are captured and
-  /// translated into a domain [GenericFailure] wrapped in [Error<R>].
+  /// Infrastructure exceptions (Hive, Dio, file system, timeouts) are captured
+  /// and translated into a domain [GenericFailure] wrapped in [Error<R>].
+  ///
+  /// Programming errors (like [ArgumentError] or [TypeError]) are rethrown
+  /// immediately so they fail fast and are not silently swallowed.
   static Future<Result<R>> invokeResult<R>(
     String interfaceName,
     String methodName,
@@ -86,7 +104,7 @@ abstract final class AopInvoker {
         '✔ $methodName [$status] (${stopwatch.elapsedMilliseconds}ms)',
       );
       return result;
-    } on Exception catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       stopwatch.stop();
       aopLog(
         'AOP.$interfaceName',
@@ -94,7 +112,11 @@ abstract final class AopInvoker {
         error: e,
         stackTrace: stackTrace,
       );
-      return Error<R>(GenericFailure(e.toString()));
+
+      if (_isInfrastructureException(e)) {
+        return Error<R>(GenericFailure(e.toString()));
+      }
+      rethrow;
     }
   }
 }

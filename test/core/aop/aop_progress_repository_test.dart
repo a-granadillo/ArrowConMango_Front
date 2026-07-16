@@ -4,6 +4,7 @@ import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.
 import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockProgressRepository extends Mock implements IProgressRepository {}
@@ -35,7 +36,7 @@ void main() {
     });
 
     test('loadProgress maps infrastructure exception to GenericFailure', () async {
-      when(delegate.loadProgress).thenThrow(Exception('disk full'));
+      when(delegate.loadProgress).thenThrow(HiveError('disk full'));
 
       final result = await repository.loadProgress();
 
@@ -58,7 +59,7 @@ void main() {
     });
 
     test('saveProgress maps infrastructure exception to GenericFailure', () async {
-      when(() => delegate.saveProgress(any())).thenThrow(Exception('disk full'));
+      when(() => delegate.saveProgress(any())).thenThrow(HiveError('disk full'));
 
       final progress = AppProgress();
       final result = await repository.saveProgress(progress);

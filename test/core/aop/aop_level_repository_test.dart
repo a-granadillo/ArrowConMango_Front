@@ -6,9 +6,11 @@ import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.
 import 'package:arrowconmango_front/features/game/domain/repositories/i_level_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockLevelRepository extends Mock implements ILevelRepository {}
+
 void main() {
   group('AopLevelRepository', () {
     late _MockLevelRepository delegate;
@@ -34,7 +36,7 @@ void main() {
     });
 
     test('loadLevel catches exception and returns GenericFailure', () async {
-      when(() => delegate.loadLevel(1)).thenThrow(Exception('corrupt'));
+      when(() => delegate.loadLevel(1)).thenThrow(HiveError('corrupt'));
 
       final result = await repository.loadLevel(1);
 
@@ -55,7 +57,7 @@ void main() {
     });
 
     test('getLevelDefinition catches exception and returns GenericFailure', () async {
-      when(() => delegate.getLevelDefinition(1)).thenThrow(Exception('corrupt'));
+      when(() => delegate.getLevelDefinition(1)).thenThrow(HiveError('corrupt'));
 
       final result = await repository.getLevelDefinition(1);
 

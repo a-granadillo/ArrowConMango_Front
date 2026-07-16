@@ -4,6 +4,7 @@ import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.
 import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockProgressRepository extends Mock implements IProgressRepository {}
@@ -29,8 +30,8 @@ void main() {
       expect(result, equals(expected));
     });
 
-    test('converts infrastructure exception to GenericFailure Error', () async {
-      when(delegate.loadProgress).thenThrow(Exception('boom'));
+    test('converts HiveError infrastructure exception to GenericFailure Error', () async {
+      when(delegate.loadProgress).thenThrow(HiveError('boom'));
 
       final result = await AopInvoker.invokeResult(
         'IProgressRepository',
@@ -42,6 +43,19 @@ void main() {
       final failure = (result as Error<AppProgress>).failure;
       expect(failure, isA<GenericFailure>());
       expect(failure.message, contains('boom'));
+    });
+
+    test('rethrows non-infrastructure exceptions (e.g. ArgumentError)', () async {
+      when(delegate.loadProgress).thenThrow(ArgumentError('bad arg'));
+
+      await expectLater(
+        AopInvoker.invokeResult(
+          'IProgressRepository',
+          'loadProgress',
+          delegate.loadProgress,
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
     });
   });
 
@@ -64,7 +78,7 @@ void main() {
       expect(result, equals(42));
     });
 
-    test('rethrows non-Result exceptions after logging', () async {
+    test('rethrows exceptions after logging', () async {
       when(delegate.go).thenThrow(Exception('boom'));
 
       expect(

@@ -175,12 +175,16 @@ void _wrapPlayerRepository() {
   final dataSource = sl<PlayerLocalDataSource>();
   final decorated = AopPlayerRepository(dataSource);
   final existingCubit = sl<PlayerCubit>();
+  final existingState = existingCubit.state;
+
+  // ignore: unawaited_futures
+  existingCubit.close();
 
   sl
     ..unregister<PlayerLocalDataSource>()
     ..unregister<PlayerCubit>()
     ..registerSingleton<IPlayerRepository>(decorated)
     ..registerSingleton<PlayerCubit>(
-      PlayerCubit(dataSource: decorated, initial: existingCubit.state),
+      PlayerCubit(dataSource: decorated, initial: existingState),
     );
 }

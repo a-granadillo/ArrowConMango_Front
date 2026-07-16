@@ -35,6 +35,15 @@ void aopLog(
     return;
   }
 
+  if (kIsWeb) {
+    final errorDetail = error != null ? ' | Error: $error' : '';
+    debugPrint('[$name] $message$errorDetail');
+    if (stackTrace != null) {
+      debugPrint(stackTrace.toString());
+    }
+    return;
+  }
+
   developer.log(
     message,
     name: name,
