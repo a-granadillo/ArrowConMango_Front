@@ -120,7 +120,7 @@ class FakeCalculateScoreUseCase implements CalculateScoreUseCase {
   int? calledElapsedSeconds;
 
   @override
-  Result<Score> call({required int moves, required int elapsedSeconds}) {
+  Result<Score> call({required int moves, required int elapsedSeconds, int mistakes = 0}) {
     calledMoves = moves;
     calledElapsedSeconds = elapsedSeconds;
     final configured = result;
@@ -517,6 +517,7 @@ void main() {
           arrowsRemaining: 1,
           elapsedSeconds: 0,
           startedAtMs: clockValue,
+          mistakes: 1,
           livesRemaining: 2,
         ),
       ],

@@ -14,7 +14,7 @@ class FakeScoringStrategy implements ScoringStrategy {
   Object? exceptionToThrow;
 
   @override
-  Score calculateScore(int moves, int seconds) {
+  Score calculateScore(int moves, int seconds, {int mistakes = 0}) {
     final exception = exceptionToThrow;
     if (exception != null) {
       throw exception;

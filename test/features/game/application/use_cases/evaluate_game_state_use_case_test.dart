@@ -55,7 +55,7 @@ class MockScoringStrategy implements ScoringStrategy {
   }
 
   @override
-  Score calculateScore(int moves, int seconds) => _score;
+  Score calculateScore(int moves, int seconds, {int mistakes = 0}) => _score;
 }
 
 // ---------------------------------------------------------------------------
