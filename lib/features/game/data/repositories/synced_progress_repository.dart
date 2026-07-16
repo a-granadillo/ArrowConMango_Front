@@ -56,31 +56,22 @@ class SyncedProgressRepository implements IProgressRepository {
   @override
   Future<Result<AppProgress>> loadProgress() async {
     final localResult = await _local.loadProgress();
-    
-    // Fire and forget background sync so we don't block the UI
-    _syncWithRemote(localResult);
-    
-    return localResult;
-  }
-
-  Future<void> _syncWithRemote(Result<AppProgress> localResult) async {
     final localEntity = switch (localResult) {
       Success(:final value) => value,
       Error() => const AppProgress(),
     };
 
     try {
-      final remoteModel = await _remote.fetch();
+      // Set a strict 500ms timeout on the remote fetch so we never block the UI
+      final remoteModel = await _remote
+          .fetch()
+          .timeout(const Duration(milliseconds: 500));
       final remoteEntity = _mapper.toEntity(remoteModel);
       final merged = _merge(localEntity, remoteEntity);
-      
-      // If remote had more progress, save it locally.
-      // (The UI will pick it up on the next reload, or via a stream if we add one later)
-      if (merged.unlockedLevels.length > localEntity.unlockedLevels.length) {
-        await _local.saveProgress(merged);
-      }
+      await _local.saveProgress(merged);
+      return Success<AppProgress>(merged);
     } catch (_) {
-      // Ignore network errors in background
+      return localResult;
     }
   }
 
@@ -89,12 +80,17 @@ class SyncedProgressRepository implements IProgressRepository {
     final localSaveResult = await _local.saveProgress(progress);
     if (localSaveResult is Error<void>) return localSaveResult;
 
-    // Fire and forget remote push to avoid blocking the UI on victory screens
-    _remote.push(_mapper.toModel(progress)).then((_) {
-      _markPending(false);
-    }).catchError((_) {
+    // Fire and forget remote push to avoid blocking the UI on victory screens.
+    // Wrap in a try/catch block to robustly handle synchronous exceptions in tests.
+    try {
+      _remote.push(_mapper.toModel(progress)).then((_) {
+        _markPending(false);
+      }).catchError((_) {
+        _markPending(true);
+      });
+    } catch (_) {
       _markPending(true);
-    });
+    }
 
     return localSaveResult;
   }

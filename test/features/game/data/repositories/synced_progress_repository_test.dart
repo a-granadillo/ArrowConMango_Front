@@ -128,6 +128,7 @@ void main() {
       final repo = buildRepo();
       const progress = AppProgress(unlockedLevels: [1], currentToken: '1');
       await repo.saveProgress(progress);
+      await Future<void>.delayed(Duration.zero); // Wait for async push
       expect(pendingBox.get('progress_sync_pending'), isTrue);
 
       // Backend becomes reachable.
