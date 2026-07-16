@@ -28,6 +28,9 @@ class GameSession extends Equatable {
   /// Timestamp (epoch milliseconds) when the session started.
   final int startedAtMs;
 
+  /// Number of mistakes made so far.
+  final int mistakes;
+
   /// Whether the player has won the level.
   ///
   /// Victory condition: all arrows have exited the board (board is empty).
@@ -50,6 +53,7 @@ class GameSession extends Equatable {
     this.history = const CommandHistory(),
     this.moveCount = 0,
     required this.startedAtMs,
+    this.mistakes = 0,
   });
 
   /// Records that [arrow] exited the board.
@@ -98,6 +102,13 @@ class GameSession extends Equatable {
     );
   }
 
+  /// Records a mistake (e.g. tapping a blocked arrow).
+  ///
+  /// Returns a new [GameSession] with the incremented mistake count.
+  GameSession afterMistake() {
+    return _copy(mistakes: mistakes + 1);
+  }
+
   /// Reverts the most recent move, if any.
   ///
   /// Returns a new [GameSession] with the previous board state restored.
@@ -118,6 +129,7 @@ class GameSession extends Equatable {
     BoardState? boardState,
     CommandHistory? history,
     int? moveCount,
+    int? mistakes,
   }) {
     return GameSession(
       sessionId: sessionId,
@@ -125,6 +137,7 @@ class GameSession extends Equatable {
       history: history ?? this.history,
       moveCount: moveCount ?? this.moveCount,
       startedAtMs: startedAtMs,
+      mistakes: mistakes ?? this.mistakes,
     );
   }
 
@@ -135,9 +148,10 @@ class GameSession extends Equatable {
         history,
         moveCount,
         startedAtMs,
+        mistakes,
       ];
 
   @override
   String toString() =>
-      'GameSession(id: $sessionId, moves: $moveCount, board: $boardState)';
+      'GameSession(id: $sessionId, moves: $moveCount, mistakes: $mistakes, board: $boardState)';
 }

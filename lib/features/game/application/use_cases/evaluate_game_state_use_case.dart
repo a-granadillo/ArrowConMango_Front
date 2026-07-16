@@ -20,6 +20,7 @@ class EvaluateGameStateUseCase {
     final Score score = _scoringStrategy.calculateScore(
       session.moveCount,
       elapsed,
+      mistakes: session.mistakes,
     );
     final int arrowsRemaining = session.boardState.arrowCount;
 
