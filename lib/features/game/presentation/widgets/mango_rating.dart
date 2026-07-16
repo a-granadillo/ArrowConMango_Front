@@ -17,10 +17,10 @@ class MangoRating {
   final String message;
 
   factory MangoRating.fromScore(int totalPoints, AppLocalizations l10n) {
-    if (totalPoints >= 700) {
+    if (totalPoints >= 900) {
       return MangoRating._(3, l10n.ratingPerfect);
     }
-    if (totalPoints >= 400) {
+    if (totalPoints >= 600) {
       return MangoRating._(2, l10n.ratingGreat);
     }
     return MangoRating._(1, l10n.ratingPass);
