@@ -16,22 +16,26 @@ class MoveBasedScoring implements ScoringStrategy {
 
   /// Points deducted per second.
   final int timePenalty;
+  /// Points deducted per mistake.
+  final int mistakePenalty;
 
   /// Minimum guaranteed points (floor).
   final int minPoints;
 
   const MoveBasedScoring({
     this.basePoints = 1000,
-    this.movePenalty = 5,
-    this.timePenalty = 1,
+    this.movePenalty = 0,
+    this.timePenalty = 10,
+    this.mistakePenalty = 150,
     this.minPoints = 100,
   });
 
   @override
-  Score calculateScore(int moves, int seconds) {
+  Score calculateScore(int moves, int seconds, {int mistakes = 0}) {
     final moveDeduction = moves * movePenalty;
     final timeDeduction = seconds * timePenalty;
-    final raw = basePoints - moveDeduction - timeDeduction;
+    final mistakeDeduction = mistakes * mistakePenalty;
+    final raw = basePoints - moveDeduction - timeDeduction - mistakeDeduction;
     final total = raw < minPoints ? minPoints : raw;
 
     return Score(
