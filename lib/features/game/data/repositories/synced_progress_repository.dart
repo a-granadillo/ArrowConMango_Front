@@ -53,6 +53,17 @@ class SyncedProgressRepository implements IProgressRepository {
   Future<void> _markPending(bool pending) =>
       _pendingFlagBox.put(_pendingKey, pending);
 
+  /// Awaits [_markPending] and swallows any error so a failing Hive put can
+  /// never propagate as an unhandled async exception.
+  Future<void> _safeMarkPending(bool pending) async {
+    try {
+      await _markPending(pending);
+    } catch (_) {
+      // Storage failure: the pending flag may be wrong, but we cannot recover
+      // synchronously here; the next load/save will reconcile the flag.
+    }
+  }
+
   @override
   Future<Result<AppProgress>> loadProgress() async {
     final localResult = await _local.loadProgress();
@@ -84,12 +95,12 @@ class SyncedProgressRepository implements IProgressRepository {
     // Wrap in a try/catch block to robustly handle synchronous exceptions in tests.
     try {
       _remote.push(_mapper.toModel(progress)).then((_) {
-        _markPending(false);
-      }).catchError((_) {
-        _markPending(true);
+        _markPending(false).catchError((_) {});
+      }).catchError((_) async {
+        await _safeMarkPending(true);
       });
     } catch (_) {
-      _markPending(true);
+      await _safeMarkPending(true);
     }
 
     return localSaveResult;

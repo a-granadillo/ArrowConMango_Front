@@ -190,7 +190,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           
           // Esperamos a que la animación de salida termine (450ms es suficiente)
           await Future.delayed(const Duration(milliseconds: 450));
-          
+
+          if (isClosed) return;
+
           await _emitVictoryState(newSession, evaluation, level, emit);
           return;
         }
