@@ -260,7 +260,7 @@
 ### Entrada #17 — Implementación de Código (Issue #7: Use Cases - Game Flow)
 
 - **Fecha / autor:** 21-06-2026 / Alberto Monasterio
-- **Herramienta:** Kimi (Modelo: Programador)
+- **Herramienta:** Opencode (Kimi K2.7 Code)
 - **Rol en el flujo:** Senior Dart Developer (Ejecutor / Coder).
 - **Tarea/problema:** Generar el código puro en Dart para la capa de aplicación (1 DTO y 5 Casos de Uso del Issue #7), basándose estrictamente en el plan arquitectónico de la Entrada #16 y manteniendo la pureza de Clean Architecture.
 - **Prompt (paráfrasis fiel):** > "Actúa como un Senior Dart Developer. Estamos implementando el Issue #7 usando Clean Architecture pura. Tu tarea es generar el código Dart puro para los archivos [Nombres de los archivos] basándote exactamente en el plan del Arquitecto proporcionado a continuación. Reglas de código: Cero dependencias de Flutter, usa `Result<T>`, si la clase `Failure` es abstracta usa `GenericFailure(String message)`. Genera el código en un solo bloque estructurado."
@@ -798,7 +798,540 @@
   un solo error (-150 puntos) inhabilita automáticamente el rango perfecto.                                                               
     - **Lecciones / limitaciones:** Las reconstrucciones de sesión a partir del estado de UI son propensas a pérdida de datos si el mapper
   de estado a dominio no incluye absolutamente todas las propiedades transitorias (como el contador de errores).                          
-                                                                                                                 
+                                                                  ### Entrada #40 — Implementación de Pruebas Unitarias (Issue #7)
+
+- **Fecha / autor:** 21-06-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Kimi K2.7 Code)
+- **Rol en el flujo:** Senior QA Engineer.
+- **Tarea/problema:** Desarrollar las pruebas unitarias para los 5 casos de uso de la capa de aplicación, garantizando una alta cobertura de código y validando el manejo de errores.
+- **Prompt (paráfrasis fiel):** > "Actúa como un Senior QA Engineer. Genera las pruebas unitarias en Dart puro para [Nombre del Caso de Uso]. Reglas: Usa `flutter_test`, crea Mocks manuales (no Mockito/Mocktail), sigue el patrón AAA estrictamente y nombra las pruebas usando el formato snake_case `should_[resultado]_when_[condicion]`." *(Nota: Este prompt se ejecutó 5 veces de forma independiente usando la técnica de Micro-Prompting).*
+- **Resultado obtenido:** Se generaron exitosamente los 5 archivos de prueba cubriendo todos los flujos de éxito y fracaso (12 escenarios en total). La IA implementó Mocks manuales avanzados, inyectando estados controlados y excepciones para validar la lógica interna sin depender de la infraestructura real.
+- **Modificaciones del equipo:** 1. **Aplicación estricta de convenciones:** Se detectó en la primera iteración que la IA utilizaba lenguaje natural para nombrar las pruebas. Se intervino deteniendo la generación y modificando el prompt maestro para forzar la convención  (`should_[resultado_esperado]_when_[condicion]`). 
+  2. **Resolución de Imports:** Se corrigieron manualmente las importaciones sugeridas por la IA para apuntar a las rutas relativas correctas dentro de la arquitectura del proyecto.
+  3. **Refactorización por Análisis Estático:** El código generado por la IA presentaba prácticas heredadas de versiones anteriores de Dart. Se refactorizaron manualmente las clases *Fake* para resolver las advertencias de `flutter analyze`, implementando *super parameters*, eliminando aserciones nulas redundantes (`!`), y utilizando *getters* en lugar de redefinir variables `final` para cumplir con las reglas `prefer_initializing_formals` y `overridden_fields`.
+- **Verificación:** Todos los tests ejecutados vía `flutter test` pasaron exitosamente (100% de escenarios en verde). El código superó la revisión de `flutter analyze` con cero advertencias ("No issues found!").
+
+
+
+### Entrada #[41] — Plan de Implementación (Issue #8: Use Cases - Progress & Scoring)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Gwen)
+- **Rol en el flujo:** Arquitecta de Software (Planificadora).
+- **Tarea/problema:** Diseñar el plan de implementación detallado para el Issue #8 (Casos de uso de Progreso y Puntuación), estableciendo los contratos antes de generar cualquier línea de código.
+- **Prompt (paráfrasis fiel):** > "Actúa como una Arquitecta de Software experta en Clean Architecture. Diseña un plan de implementación paso a paso para los casos de uso: `SaveLocalProgress`, `LoadProgress` y `CalculateScore`. Para cada uno define: la firma de la clase, el método `call` (usando `Result<T>`), las dependencias a inyectar y los posibles escenarios de falla. No escribas los tests ni la implementación completa aún."
+- **Resultado obtenido:** La IA detectó las convenciones del código base (como la clase sellada `Result` y las subclases de `Failure`). Entregó los contratos exactos y definió responsabilidades claras, demostrando que los casos de uso de progreso actúan como *thin wrappers* sobre los repositorios.
+- **Modificaciones del equipo: 1. Aplicación del Patrón Planner-Coder:** Se evitó solicitar código de producción inmediatamente para validar primero la lógica arquitectónica. El diseño entregado fue preciso.
+- **Verificación:** El diseño respeta el Principio de Inversión de Dependencias (DIP) orquestando interfaces (`IProgressRepository`, `ScoringStrategy`) sin acoplarse a implementaciones concretas ni violar los límites de la capa de Aplicación.
+
+---
+
+### Entrada #[42] — Implementación de Código y Testing (Issue #8)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior QA Engineer y Flutter Developer (Coder).
+- **Tarea/problema:** Desarrollar la lógica de negocio y las pruebas unitarias para los 3 casos de uso, siguiendo estrictamente el plan arquitectónico definido previamente.
+- **Prompt (paráfrasis fiel):** > "Actúa como Senior QA Engineer y Flutter Developer. A partir del diseño arquitectónico, escribe la implementación completa en Dart y el archivo de pruebas unitarias. Usa `flutter_test` puro, crea Fakes manuales en el mismo archivo, sigue el patrón AAA estrictamente con comentarios y usa nomenclatura `snake_case`." *(Nota: Este prompt se repitió de forma aislada por cada caso de uso).*
+- **Resultado obtenido:** Kimi generó los archivos de producción y pruebas para los 3 casos de uso. Implementó Fakes manuales (`FakeProgressRepository`, `FakeScoringStrategy`) y validaciones mediante *guard clauses* (ej. validación de parámetros negativos en `CalculateScoreUseCase`).
+- **Modificaciones del equipo: 1. Aplicación de Micro-Prompting:** En lugar de solicitar los 3 casos de uso de una vez, se instruyó a la IA caso por caso para mantener el contexto limpio, asegurar el cumplimiento estricto de las convenciones de testing y evitar alucinaciones.
+- **Verificación:** Todo el código generado compiló sin errores, pasó las reglas estrictas del linter de Dart (`flutter analyze`) y los tests unitarios pasaron exitosamente confirmando la lógica esperada.
+
+---
+
+### Entrada #[43] — Code Review y Refactorización de Calidad (Issue #8)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelos: Gwen y Kimi K2.7 Code)
+- **Rol en el flujo:** Tech Lead / Arquitecta (Auditora) y QA Engineer (Ejecutor).
+- **Tarea/problema:** Realizar una auditoría técnica final del código antes de abrir el Pull Request y aplicar refactorizaciones para mejorar la calidad de las pruebas.
+- **Prompt (paráfrasis fiel):** > "Actúa como Tech Lead. Realiza un Code Review exhaustivo de los 3 casos de uso evaluando límites arquitectónicos, manejo de errores y calidad de las pruebas. Señala exactamente qué refactorizar." (Posteriormente se usó a Kimi instruyéndole: > "Aplica las sugerencias de la Tech Lead: Extrae la clase Fake duplicada a un archivo helper, agrega el caso de prueba borde faltante y usa Pattern Matching de Dart 3 en los expects").
+- **Resultado obtenido:** Gwen aprobó funcionalmente el código pero detectó un *code smell* (duplicación del Fake) y sugirió mejoras de sintaxis moderna. Kimi ejecutó la refactorización exitosamente, centralizando el `FakeProgressRepository` y actualizando los asserts.
+- **Modificaciones del equipo: 1. Refactorización Exigida:** Se tomaron las sugerencias de la IA como un estándar de aceptación obligatorio para elevar la calidad del código, integrando el refactor de DRY (Don't Repeat Yourself) y *Pattern Matching* antes de realizar el commit y push final.
+- **Verificación:** El código refactorizado mantuvo todos los tests en verde (`flutter test`), demostrando una mayor modularidad y preparación para escalabilidad de pruebas.
+
+---
+
+### Entrada #[44] — Plan de Implementación (Issue #9: Gestión de Niveles)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Gwen)
+- **Rol en el flujo:** Arquitecta de Software (Planificadora).
+- **Tarea/problema:** Diseñar el plan de implementación detallado para los Casos de Uso del Issue #9 (`GetLevelListUseCase`, `GetLevelDefinitionUseCase` y `UnlockNextLevelUseCase`).
+- **Prompt (paráfrasis fiel):** > "Actúa como una Arquitecta de Software experta en Clean Architecture y Domain-Driven Design en Flutter. Diseña un plan de implementación paso a paso para los 3 Casos de Uso. Define firmas (usando `Result<T>`), dependencias inyectadas y escenarios de falla. No escribas los tests ni la implementación completa todavía."
+- **Resultado obtenido:** La IA estructuró un plan robusto, identificando la necesidad de crear un nuevo DTO (`LevelSummary`) y un Domain Error (`LevelNotFoundFailure`). Definió claramente cómo orquestar `ILevelRepository` e `IProgressRepository` para calcular qué niveles están desbloqueados.
+- **Modificaciones del equipo: 1. Aplicación del Patrón Planner-Coder:** Se evaluó el plan antes de programar y se tomó la decisión arquitectónica de reemplazar un caso de uso antiguo (`LoadLevelUseCase`) por la nueva propuesta validada (`GetLevelDefinitionUseCase`).
+- **Verificación:** El diseño respeta los límites de la capa de Aplicación, delegando la lógica de persistencia y definición a las interfaces correspondientes (DIP).
+
+---
+
+### Entrada #[45] — Implementación de Código y Testing (Issue #9)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior QA Engineer y Flutter Developer (Coder).
+- **Tarea/problema:** Desarrollar los 3 casos de uso de gestión de niveles, el nuevo *Failure*, el DTO y sus respectivas pruebas unitarias bajo el estándar del proyecto.
+- **Prompt (paráfrasis fiel):** > "Actúa como un Senior QA Engineer y Flutter Developer. Genera el código en Dart respetando Clean Architecture para los casos de uso y sus pruebas unitarias. Usa `flutter_test` puro, reutiliza los fakes manuales existentes (`FakeLevelRepository`, `FakeProgressRepository`), usa nomenclatura `snake_case` y aplica Pattern Matching de Dart 3 en los asserts." *(Nota: Ejecutado iterativamente por cada caso de uso).*
+- **Resultado obtenido:** Kimi generó el código de producción con *guard clauses* (ej. validar ids negativos) y bloques `try/catch`. Construyó las pruebas integrando exitosamente los Fakes compartidos de pruebas anteriores.
+- **Modificaciones del equipo: 1. Aplicación de Micro-Prompting:** Se fragmentó la generación de código en tres etapas (cimientos/caso 1, caso 2, caso 3) para garantizar que la IA mantuviera el contexto correcto al inyectar múltiples dependencias en casos complejos como `UnlockNextLevelUseCase`.
+- **Verificación:** El código pasó el análisis estático (`flutter analyze`) sin advertencias y todas las pruebas unitarias demostraron el comportamiento correcto en escenarios de éxito y error.
+
+---
+
+### Entrada #[46] — Code Review y Refactorización (Issue #9)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelos: Gwen y Kimi K2.7 Code)
+- **Rol en el flujo:** Tech Lead / Arquitecta (Auditora) y QA Engineer (Ejecutor).
+- **Tarea/problema:** Realizar una revisión profunda pre-Pull Request y aplicar refactorizaciones de calidad sobre el manejo de errores.
+- **Prompt (paráfrasis fiel):** > "Actúa como Tech Lead. Realiza un Code Review exhaustivo de los casos de uso generados evaluando límites arquitectónicos y manejo de errores." (Posteriormente a Kimi): > "Aplica los refactors sugeridos: Propaga los failures originales directamente en los bloques catch/error (en lugar de envolverlos en GenericFailure) y agrega los tests para levelId negativo y para la idempotencia del desbloqueo."
+- **Resultado obtenido:** Gwen aprobó la estructura pero detectó que envolver las fallas en `GenericFailure` haría perder el tipo específico (`LevelNotFoundFailure`). Kimi modificó el pattern matching para propagar el error de forma limpia e incluyó los tests de borde (edge cases) faltantes.
+- **Modificaciones del equipo: 1. Refactorización Exigida:** Se priorizó mantener la tipificación estricta de las fallas para que, en un futuro Issue (BloCs), la capa de presentación pueda reaccionar específicamente al evento de "no hay más niveles disponibles".
+- **Verificación:** Los ajustes mantuvieron el suite de pruebas en verde (`flutter test`), comprobando que los errores específicos se propagan como espera el diseño de dominio.
+
+---
+
+### Entrada #[47] — Resolución de Code Review Automático (Issue #9)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** GitHub Copilot (Análisis de PR) y OpenCode (Modelos: Qwen3.7 Plus  y Kimi K2.7 Code)
+- **Rol en el flujo:** Revisión de PR (Copilot), Tech Lead / Auditora (Qwen), y Ejecutor (Kimi).
+- **Tarea/problema:** Analizar, filtrar e implementar sugerencias automatizadas de Code Review en el Pull Request del Issue #9, discerniendo entre optimizaciones útiles y falsos positivos arquitectónicos.
+- **Prompt (paráfrasis fiel):** > (Para Qwen): "Actúa como Tech Lead. Analiza las siguientes 6 sugerencias de Copilot. Dime cuáles apruebas para implementarlas y dame tu postura arquitectónica sobre la ubicación de los casos de uso." / > (Para Kimi): "Refactoriza aplicando estrictamente: cambia el orden de `props` en `LevelNotFoundFailure` y reemplaza el operador `!` por validaciones explícitas lanzando `StateError` en los Fakes si no se configuran."
+- **Resultado obtenido:** Qwen actuó como un filtro de calidad de alto nivel: rechazó una micro-optimización prematura (uso de `Set` para O(1) en listas pequeñas) y defendió la arquitectura Clean Architecture frente a un ticket mal redactado. Aprobó mejoras de consistencia y seguridad. Kimi refactorizó el código de manera precisa sin alterar la lógica de negocio.
+- **Modificaciones del equipo: 1. Triaje de IA vs IA:** Se utilizó un modelo de razonamiento (Qwen) para auditar críticamente las sugerencias de un modelo de autocompletado (Copilot), evitando que el código se desvíe de las convenciones del proyecto. 2. **Intervención Manual en Git:** Se detectaron y revirtieron manualmente modificaciones no deseadas en archivos autogenerados de plataformas desktop (`generated_plugins.cmake`) para mantener el PR limpio.
+- **Verificación:** Los cambios se enviaron al PR exitosamente. El código ahora es más seguro en entornos de prueba, fallando con mensajes descriptivos claros (`StateError`) en lugar de excepciones de aserción nula (`NullThrownError`), mejorando significativamente la Developer Experience (DX).
+
+---
+
+### Entrada #[48] — Resolución de Code Review Automático (Issue #8)
+
+- **Fecha / autor:** 07-07-2026 / Alberto Monasterio
+- **Herramienta:** GitHub Copilot (Análisis de PR) y OpenCode (Modelos: Qwen3.7 Plus  y Kimi K2.7 Code)
+- **Rol en el flujo:** Revisión de PR (Copilot), Tech Lead / Auditora (Qwen), y Ejecutor (Kimi).
+- **Tarea/problema:** Mejorar la Developer Experience (DX) y la robustez de las pruebas unitarias en el Issue #8, refactorizando el manejo de errores en los Fakes (`FakeProgressRepository`, `FakeScoringStrategy`) sugerido por Copilot.
+- **Prompt (paráfrasis fiel):** > (Para Kimi): "Refactoriza `FakeProgressRepository` y `FakeScoringStrategy` eliminando el uso de `!`. Agrega una validación explícita que lance un `StateError('Debes configurar [variable] en el Arrange')` si el valor es nulo." / > (Para Qwen): "Revisa la implementación. ¿La lógica previene efectivamente el `NullThrownError`? ¿Los mensajes son claros y sigue el patrón del Issue #9? Confírmame para proceder con el commit."
+- **Resultado obtenido:** Kimi eliminó exitosamente los operadores de aserción nula (`!`) implementando las *guard clauses* solicitadas. Qwen (actuando como Tech Lead) auditó el código, confirmó que los mensajes de error eran explícitos y aprobó el cambio (LGTM) garantizando que se mantenía la consistencia arquitectónica con refactorizaciones previas.
+- **Modificaciones del equipo: 1. Gestión Estricta de Ramas:** Antes de iniciar el refactor, se realizó un cambio de contexto en Git (`git checkout 8-progress-scoring-use-cases`) para aislar estos cambios del trabajo previo y mantener limpio el historial del PR correspondiente. **2. Auditoría Pre-Commit:** Se instituyó la práctica de exigir una validación final de la IA planificadora (Qwen) sobre el código de la IA ejecutora (Kimi) antes de registrar los cambios en el control de versiones.
+- **Verificación:** Los tests locales (`flutter test`) verificaron que los Fakes ahora fallan con mensajes descriptivos claros y controlados. Los cambios fueron pusheados a la rama del Issue #8, actualizando el Pull Request de forma transparente.
+
+---
+
+### Entrada #17 — Definición de Contratos y Mapper (Issue #10: Game State Management)
+
+- **Fecha / autor:** 08-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode(Rol: Kimi K2.7 Code - Coder)
+- **Rol en el flujo:** Desarrollador / Arquitecto
+- **Tarea/problema:** Definir la interfaz de comunicación de la capa de presentación (Eventos y Estados) y establecer una barrera de protección (Mapper) para no exponer entidades completas del dominio directamente a la UI.
+- **Prompt (paráfrasis fiel):** > "Actúa como Senior Flutter Developer. Genera las clases selladas (`sealed class`) para `GameEvent` y `GameState` usando `Equatable` para garantizar la inmutabilidad. Luego, crea un `GameStateMapper` que aplane las entidades del dominio (como `GameSession` y `Score`) hacia propiedades primitivas o seguras para el estado `GamePlaying`, incluyendo protección contra *clock skew* en el cálculo de `elapsedSeconds`."
+- **Resultado obtenido:** Archivos generados correctamente: `game_event.dart`, `game_state.dart` y `game_state_mapper.dart`. La IA aplicó correctamente el polimorfismo y creó los estados base (`GameInitial`, `GamePlaying`, `GameVictory`, `GameDefeat`).
+- **Modificaciones del equipo:** Se validó que los estados no tuvieran métodos que mutaran la información. Se exigió la creación de pruebas unitarias (`game_state_test.dart` y `game_state_mapper_test.dart`) para verificar la igualdad de valores y la correcta transformación de datos.
+- **Verificación:** Ejecución de `flutter test`. Todas las pruebas de `Equatable` y del Mapper pasaron en verde, asegurando una base inmutable y segura.
+
+### Entrada #[49] — Implementación de Pruebas Unitarias (TDD Fase Roja)
+
+- **Fecha / autor:** 08-07-2026 / Alberto Monasterio
+- **Herramienta:**  OpenCode(Rol: Kimi K2.7 Code - Coder)
+- **Rol en el flujo:** Ingeniero de Calidad / Desarrollador
+- **Tarea/problema:** Escribir la suite de pruebas exhaustiva para el `GameBloc` antes de escribir su lógica de producción, siguiendo la metodología Test-Driven Development (TDD).
+- **Prompt (paráfrasis fiel):** > "Actúa como Senior Flutter Developer. Escribe las pruebas unitarias para el `GameBloc` usando el paquete `bloc_test`. Debes seguir estrictamente el patrón AAA (Arrange, Act, Assert) y la nomenclatura `should... when...`. Cubre todos los eventos (LoadLevel, TriggerArrowExit, UndoMove, Tick, RetryLevel) simulando los Casos de Uso con *fakes* y controlando los estados emitidos."
+- **Resultado obtenido:** La IA generó un archivo extenso de pruebas cubriendo escenarios de éxito, manejo de errores de dominio, rechazo de eventos en estados inválidos y optimización de re-renders (como evitar emitir estado si el `Tick` ocurre en el mismo segundo).
+- **Modificaciones del equipo:** **Prevención de Alucinaciones por Contexto:** Debido a la complejidad de los escenarios, se dividió el prompt en dos partes (Parte 1 y Parte 2) para asegurar que el modelo no perdiera el foco ni omitiera casos de prueba por restricciones de longitud de salida.
+- **Verificación:** Se ejecutó `flutter test` arrojando errores en todos los escenarios (Fase Roja garantizada) al no existir aún el BLoC, confirmando que las pruebas exigían la implementación correcta.
+
+### Entrada #[50] — Implementación del GameBloc (TDD Fase Verde)
+
+- **Fecha / autor:** 08-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode (Rol: Kimi K2.7 Code- Coder)
+- **Rol en el flujo:** Desarrollador
+- **Tarea/problema:** Desarrollar el código de producción del `GameBloc` para satisfacer las pruebas escritas en la Fase Roja y conectar la capa de presentación con el dominio.
+- **Prompt (paráfrasis fiel):** > "Actúa como Senior Flutter Developer. Implementa el `game_bloc.dart`. Inyecta los 7 Casos de Uso por constructor. Usa `on<Event>` para manejar la lógica de estado, asegurando un *early return* si el evento requiere que el juego esté en curso (`GamePlaying`) pero no lo está. Llama al `GameStateMapper` para emitir los nuevos estados."
+- **Resultado obtenido:** Se generó el código del BLoC estructurando limpiamente los *handlers* privados para cada evento.
+- **Modificaciones del equipo:** Ninguna en esta fase directa; el código se sometió inmediatamente a evaluación de pruebas.
+- **Verificación:** Ejecución de `flutter test`. Las pruebas de la Entrada #18 pasaron a verde, validando que el BLoC cumplía inicialmente con los requisitos de negocio previstos.
+
+### Entrada #[51] — Auditoría Técnica y Refactorización (Code Review)
+
+- **Fecha / autor:** 08-07-2026 / Alberto Monasterio
+- **Herramienta:** LLM (Roles: Gwen - Tech Lead / Kimi K2.7 Code - Coder)
+- **Rol en el flujo:** Arquitecto / Revisor de Código
+- **Tarea/problema:** Someter el BLoC a un Code Review estricto para detectar violaciones arquitectónicas, lógica *hardcodeada* o vulnerabilidades (bugs silenciosos) antes de integrarlo a la rama principal.
+- **Prompt (paráfrasis fiel a Gwen):** > "Actúa como Tech Lead. Audita la implementación del Issue #10. ¿Kimi cumplió con Clean Architecture? ¿Hay *code smells*? Emite un veredicto."
+- **Resultado obtenido:** La IA (Gwen) detectó 3 *Code Smells* (2 críticos, 1 menor):
+    1. Progreso *hardcodeado* al ganar (no usaba `UnlockNextLevelUseCase`).
+    2. Omisión de la condición de derrota por bloqueo (`DefeatReason.noMovesAvailable`).
+    3. *Workaround* peligroso para falsear el `CommandHistory`, rompiendo el *Single Source of Truth*.
+- **Modificaciones del equipo:** 
+    1. Se instruyó a la IA (Kimi) a refactorizar, integrando `CollisionValidator` y moviendo el `CommandHistory` de la Sesión directamente al estado `GamePlaying`.
+    2. Se exigió la actualización de las pruebas para inyectar los nuevos Casos de Uso y validar el escenario de derrota por bloqueo.
+    3. Se resolvieron advertencias del linter manualmente (`no_leading_underscores_for_local_identifiers` en los tests).
+    4. **Resolución de Conflictos:** Durante la preparación del Pull Request, se resolvió manualmente un conflicto de fusión en `UnlockNextLevelUseCase` priorizando la versión robusta de la rama `develop`.
+- **Verificación:** Nueva auditoría de la Tech Lead obteniendo la aprobación final (LGTM). Ejecución final de `flutter test` (100% verde) y `flutter analyze` (sin *warnings*). Commit final de refactorización y Push exitoso a repositorio remoto.
+
+### Entrada #[52] — Auditoría Automatizada y Refactorización Final (Issue #10)
+
+- **Fecha / autor:** 08-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Roles: Gwen - Tech Lead / Kimi K2.7 Code - Coder) y GitHub Copilot
+- **Rol en el flujo:** Arquitecto / Desarrollador
+- **Tarea/problema:** Evaluar y resolver tres advertencias arquitectónicas detectadas por GitHub Copilot en el `GameBloc` (constructor con parámetros privados, silenciamiento global de errores y resultados de progreso ignorados), y posteriormente reparar la suite de pruebas rota por los cambios de firma.
+- **Prompt (paráfrasis fiel):** > "Para Gwen: Analiza 3 sugerencias de Copilot sobre `game_bloc.dart` y proporciona instrucciones de refactorización detalladas. / Para Kimi: Aplica los 3 cambios exigidos por la Tech Lead (constructores públicos, manejo selectivo de errores con `GameError` y log de fallos en el `UnlockNextLevelUseCase`). Luego, actualiza `game_bloc_test.dart` eliminando los guiones bajos en la instanciación."
+- **Resultado obtenido:** `GameBloc` refactorizado con inyección de dependencias pública y un manejo de errores robusto que diferencia entre fallos de dominio esperados e inesperados. Las pruebas unitarias fueron actualizadas exitosamente para la nueva firma del constructor.
+- **Modificaciones del equipo:** Gestión manual de control de versiones. Se resolvió un commit de fusión (Merge Commit) interactuando directamente con el editor Vim en la terminal para sincronizar la rama local con el repositorio remoto tras detectar un conflicto de desincronización por un `git pull`.
+- **Verificación:** Ejecución final de `flutter test` con 100% de éxito y subida exitosa (Push) de los commits finales a la rama `10-game-state-management`.
+
+
+### Entrada #[53] — Mantenimiento de Tests por Cambio de Firmas (Issue #10)
+
+- **Fecha / autor:** 08-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode (Rol: Kimi K2.7 Code - Coder)
+- **Rol en el flujo:** Desarrollador / Ingeniero de Calidad
+- **Tarea/problema:** Reparar la suite de pruebas `game_bloc_test.dart`, la cual presentaba errores de compilación tras la refactorización arquitectónica que expuso los parámetros del constructor del `GameBloc` (cambio de variables privadas a públicas).
+- **Prompt (paráfrasis fiel):** > "Actúa como Senior Flutter Developer. Actualiza el archivo de pruebas `game_bloc_test.dart` para que la inicialización de `GameBloc` utilice los nuevos nombres de parámetros públicos sin el guion bajo inicial (ej. pasando de `_loadLevelUseCase` a `loadLevelUseCase`). Entrégame el código listo para compilar."
+- **Resultado obtenido:** La IA identificó y reemplazó correctamente todos los parámetros de instanciación dentro de los bloques de configuración (*Arrange*) de cada test, adaptando los *mocks* y *fakes* a la nueva firma pública del constructor.
+- **Modificaciones del equipo:** Integración del código en el entorno local. Esto se realizó tras la resolución manual de un bloqueo en la terminal (editor Vim) para completar un `git pull` pendiente. 
+- **Verificación:** Ejecución exitosa de `flutter test` (pruebas 100% en verde) y validación final mediante `git push` a la rama `10-game-state-management`, cerrando formalmente el desarrollo del Issue.
+
+### Entrada #[54] — Fase 1: Planificación Arquitectónica (Issue #11)
+
+- **Fecha / autor:** 09-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode(Rol: Kimi K2.7 Code - Coder) (Rol: Gwen - Tech Lead)
+- **Rol en el flujo:** Arquitecto
+- **Tarea/problema:** Diseñar la arquitectura, los contratos (Eventos y Estados) y la estrategia de pruebas para `ProgressBloc` y `MenuBloc`, garantizando el uso de `sealed classes` y `Result<T>`.
+- **Prompt (paráfrasis fiel):** > "Actúa como Tech Lead. Genera un Plan de Implementación Arquitectónico detallado para ProgressBloc y MenuBloc. Define el propósito, dependencias, contratos exactos y flujo lógico. Propón también una estrategia de testing AAA con `bloc_test`. No generes código de implementación."
+- **Resultado obtenido:** Un documento de diseño exhaustivo con escenarios de prueba precisos y tres propuestas de UX críticas: *early-return* para cargas redundantes de progreso, transiciones sin estado de carga intermedio al completar niveles, y refrescos silenciosos para el menú.
+- **Modificaciones del equipo:** Revisión del documento y aprobación de las tres decisiones de diseño para mantener la fluidez en la UI. Se eliminó la sección de preguntas del prompt final para evitar confusiones en el modelo Coder.
+- **Verificación:** Aprobación del diseño antes de pasar a la fase de codificación.
+
+---
+
+### Entrada #[55] — Fase 2: Contratos y TDD Rojo (Issue #11)
+
+- **Fecha / autor:** 09-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode(Rol: Kimi K2.7 Code - Coder)
+- **Rol en el flujo:** Desarrollador
+- **Tarea/problema:** Ejecutar la Fase Roja del TDD creando exclusivamente los contratos inmutables y los archivos de prueba basados en el plan de la Tech Lead.
+- **Prompt (paráfrasis fiel):** > "Actúa como Senior Flutter Developer. Basándote en el documento de diseño adjunto y las 3 reglas de UX aprobadas, genera el código de los contratos (eventos y estados para ambos BLoCs) y los 2 archivos de pruebas unitarias implementando los fakes y escenarios AAA. No escribas la implementación de los BLoCs."
+- **Resultado obtenido:** 6 archivos generados correctamente: los 4 archivos de contratos utilizando `sealed class` y `Equatable`, y los 2 archivos de prueba configurados con los fakes manuales y las aserciones de estado esperadas.
+- **Modificaciones del equipo:** Integración en el entorno local y ejecución de la suite de pruebas para confirmar el fallo esperado.
+- **Verificación:** `flutter test` falló como era esperado (Fase Roja confirmada), validando que los tests están listos para guiar el desarrollo.
+
+---
+
+### Entrada #[56] — Fase 3: Implementación y TDD Verde (Issue #11)
+
+- **Fecha / autor:** 09-07-2026 / Alberto Monasterio
+- **Herramienta:** LLM (Rol: Kimi K2.7 Code - Coder)
+- **Rol en el flujo:** Desarrollador
+- **Tarea/problema:** Escribir la lógica de producción de los BLoCs para hacer pasar los tests unitarios, respetando las reglas de UX y la inyección de dependencias.
+- **Prompt (paráfrasis fiel):** > "Ejecuta la Fase Verde del TDD. Escribe el código de producción completo para `progress_bloc.dart` y `menu_bloc.dart`. Evalúa de forma exhaustiva los `Result.Success` y `Result.Error` de los Use Cases inyectados. Respeta estrictamente las reglas de idempotencia y refrescos silenciosos."
+- **Resultado obtenido:** Implementación completa de ambos BLoCs manejando correctamente los *early-returns* y las emisiones de estado condicionales requeridas por la arquitectura. Los tests pasaron exitosamente.
+- **Modificaciones del equipo:** Resolución manual de advertencias detectadas por `flutter analyze`. Se refactorizaron los constructores para usar inicializadores formales (`prefer_initializing_formals`) y se eliminaron importaciones no utilizadas (`unused_import`).
+- **Verificación:** Ejecución exitosa de `flutter test` (100% en verde) y validación de código limpio con `flutter analyze`.
+
+---
+
+### Entrada #[57] — Fase 4: Auditoría y Code Review (Issue #11)
+
+- **Fecha / autor:** 09-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Gwen - Tech Lead)
+- **Rol en el flujo:** Ingeniero de Calidad / Tech Lead
+- **Tarea/problema:** Auditar el código de producción generado en la Fase Verde para confirmar que el desarrollador (Kimi) no ignoró las directrices de arquitectura ni las reglas de UX.
+- **Prompt (paráfrasis fiel):** > "Actúa como Tech Lead experta en Clean Architecture. Audita el código adjunto de ProgressBloc y MenuBloc. Verifica de forma estricta el cumplimiento de la idempotencia, el manejo fluido de la UX sin pantallas de carga innecesarias y el refresco silencioso. Entréga tu veredicto o correcciones."
+- **Resultado obtenido:** Veredicto de "Aprobado". La IA verificó exitosamente que las validaciones de estado previo y los *early-returns* estaban implementados correctamente en los handlers de los eventos.
+- **Modificaciones del equipo:** Integración final en GitHub.
+- **Verificación:** Apertura exitosa del Pull Request enlazado al Issue #11 a través de GitHub CLI para su posterior squash & merge en `develop`.
+
+---
+
+### Entrada #[58] — Diseño Arquitectónico del Sistema de Audio
+
+- **Fecha / autor:** 12-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Qwen 3.7 Max)
+- **Rol en el flujo:** Tech Lead / Software Architect.
+- **Tarea/problema:** Diseñar el blueprint arquitectónico para el motor de audio (BGM y SFX) del juego garantizando transiciones limpias, persistencia, inyección segura y testing, respetando la Clean Architecture.
+- **Prompt (paráfrasis fiel):** > "Actúa como Tech Lead. Genera un Plan de Implementación Arquitectónico detallado para el Issue #6: Audio System usando audioplayers. Define los contratos, enums, persistencia, gestión de estado con Cubit y fakes manuales para los tests."
+- **Resultado obtenido:** La IA generó un plan de diseño estructurado que contemplaba 10 archivos nuevos, la ubicación exacta de las inyecciones de dependencias y decisiones arquitectónicas sólidas (ej. granularidad del mute global, evitar librerías de mocks usando fakes manuales, inyección nullable en GameBloc).
+- **Modificaciones del equipo:** Ninguna. El plan arquitectónico fue revisado y aprobado tal cual para pasar a la fase de implementación de código.
+- **Verificación:** Plan coherente con los principios de Clean Architecture del proyecto, listo para ser consumido por el modelo generador de código.
+
+---
+
+### Entrada #[59] — Generación e Implementación de Código de Producción (Audio)
+
+- **Fecha / autor:** 12-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Generación de código base y suite de pruebas en Flutter/Dart.
+- **Tarea/problema:** Traducir el plan arquitectónico del sistema de audio a código funcional en fases para no desbordar el contexto, cubriendo infraestructura (`audioplayers`), manejo de estado (`Cubit`), inyección y pruebas.
+- **Prompt (paráfrasis fiel):** > "Actúa como Senior Flutter Developer. Implementa el código de producción del plan arquitectónico en fases: 1. Core e infraestructura, 2. State Management e integración UI, 3. Suite de tests. Sigue estrictamente el patrón AAA y nomenclatura 'when...' para las pruebas."
+- **Resultado obtenido:** Generación exitosa de los 10 archivos nuevos y modificación de los archivos existentes solicitados (`app.dart`, `service_locator.dart`, etc.). El código cumplió con la estructura requerida.
+- **Modificaciones del equipo:** Durante el Code Review se detectaron omisiones e inconsistencias de la IA, requiriendo las siguientes refactorizaciones e intervenciones:
+  1. **Corrección de Triggers Musicales:** Se detectó que la IA definió los temas musicales pero no los disparó en la UI. Se instruyó un parche para disparar explícitamente `playBgm(AudioTrack.menuTheme)` al cargar el menú principal.
+  2. **Higiene de Memoria (Lifecycle):** Se agregó manualmente la ejecución de `sl<AudioService>().stopBgm()` en el método `dispose()` de la `VictoryScreen` para evitar fugas de memoria y que las pistas se superpusieran.
+  3. **Estabilización de Imports:** Sustitución de rutas relativas (`../../../../`) frágiles generadas por Kimi, por importaciones de paquete absolutas (`package:arrowconmango_front/...`) en el `GameBloc`.
+- **Verificación:** Código compilando sin errores, manejo de recursos limpios en el ciclo de vida de los widgets y suite de pruebas en verde.
+
+---
+
+### Entrada #[60]— Planificación y Auditoría de SFX (Flecha Bloqueada)
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** Qwen (Qwen3.7 Max)
+- **Rol en el flujo:** Tech Lead / Code Reviewer.
+- **Tarea/problema:** Diseñar el plan de acción para inyectar un feedback de audio (`block.wav`) al fallar el trazado de una flecha (`PathBlockedFailure`), y posteriormente auditar la implementación para asegurar que no rompiera la suite de pruebas existente.
+- **Prompt (paráfrasis fiel):** > "Planifica cómo agregar el sonido block.wav cuando una flecha está bloqueada, identificando los archivos y líneas exactas. Tras la implementación, verifica leyendo los archivos que los cambios se hayan realizado correctamente según el plan y revisa el impacto en los tests."
+- **Resultado obtenido:** Qwen identificó con precisión los 3 archivos a modificar (`sfx_clip.dart`, `game_bloc.dart`, y el nuevo asset). En la fase de auditoría posterior, analizó los archivos locales mediante herramientas de lectura (`Glob`, `Grep`) y determinó que la implementación era correcta, confirmando que el `FakeAudioService` y el archivo `game_bloc_test.dart` no requerían refactorización debido a la inyección nullable del servicio.
+- **Modificaciones del equipo:** Ninguna. Se aprobó tanto el plan inicial como el veredicto de la auditoría.
+- **Verificación:** Análisis estático y lógica de pruebas validados teóricamente por la IA antes de la confirmación manual.
+
+---
+
+### Entrada #[61] — Implementación de Código y Assets para SFX (Bloqueo)
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Ejecutar la implementación del código basándose en el plan de Qwen: modificar el enum, inyectar la llamada al servicio de audio en el BLoC y generar el asset de audio correspondiente.
+- **Prompt (paráfrasis fiel):** > "Ejecuta el plan trazado por Qwen: agrega el archivo de audio, modifica el enum SfxClip con su respectivo assetPath, y coloca la llamada '_audioService?.playSfx(SfxClip.block);' exactamente dentro de la condición PathBlockedFailure en el GameBloc."
+- **Resultado obtenido:** Kimi modificó `lib/core/audio/sfx_clip.dart` añadiendo el caso `block`, inyectó la línea de código solicitada en la línea 204 de `lib/features/game/presentation/bloc/game_bloc.dart`, y generó el asset de audio de 120 ms (`assets/audio/sfx/block.wav`).
+- **Modificaciones del equipo:** Ninguna. El código y el asset generados fueron precisos y se integraron sin necesidad de refactorización manual.
+- **Verificación:** Código compilando a la perfección. `flutter analyze` sin errores y `flutter test` aprobando exitosamente la suite de 288 pruebas.
+
+
+
+### Entrada #[62] — Diagnóstico y Planificación de Fixes de Audio (Focus y UI)
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode (Qwen 3.7 Max) 
+- **Rol en el flujo:** Tech Lead / Diagnóstico.
+- **Tarea/problema:** Resolver dos bugs reportados: 1) La música de fondo (BGM) se interrumpía cada vez que sonaba un efecto de sonido (SFX). 2) El activo `SfxClip.click` existía pero el sonido nunca se reproducía al interactuar con la interfaz del usuario.
+- **Prompt (paráfrasis fiel):** > "Necesito un plan de acción para solucionar dos problemas relacionados con la gestión de audio en mi proyecto:
+
+Interrupción de audio (Ducking/Prioridades): Actualmente, al reproducir sonidos de efectos (SFX), la música de fondo (Theme) se corta o detiene por completo. Necesito implementar un sistema para que la música se mantenga como capa de fondo mientras los SFX se reproducen simultáneamente sin interrupciones.
+
+Depuración de eventos (Click SFX): El evento de sonido asociado al 'clic' no se escucha en el juego. Necesito un procedimiento paso a paso para verificar dónde está asignado, cómo validar si el archivo de audio está correctamente vinculado en el motor y cómo confirmar si el evento se está disparando correctamente en el código.
+
+Por favor, estructura el plan en: (a) Diagnóstico, (b) Posibles causas técnicas y (c) Pasos para la implementación de la solución."
+- **Resultado obtenido:** Qwen diagnosticó correctamente que el paquete `audioplayers` en Android solicita *audio focus* por defecto para cada reproductor, causando la interrupción. Trazó un plan para modificar el `AudioContext` de los SFX a `AudioFocus.none`. Adicionalmente, escaneó el código identificando que `SfxClip.click` era código muerto, y listó las 4 pantallas de UI que requerían la inyección del sonido en sus botones.
+- **Modificaciones del equipo:** Ninguna. El plan fue enviado directamente a la IA codificadora.
+- **Verificación:** Diagnóstico certero del comportamiento nativo de Android dentro de Flutter.
+
+---
+
+### Entrada #[63] — Ejecución de Fixes de Audio y Autocorrección de API
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Ejecutar el plan de fixes para el *audio focus* y el cableado de los sonidos de interfaz en la UI, garantizando que las pruebas no se rompieran.
+- **Prompt (paráfrasis fiel):** > "Ejecuta el plan trazado por Qwen: Configura el AudioContext para que el BGM mantenga el focus y los SFX no lo pidan, y agrega el sonido SfxClip.click a todos los botones de las pantallas mencionadas."
+- **Resultado obtenido:** Kimi implementó las configuraciones en `audio_service_impl.dart` e inyectó `playSfx(SfxClip.click)` en los `onPressed` de `main_menu_screen`, `victory_screen`, `defeat_screen` y `settings_screen`. Además, actualizó `defeat_screen_test.dart` y `settings_screen_test.dart` envolviéndolos en un `RepositoryProvider<AudioService>` inyectando el `FakeAudioService` para mantener la estabilidad.
+- **Modificaciones del equipo:** El modelo Kimi realizó una **autocorrección** del plan original proporcionado por Qwen. Identificó que en la versión 6.8.1 de `audioplayers`, la API correcta es `AndroidAudioFocus` y no `AudioFocus`, aplicando la corrección directamente en el código de producción (`AndroidAudioFocus.gain` y `AndroidAudioFocus.none`).
+- **Verificación:** Código compilado sin errores de sintaxis o de obsolescencia de API. `flutter analyze` en verde y la suite completa de 288 tests (`flutter test`) aprobada con éxito.
+
+---
+
+### Entrada #[64] — Diagnóstico y Planificación de Transiciones de Audio
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Qwen 3.7 Max) 
+- **Rol en el flujo:** Tech Lead / Diagnóstico.
+- **Tarea/problema:** Corregir un solapamiento de pistas de audio (el tema musical del nivel continuaba reproduciéndose tras la victoria/derrota y al volver al menú principal) y un sonido de interfaz faltante al seleccionar los niveles.
+- **Prompt (paráfrasis fiel):** > "Actúa como un desarrollador de videojuegos experto en Flutter. Estoy experimentando dos fallos en mi sistema de audio que necesito corregir:
+
+Falta de feedback de audio: Al hacer clic en los botones de selección de nivel, el sonido no se reproduce. Necesito ayuda para diagnosticar por qué no se dispara el evento o si hay un error de vinculación en el componente de UI.
+
+Solapamiento de música (Ducking/Persistencia): El tema musical del nivel no se detiene al alcanzar la pantalla de victoria o derrota, ni al volver al menú principal; esto provoca que se superponga con otros sonidos.
+
+¿Podrías ayudarme a estructurar un plan para solucionar esto? Necesito entender cómo implementar un sistema de gestión de audio (o AudioManager) que controle correctamente las transiciones, detenga la música según el estado del juego y corrija el disparo de los sonidos de interfaz."
+- **Resultado obtenido:** La IA identificó la causa raíz del solapamiento: los estados finales (`_emitVictoryState` y `_emitDefeatState`) disparaban los SFX pero nunca invocaban explícitamente la detención del BGM. Trazó un plan de tres pasos: inyectar `stopBgm()` en ambos estados dentro del `GameBloc` y agregar el reproductor de SFX en el `onTap` del `LevelCard`.
+- **Modificaciones del equipo:** Ninguna. El diagnóstico fue preciso y el plan se envió directamente a la IA codificadora.
+- **Verificación:** Auditoría lógica de las transiciones de estados completada correctamente; no se requirieron cambios en la `DefeatScreen` ni `VictoryScreen` para manejar el BGM anterior.
+
+---
+
+### Entrada #[65] — Ejecución de Fixes de Transiciones y UI Audio
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Modificar la lógica de negocio y la interfaz de usuario basándose en el plan de diagnóstico para detener el tema musical a tiempo y cablear los sonidos de los botones.
+- **Prompt (paráfrasis fiel):** > "Ejecuta los tres fixes del plan de Qwen: Añade la instrucción de detener el BGM en las funciones de victoria y derrota en el GameBloc, y aplica el sonido de click en la selección de niveles."
+- **Resultado obtenido:** Kimi ejecutó la implementación añadiendo `_audioService?.stopBgm()` justo antes de los disparadores de efectos en `game_bloc.dart` (líneas 430 y 457 aprox.). Adicionalmente, importó los servicios necesarios en `level_selection_screen.dart` e inyectó `context.read<AudioService>().playSfx(SfxClip.click)` en el evento de navegación hacia el nivel.
+- **Modificaciones del equipo:** Ninguna. La ejecución fue exacta y respetó las firmas de los métodos existentes.
+- **Verificación:** Código estable e integrado. El análisis estático (`flutter analyze`) no arrojó errores y la ejecución de la suite de 288 pruebas (`flutter test`) fue aprobada sin requerir alteraciones en los fakes ni mocks.
+
+
+
+
+### Entrada #[66] — Diagnóstico de Ciclo de Vida y Race Conditions (Audio)
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Tech Lead / Diagnóstico Arquitectónico.
+- **Tarea/problema:** Resolver dos fallos graves: 1) La música del juego continuaba sonando en segundo plano cuando se minimizaba la aplicación. 2) La música del menú principal no se reproducía al regresar desde la pantalla de victoria/derrota.
+- **Prompt (paráfrasis fiel):** > "Actúa como un desarrollador experto en lógica de audio y manejo de estados en aplicaciones. Tengo un problema de gestión de audio: la música de fondo se mantiene sonando incorrectamente cuando navego a los resultados, y la música del menú no se reanuda al regresar desde dichos resultados.
+
+Por favor, realiza lo siguiente:
+
+Análisis de causa raíz: Explica por qué este tipo de conflictos suelen ocurrir en la gestión de estados (Global vs. Local).
+
+Plan de acción técnico: Diseña un flujo lógico (paso a paso) para gestionar las transiciones de audio, asegurando que la música del menú se detenga al entrar a resultados y se reinicie solo al volver.
+- **Resultado obtenido:** Qwen trazó un plan de 6 pasos. Para el *background*, diseñó la adición de los métodos `pause()` y `resume()` atados al `AppLifecycleState` de Flutter. Para el problema del menú, diagnosticó una *race condition*: el método `dispose()` de la pantalla saliente ejecutaba un `stopBgm()` que mataba la pista que la pantalla entrante acababa de iniciar. Ordenó eliminar dichos `dispose()`.
+- **Modificaciones del equipo:** Ninguna. El diagnóstico fue impecable y abordó el ciclo de vida nativo del framework.
+- **Verificación:** Plan coherente y listo para ejecución sin romper la arquitectura.
+
+---
+
+### Entrada #[67] — Ejecución de Fixes de Lifecycle y Limpieza de Pantallas
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Codificar la vinculación del sistema de audio al ciclo de vida de la app y refactorizar las pantallas eliminando los métodos que causaban conflictos de estado.
+- **Prompt (paráfrasis fiel):** > "Aplica los fixes de audio trazados en el plan: Agrega pause/resume al AudioService y app.dart, actualiza los fakes de los tests, y elimina los bloques dispose() conflictivos de la VictoryScreen y MainMenuScreen."
+- **Resultado obtenido:** Kimi modificó 6 archivos exactos. Implementó la lógica de pausa con manejo de excepciones (try/catch), estructuró un `switch` reactivo en `app.dart` para manejar los estados `paused/hidden/resumed/detached`, actualizó el `FakeAudioService` con contadores para las pruebas, y purgó las pantallas de los *overrides* innecesarios.
+- **Modificaciones del equipo:** Ninguna. La ejecución respetó estrictamente las reglas del State Management y los principios de testing.
+- **Verificación:** Código robusto compilando a la perfección. La herramienta de análisis estático (`flutter analyze`) validó la limpieza y la suite de pruebas (`flutter test`) mantuvo sus 288 tests en verde.
+
+
+### Entrada #[68] — Diagnóstico de Solapamiento de Audio en Navegación
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Tech Lead / Diagnóstico.
+- **Tarea/problema:** Identificar y solucionar la causa raíz del solapamiento del BGM al navegar hacia el menú principal desde diferentes flujos (partida en curso, victoria y derrota).
+- **Prompt (paráfrasis fiel):** > "Estoy enfrentando un problema de solapamiento de audio (Race Condition) al navegar hacia el menú desde múltiples rutas. El audio de fondo anterior no se detiene correctamente o se duplica al entrar.
+
+Tu tarea:
+
+Análisis de arquitectura: Ayúdame a identificar por qué la lógica actual de navegación está permitiendo que múltiples instancias de AudioSource coexistan o por qué los disparadores (triggers) no están limpiando el estado anterior.
+
+Auditoría de flujo: Define una lista de verificación (checklist) para rastrear dónde puede estar fallando el evento de 'detención' del audio durante la transición de rutas.
+
+Propuesta de solución robusta: Diseña una arquitectura basada en un 'Audio Manager Centralizado' que utilice un sistema de 'Prioridades de Estado' o 'Event Bus'.
+
+Prevención de disparos múltiples: Explícame cómo puedo implementar un mecanismo de 'debounce' o verificación de exclusividad para asegurar que, sin importar la ruta de entrada, solo exista un proceso de audio activo."
+- **Resultado obtenido:** Qwen identificó que las rutas directas de navegación (`context.go(AppRoutes.menu)`) en `GameScreen`, `VictoryScreen` y `DefeatScreen` no invocaban la detención del audio saliente. Diseñó un plan de 4 pasos para inyectar llamadas a `stopBgm()` en cada botón de navegación, más una capa de seguridad en el `didChangeDependencies()` del `MainMenuScreen` para aniquilar cualquier BGM residual.
+- **Modificaciones del equipo:** Ninguna. El diagnóstico cubrió exhaustivamente todas las rutas posibles del usuario.
+- **Verificación:** Lógica de navegación validada teóricamente, abordando correctamente el flujo del ciclo de vida de los widgets.
+
+---
+
+### Entrada #[69] — Ejecución de Fixes de Navegación de Audio
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Implementar la lógica de detención de audio en los *callbacks* de los botones de navegación y en el ciclo de vida del menú principal, asegurando el acceso seguro al contexto.
+- **Prompt (paráfrasis fiel):** > "Aplica el plan de 4 pasos de Qwen: Añade stopBgm() en el didChangeDependencies del menú principal y en los callbacks onPressed de los botones de navegación en GameScreen, VictoryScreen y DefeatScreen."
+- **Resultado obtenido:** Kimi modificó los 4 archivos indicados. Importó el `AudioService` donde era necesario, inyectó las llamadas seguras mediante `context.read<AudioService>().stopBgm()` en los botones de salida, y aplicó el operador de cascada (`..stopBgm()..playBgm()`) en la inicialización del menú.
+- **Modificaciones del equipo:** Ninguna. La integración fue limpia y respetó la inyección de dependencias de la UI.
+- **Verificación:** Código compilado sin incidencias. `flutter analyze` reportó "No issues found", asegurando que no se introdujeron errores de linting o nulos.
+
+---
+
+### Entrada #[70] — Arquitectura Global y Resolución de Conflictos (Audio System)
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Qwen 3.7 Max)
+- **Rol en el flujo:** Tech Lead / Software Architect.
+- **Tarea/problema:** Diseñar la arquitectura completa del motor de audio (BGM y SFX) y diagnosticar/resolver problemas complejos de integración en Flutter (manejo del ciclo de vida, focus de audio nativo en Android y race conditions en la navegación).
+- **Prompt (paráfrasis fiel):** > "Planifica la implementación del sistema de audio completo. Diagnostica y resuelve los problemas de interrupción entre BGM y SFX, la persistencia de la música en background, los solapamientos de pistas al cambiar de pantallas y diseña la estructura de tests."
+- **Resultado obtenido:** Qwen definió la interfaz `AudioService` y la estrategia con `audioplayers`. Estructuró la persistencia mediante `AudioSettingsCubit` e Hive. Resolvió el conflicto nativo de Android configurando el `AudioFocus` diferenciado (gain para BGM, none para SFX). Además, ideó soluciones defensivas como el "generation counter" y el rediseño de las transiciones de BGM empujando la detención del audio desde los puntos de navegación (`GameBloc`, `MainMenuScreen`, etc.) y atando el reproductor al `AppLifecycleState`.
+- **Modificaciones del equipo:** El equipo validó las decisiones arquitectónicas paso a paso, priorizando el enfoque defensivo (ej. matar procesos de audio explícitamente en la navegación) antes de pasar la directriz al modelo generador de código.
+- **Verificación:** Arquitectura sólida, escalable y libre de fugas de memoria o deadlocks lógicos.
+
+---
+
+### Entrada #[71] — Implementación Integral del Motor de Audio y Testing
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Traducir las directrices arquitectónicas a código de producción robusto, integrando el motor en toda la interfaz de usuario, inyectando dependencias, y generando una suite de pruebas coherente.
+- **Prompt (paráfrasis fiel):** > "Implementa el código del sistema de audio según la arquitectura: crea el AudioServiceImpl con audioplayers, el pool de SFX con precaching, maneja el app lifecycle, integra los sonidos en el GameBloc y las pantallas, y crea el FakeAudioService para los tests."
+- **Resultado obtenido:** Kimi desarrolló la implementación completa del sistema. Codificó el soporte de BGM en loop y el pool de SFX (`click`, `arrowExit`, `victory`, `defeat`, `block`). Integró exitosamente el control de mute/unmute interactuando con la persistencia local. Añadió los triggers de audio a lo largo de todas las pantallas (`MainMenuScreen`, `VictoryScreen`, `DefeatScreen`) y dentro de la lógica del `GameBloc`. Además, construyó el `FakeAudioService` e implementó logs de depuración temporales para monitorear las transiciones.
+- **Modificaciones del equipo:** Se aplicaron autocorrecciones de API (ej. adaptación a `AndroidAudioFocus` específico de la versión de la librería) y se reajustaron importaciones relativas por absolutas durante el proceso de estabilización. Se inyectaron manualmente *placeholders* de audio y el asset real `block.wav`.
+- **Verificación:** Compilación exitosa sin incidencias en análisis estático. La suite completa de pruebas (unitarias y de widgets) se ejecutó en verde gracias a la correcta inyección del Fake.
+
+---
+
+### Entrada #[72] — Planificación Arquitectónica de Internacionalización (i18n)
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Modelo: Qwen 3.7 Max)
+- **Rol en el flujo:** Tech Lead / Software Architect.
+- **Tarea/problema:** Diseñar el plan de implementación para el soporte bilingüe (Issue #15) utilizando herramientas nativas, garantizando la seguridad de tipos y preservando la estabilidad de las pruebas existentes.
+- **Prompt (paráfrasis fiel):** > "Genera un Plan de Implementación paso a paso para el Issue #15 usando `gen-l10n` y archivos `.arb`. Incluye configuración, estructura de archivos, estrategia de refactorización de pantallas, y una estrategia de testing estricta con el patrón AAA y semántica when... then..."
+- **Resultado obtenido:** Qwen entregó un plan exhaustivo en 6 fases. Mapeó con precisión absoluta todas las pantallas y widgets que contenían textos hardcodeados. Diseñó la integración del `LocaleCubit` para el cambio dinámico de idioma en la UI y previó la ruptura en la suite de pruebas, diseñando el helper `pumpLocalizedApp` para inyectar los delegados de localización en los tests de widgets afectados.
+- **Modificaciones del equipo:** Ninguna. El plan fue aprobado por su cobertura total de los casos de borde.
+- **Verificación:** Plan coherente y listo para ejecución.
+
+---
+
+### Entrada #[73] — Ejecución de Internacionalización y Autocorrección de SDK
+
+- **Fecha / autor:** 14-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Ejecutar la refactorización masiva de las pantallas para inyectar las traducciones, implementar los archivos de recursos, y actualizar la suite de pruebas para soportar el nuevo contexto localizado.
+- **Prompt (paráfrasis fiel):** > "Ejecuta estrictamente el plan de implementación de Qwen. Crea los archivos `.arb`, refactoriza todas las pantallas sin dejar textos en duro, implementa el patrón AAA en los tests nuevos y actualiza los tests de widget existentes con el helper de localización."
+- **Resultado obtenido:** Kimi ejecutó todas las fases correctamente y realizó dos mejoras arquitectónicas clave de forma autónoma. Primero, adaptó la configuración del `l10n.yaml` (`output-dir: lib/l10n`) para evitar dependencias obsoletas con los paquetes sintéticos eliminados en versiones recientes de Flutter. Segundo, creó una extensión limpia (`context.l10n`) para manejar la nulidad de `AppLocalizations.of(context)`. Se refactorizaron exitosamente las 9 pantallas y 2 widgets.
+- **Modificaciones del equipo:** Se aplicaron dos parches de configuración manuales para poder compilar el APK de producción: se actualizó la dependencia `connectivity_plus` en el `pubspec.yaml` (de la versión `^6.1.0` a `^7.2.0`), lo cual resolvió automáticamente el `pubspec.lock`, y se añadió la directiva `lint { checkReleaseBuilds = false }` en el archivo `android/app/build.gradle.kts` para evitar que las reglas estrictas de código nativo abortaran el empaquetado.
+- **Verificación:** Código compilado sin errores estáticos (`flutter analyze`). La suite de pruebas creció y se mantuvo 100% estable, reportando 333 tests exitosos. Ejecución exitosa del comando de compilación final (`flutter build apk --release`).
+
+---
+
+### Entrada #[74] — Planificación de Inyección de Dependencias Automática (Issue #13)
+
+- **Fecha / autor:** 15-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Modelo: Qwen3.7 Plus )
+- **Rol en el flujo:** Tech Lead / Software Architect.
+- **Tarea/problema:** Diseñar el plan de migración para reemplazar el registro manual de dependencias por generación automática de código utilizando `get_it` e `injectable`.
+- **Prompt (paráfrasis fiel):** > "Genera un Plan de Implementación ultra conciso para el Issue #13 usando `get_it` e `injectable`. Ve directo al grano, incluye dependencias, setup base, guía de anotaciones por capa y la generación con `build_runner`."
+- **Resultado obtenido:** Qwen analizó la arquitectura y entregó un plan exacto, diferenciando inteligentemente qué clases podían usar anotaciones (`@lazySingleton`, `@injectable`) y cuáles debían mantenerse con registro manual en módulos (como las cajas de Hive o el `AudioService` por sus requerimientos de `dispose`).
+- **Modificaciones del equipo:** Ninguna.
+- **Verificación:** Plan coherente, estructurado y listo para delegar.
+
+---
+
+### Entrada #[75] — Ejecución de Inyección de Dependencias 
+
+- **Fecha / autor:** 15-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Ejecutar la migración masiva de clases anotando Mappers, Repositories, Use Cases y Blocs en toda la arquitectura del proyecto sin consumir exceso de tokens en la respuesta.
+- **Prompt (paráfrasis fiel):** > "Ejecuta estrictamente el plan de Qwen. Modifica los archivos correspondientes y corre `build_runner`. NO imprimas código fuente en tu respuesta, solo confirma la finalización."
+- **Resultado obtenido:** Kimi ejecutó la refactorización silenciosamente. Generó el archivo de configuración base y añadió las etiquetas correspondientes en las capas de Data, Domain y Presentation.
+- **Modificaciones del equipo:** Tras la ejecución inicial, el equipo ejecutó `flutter analyze` y detectó algunas inconsistencias (warnings) y un posible fallo de inyección en una de las clases, lo que requirió una revisión posterior.
+- **Verificación:** Refactorización base aplicada correctamente.
+
+---
+
+### Entrada #[76] — Diagnóstico de Errores Post-Generación de DI
+
+- **Fecha / autor:** 15-07-2026 / Alberto Monasterio
+- **Herramienta:** Opencode(Qwen3.7 Plus) 
+- **Rol en el flujo:** Tech Lead / Software Architect.
+- **Tarea/problema:** Analizar los resultados de `flutter analyze` y revisar el código generado por Kimi para detectar y solucionar bugs de inyección y advertencias menores.
+- **Prompt (paráfrasis fiel):** > "Revisa los cambios hechos por Kimi e indícame los problemas que surgen al hacer `flutter analyze`. Entrega un plan de corrección para Kimi."
+- **Resultado obtenido:** Qwen detectó un fallo crítico de runtime no capturado por el linter: la clase `MoveBasedScoring` estaba intentando inyectar valores enteros (`gh<int>()`) debido a cómo `injectable` maneja los valores por defecto. Entregó un plan para mover esta clase al `register_module.dart`, además de solucionar 3 warnings (variables/imports sin usar) e ignorar reglas de formato en los BLoCs.
+- **Modificaciones del equipo:** Ninguna.
+- **Verificación:** Diagnóstico preciso y resolución arquitectónica limpia.
+
+---
+
+### Entrada #[77] — Corrección Final de Inyección de Dependencias
+
+- **Fecha / autor:** 15-07-2026 / Alberto Monasterio
+- **Herramienta:** OpenCode (Modelo: Kimi K2.7 Code)
+- **Rol en el flujo:** Senior Flutter Developer.
+- **Tarea/problema:** Aplicar los parches arquitectónicos identificados por Qwen para estabilizar el inyector de dependencias.
+- **Prompt (paráfrasis fiel):** > "Ejecuta estrictamente el plan de corrección. Mueve el registro de `MoveBasedScoring`, resuelve los warnings, regenera con `build_runner` y valida."
+- **Resultado obtenido:** Kimi limpió los imports innecesarios, ajustó la inicialización de Hive, reubicó el scoring en el módulo manual y agregó los ignoradores de linting necesarios.
+- **Modificaciones del equipo:** Ninguna.
+- **Verificación:** `flutter analyze` reportó 0 problemas y la suite de pruebas pasó en su totalidad. Feature completada con éxito.
+                                      
 
 ## Evaluación crítica
 
@@ -830,3 +1363,5 @@
 El uso de OpenCode en el Frontend fue fundamental para acelerar la escritura de clases repetitivas (como los estados y eventos de BLoC) y armar la estructura inicial del UI en Flutter. 
 
 Sin embargo, las decisiones algorítmicas críticas (como optimizar la búsqueda de vía libre en el grafo o manejar la memoria en el patrón Command) requirieron intervención manual constante. **La lección principal:** La IA es un excelente "tipiador" de patrones, pero no comprende intrínsecamente las reglas estrictas de Clean Architecture a menos que se le fuerce. La revisión cruzada del equipo fue indispensable para mantener las dependencias aisladas.
+
+
