@@ -110,6 +110,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       history: state.history,
       moveCount: state.moveCount,
       startedAtMs: state.startedAtMs,
+      mistakes: state.mistakes,
     );
   }
 
@@ -215,9 +216,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           _audioService?.playSfx(SfxClip.block);
           _livesRemaining--;
           final level = _levelForState(state);
+          final newSession = session.afterMistake();
           if (_livesRemaining <= 0) {
             _emitDefeatState(
-              session: session,
+              session: newSession,
               level: level,
               reason: DefeatReason.outOfLives,
               nowMs: _clock(),
@@ -226,10 +228,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
             return;
           }
           final evaluation = _evaluateGameStateUseCase(
-            session: session,
+            session: newSession,
             nowMs: _clock(),
           );
-          _emitPlayingStateFromEvaluation(session, level, evaluation, emit);
+          _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
           break;
         }
         if (failure is ArrowNotFoundFailure) {
@@ -464,6 +466,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       arrowsRemaining: playingState.arrowsRemaining,
       elapsedSeconds: playingState.elapsedSeconds,
       startedAtMs: playingState.startedAtMs,
+      mistakes: playingState.mistakes,
       livesRemaining: _livesRemaining,
       totalTimeRemaining: _totalTimeRemaining,
       levelsCompleted: _levelsCompleted,
@@ -508,6 +511,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final scoreResult = _calculateScoreUseCase(
       moves: evaluation.moveCount,
       elapsedSeconds: evaluation.elapsedSeconds,
+      mistakes: session.mistakes,
     );
 
     switch (scoreResult) {

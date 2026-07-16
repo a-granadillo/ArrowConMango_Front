@@ -60,6 +60,7 @@ final class GamePlaying extends GameState {
     required this.arrowsRemaining,
     required this.elapsedSeconds,
     required this.startedAtMs,
+    this.mistakes = 0,
     this.livesRemaining = 3,
     this.totalTimeRemaining = 60,
     this.levelsCompleted = 0,
@@ -108,6 +109,9 @@ final class GamePlaying extends GameState {
   /// Timestamp in milliseconds when the level started.
   final int startedAtMs;
 
+  /// Number of mistakes made so far.
+  final int mistakes;
+
   /// Number of lives remaining (3 in both modes).
   final int livesRemaining;
 
@@ -134,6 +138,7 @@ final class GamePlaying extends GameState {
         arrowsRemaining,
         elapsedSeconds,
         startedAtMs,
+        mistakes,
         livesRemaining,
         totalTimeRemaining,
         levelsCompleted,

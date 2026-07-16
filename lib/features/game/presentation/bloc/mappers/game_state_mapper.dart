@@ -27,6 +27,7 @@ class GameStateMapper {
       arrowsRemaining: session.boardState.arrowCount,
       elapsedSeconds: session.elapsedSeconds(nowMs),
       startedAtMs: session.startedAtMs,
+      mistakes: session.mistakes,
     );
   }
 
