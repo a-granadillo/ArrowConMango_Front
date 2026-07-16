@@ -184,13 +184,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         final level = _levelForState(state);
 
         if (evaluation.status == GameStatus.victory) {
-          // Primero emitimos el estado Playing final para que la pantalla de juego
-          // pueda disparar la animación de salida de la última flecha.
-          _emitPlayingStateFromEvaluation(newSession, level, evaluation, emit);
-          
-          // Esperamos a que la animación de salida termine (450ms es suficiente)
-          await Future.delayed(const Duration(milliseconds: 450));
-          
           await _emitVictoryState(newSession, evaluation, level, emit);
           return;
         }

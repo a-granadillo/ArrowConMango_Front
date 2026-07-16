@@ -394,7 +394,7 @@ void main() {
     );
 
     blocTest<GameBloc, GameState>(
-      'should emit [GamePlaying, GameVictory] when the last arrow exits',
+      'should emit [GameVictory] when the last arrow exits',
       // Arrange
       setUp: () {
         fakeTriggerExit.result = Success(sessionAfterExit());
@@ -412,20 +412,8 @@ void main() {
       seed: playingSeed,
       // Act
       act: (bloc) => bloc.add(const TriggerArrowExit(arrowId: 'arrow_1')),
-      wait: const Duration(milliseconds: 550),
       // Assert
       expect: () => [
-        GamePlaying(
-          levelId: 1,
-          difficulty: 'Easy',
-          boardState: BoardState(arrows: const []),
-          moveCount: 1,
-          history: sessionAfterExit().history,
-          score: evalScore,
-          arrowsRemaining: 0,
-          elapsedSeconds: 5,
-          startedAtMs: clockValue,
-        ),
         const GameVictory(
           levelId: 1,
           score: finalScore,

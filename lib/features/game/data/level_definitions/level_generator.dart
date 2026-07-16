@@ -67,7 +67,7 @@ class LevelConfig {
     uShapeRatio: 0.05, // Small chance of horseshoe curves
     minSegmentLength: 2,
     maxSegmentLength: 4,
-    minGraphDepth: 2, // Optimized from 5 to make generation instant on first run
+    minGraphDepth: 5, // Increased from 3 (needs at least 5 consecutive steps)
     patternCounts: {'ChainLink3': 1},
     chainForceProbability: 0.1,
     maxForcedChainDepth: 3,
@@ -84,7 +84,7 @@ class LevelConfig {
     uShapeRatio: 0.15,
     minSegmentLength: 2,
     maxSegmentLength: 4,
-    minGraphDepth: 3, // Optimized from 8 to make generation instant on first run
+    minGraphDepth: 8, // Increased from 5 (needs at least 8 consecutive steps)
     patternCounts: {'ChainLink3': 1, 'DoubleUInterlock': 1},
     chainForceProbability: 0.15,
     maxForcedChainDepth: 4,
@@ -101,7 +101,7 @@ class LevelConfig {
     uShapeRatio: 0.25, // High percentage of 180° turns
     minSegmentLength: 2,
     maxSegmentLength: 5,
-    minGraphDepth: 4, // Optimized from 12 to make generation instant on first run
+    minGraphDepth: 12, // Increased from 8 (extremely complex: 12 consecutive blockages!)
     patternCounts: {'ChainLink3': 1, 'DoubleUInterlock': 1, 'SpiralLock': 1},
     chainForceProbability: 0.2,
     maxForcedChainDepth: 5,
@@ -147,7 +147,7 @@ class LevelGenerator {
     // the minimum complexity (graph depth) required for this difficulty.
     // The high iteration count compensates for the possibility that pattern + chain
     // interactions occasionally produce unsolvable boards (cross-template cycles).
-    while (boardAttempts < 150) {
+    while (boardAttempts < 1000) {
       boardAttempts++;
       final rng = Random(currentSeed);
       final occupied = <String>{};
@@ -168,7 +168,7 @@ class LevelGenerator {
 
       // Phase 2: Random generation with chain forcing.
       var attempts = 0;
-      final maxAttempts = config.arrowCount * 50;
+      final maxAttempts = config.arrowCount * 1200;
       while (arrows.length < config.arrowCount && attempts < maxAttempts) {
         attempts++;
 

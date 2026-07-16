@@ -62,10 +62,7 @@ class SyncedProgressRepository implements IProgressRepository {
     };
 
     try {
-      // Set a strict 500ms timeout on the remote fetch so we never block the UI
-      final remoteModel = await _remote
-          .fetch()
-          .timeout(const Duration(milliseconds: 500));
+      final remoteModel = await _remote.fetch();
       final remoteEntity = _mapper.toEntity(remoteModel);
       final merged = _merge(localEntity, remoteEntity);
       await _local.saveProgress(merged);
@@ -80,18 +77,12 @@ class SyncedProgressRepository implements IProgressRepository {
     final localSaveResult = await _local.saveProgress(progress);
     if (localSaveResult is Error<void>) return localSaveResult;
 
-    // Fire and forget remote push to avoid blocking the UI on victory screens.
-    // Wrap in a try/catch block to robustly handle synchronous exceptions in tests.
     try {
-      _remote.push(_mapper.toModel(progress)).then((_) {
-        _markPending(false);
-      }).catchError((_) {
-        _markPending(true);
-      });
+      await _remote.push(_mapper.toModel(progress));
+      await _markPending(false);
     } catch (_) {
-      _markPending(true);
+      await _markPending(true);
     }
-
     return localSaveResult;
   }
 
