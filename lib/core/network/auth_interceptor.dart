@@ -12,9 +12,13 @@ import '../config/api_config.dart';
 /// Uses a plain [Dio] instance (no interceptors) for the guest-login call
 /// itself, so authentication never recurses into this interceptor.
 class AuthInterceptor extends Interceptor {
-  AuthInterceptor({required AuthTokenStore tokenStore, required String guestUuid})
-      : _tokenStore = tokenStore,
+  AuthInterceptor({
+    required AuthTokenStore tokenStore,
+    required String guestUuid,
+    required String guestDisplayName,
+  })  : _tokenStore = tokenStore,
         _guestUuid = guestUuid,
+        _guestDisplayName = guestDisplayName,
         _authDio = Dio(
           BaseOptions(
             baseUrl: ApiConfig.baseUrl,
@@ -25,12 +29,17 @@ class AuthInterceptor extends Interceptor {
 
   final AuthTokenStore _tokenStore;
   final String _guestUuid;
+  final String _guestDisplayName;
   final Dio _authDio;
 
   Future<String> _guestLogin() async {
+    // displayName is honored by the backend only when this UUID doesn't
+    // resolve to an existing user yet (find-or-create); renaming an
+    // already-known guest goes through PATCH /player/me (PlayerCubit.rename),
+    // not through this call.
     final response = await _authDio.post<Map<String, dynamic>>(
       '/auth/guest',
-      data: {'uuid': _guestUuid},
+      data: {'uuid': _guestUuid, 'displayName': _guestDisplayName},
     );
     final token = response.data!['token'] as String;
     await _tokenStore.save(token);
