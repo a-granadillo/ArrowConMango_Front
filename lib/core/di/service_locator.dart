@@ -22,7 +22,6 @@ import '../../features/game/domain/repositories/i_level_repository.dart';
 import '../../features/game/domain/repositories/i_progress_repository.dart';
 import '../../features/game/presentation/bloc/cube3d/cube3d_game_cubit.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
-import '../../features/leaderboard/data/mock_leaderboard_repository.dart';
 import '../../features/leaderboard/domain/i_leaderboard_repository.dart';
 import '../../features/player/data/auth_token_store.dart';
 import '../../features/player/data/guest_name_generator.dart';
@@ -136,13 +135,6 @@ Future<void> setupServiceLocator() async {
         audioService: sl<AudioService>(),
       ),
     );
-
-  // --- Leaderboard (Guest-First) — fallback mock data source ---
-  if (!sl.isRegistered<ILeaderboardRepository>()) {
-    sl.registerLazySingleton<ILeaderboardRepository>(
-      () => MockLeaderboardRepository(),
-    );
-  }
 }
 
 /// Populates the levels box from the code-defined level catalogue on first

@@ -78,5 +78,6 @@
   "leaderboardSubtitle": "The best harvesters",
   "leaderboardLinkAccount": "Link account (Google / Apple)",
   "leaderboardSignInComingSoon": "Google/Apple sign-in — coming soon 🥭",
-  "leaderboardCurrentPlayer": "{name} (You)"
+  "leaderboardCurrentPlayer": "{name} (You)",
+  "leaderboardLevelsSub": "{count, plural, =1{1 level} other{{count} levels}}"
 }

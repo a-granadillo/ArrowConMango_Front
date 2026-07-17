@@ -65,8 +65,8 @@ import '../../features/game/domain/repositories/i_progress_repository.dart'
 import '../../features/game/domain/services/collision_validator.dart' as _i775;
 import '../../features/game/presentation/bloc/menu_bloc.dart' as _i49;
 import '../../features/game/presentation/bloc/progress_bloc.dart' as _i424;
-import '../../features/leaderboard/data/mock_leaderboard_repository.dart'
-    as _i328;
+import '../../features/leaderboard/data/api_leaderboard_repository.dart'
+    as _i330;
 import '../../features/leaderboard/domain/i_leaderboard_repository.dart'
     as _i651;
 import '../../features/leaderboard/presentation/leaderboard_cubit.dart'
@@ -117,9 +117,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1070.BoardStateMapper>(
       () => _i1070.BoardStateMapper(gh<_i330.ArrowMapper>()),
     );
-    gh.lazySingleton<_i651.ILeaderboardRepository>(
-      () => _i328.MockLeaderboardRepository(),
-    );
     gh.lazySingleton<_i924.RemoteLeaderboardDataSource>(
       () => _i924.RemoteLeaderboardDataSource(gh<_i361.Dio>()),
     );
@@ -128,11 +125,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i803.RemotePlayerDataSource>(
       () => _i803.RemotePlayerDataSource(gh<_i361.Dio>()),
-    );
-    gh.factory<_i143.LeaderboardCubit>(
-      () => _i143.LeaderboardCubit(
-        repository: gh<_i651.ILeaderboardRepository>(),
-      ),
     );
     gh.lazySingleton<_i979.Box<dynamic>>(
       () => registerModule.playerBox,
@@ -150,6 +142,11 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i749.EvaluateGameStateUseCase>(
       () => _i749.EvaluateGameStateUseCase(gh<_i440.ScoringStrategy>()),
+    );
+    gh.lazySingleton<_i651.ILeaderboardRepository>(
+      () => _i330.ApiLeaderboardRepository(
+        gh<_i924.RemoteLeaderboardDataSource>(),
+      ),
     );
     gh.lazySingleton<_i598.AudioSettingsLocalDataSource>(
       () => _i598.AudioSettingsLocalDataSource(
@@ -188,6 +185,11 @@ extension GetItInjectableX on _i174.GetIt {
         connectivity: gh<_i895.Connectivity>(),
         scoringStrategy: gh<_i440.ScoringStrategy>(),
         pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
+      ),
+    );
+    gh.factory<_i143.LeaderboardCubit>(
+      () => _i143.LeaderboardCubit(
+        repository: gh<_i651.ILeaderboardRepository>(),
       ),
     );
     gh.lazySingleton<_i76.ILevelRepository>(

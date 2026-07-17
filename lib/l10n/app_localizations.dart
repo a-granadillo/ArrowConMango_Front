@@ -505,6 +505,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{name} (Tú)'**
   String leaderboardCurrentPlayer(String name);
+
+  /// No description provided for @leaderboardLevelsSub.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 nivel} other{{count} niveles}}'**
+  String leaderboardLevelsSub(int count);
 }
 
 class _AppLocalizationsDelegate
