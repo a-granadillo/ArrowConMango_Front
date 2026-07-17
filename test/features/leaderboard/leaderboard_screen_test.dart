@@ -25,7 +25,7 @@ const _loaded = LeaderboardLoaded(
       uuid: 's1',
       displayName: 'MangoReina_88',
       mangos: 1580,
-      sub: '15 niveles',
+      levelsCompleted: 15,
       colorValue: 0xFFF4843D,
     ),
     LeaderboardEntry(
@@ -33,7 +33,7 @@ const _loaded = LeaderboardLoaded(
       uuid: 's2',
       displayName: 'ArrowKing_07',
       mangos: 1420,
-      sub: '13 niveles',
+      levelsCompleted: 13,
       colorValue: 0xFF4CAF50,
     ),
     LeaderboardEntry(
@@ -41,7 +41,7 @@ const _loaded = LeaderboardLoaded(
       uuid: 's3',
       displayName: 'PixelHero_09',
       mangos: 610,
-      sub: '12 niveles',
+      levelsCompleted: 12,
       colorValue: 0xFF9B6BC7,
     ),
     LeaderboardEntry(
@@ -49,7 +49,7 @@ const _loaded = LeaderboardLoaded(
       uuid: 'me',
       displayName: 'MangoLoco_10',
       mangos: 400,
-      sub: '1 nivel',
+      levelsCompleted: 1,
       colorValue: 0xFFF9C74F,
       isCurrentPlayer: true,
     ),

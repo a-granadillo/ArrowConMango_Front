@@ -8,7 +8,7 @@ class LeaderboardEntry extends Equatable {
     required this.displayName,
     required this.mangos,
     required this.colorValue,
-    this.sub = '',
+    this.levelsCompleted = 0,
     this.isCurrentPlayer = false,
   });
 
@@ -29,8 +29,8 @@ class LeaderboardEntry extends Equatable {
   /// stays Flutter-free; the presentation layer maps it to a `Color`.
   final int colorValue;
 
-  /// Subtitle shown under the name (e.g. "15 niveles").
-  final String sub;
+  /// Number of levels completed, shown as the subtitle under the name.
+  final int levelsCompleted;
 
   /// Whether this row is the local guest player (highlighted in the UI).
   final bool isCurrentPlayer;
@@ -40,6 +40,13 @@ class LeaderboardEntry extends Equatable {
       displayName.isEmpty ? '?' : displayName.substring(0, 1).toUpperCase();
 
   @override
-  List<Object?> get props =>
-      [rank, uuid, displayName, mangos, colorValue, sub, isCurrentPlayer];
+  List<Object?> get props => [
+        rank,
+        uuid,
+        displayName,
+        mangos,
+        colorValue,
+        levelsCompleted,
+        isCurrentPlayer,
+      ];
 }

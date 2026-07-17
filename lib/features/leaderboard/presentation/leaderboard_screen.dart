@@ -339,7 +339,7 @@ class _LeaderboardRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  entry.sub,
+                  context.l10n.leaderboardLevelsSub(entry.levelsCompleted),
                   style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMuted),
                 ),
               ],
