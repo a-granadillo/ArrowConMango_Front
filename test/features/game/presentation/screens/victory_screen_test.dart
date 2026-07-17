@@ -123,7 +123,13 @@ void main() {
     expect(find.text('Siguiente nivel'), findsOneWidget);
     expect(find.text('Menú'), findsOneWidget);
     verify(
-      () => progressBloc.add(const ProgressLevelCompleted(currentLevelId: 1)),
+      () => progressBloc.add(
+        const ProgressLevelCompleted(
+          currentLevelId: 1,
+          moves: 12,
+          elapsedSeconds: 45,
+        ),
+      ),
     ).called(1);
 
     await tester.pumpWidget(const SizedBox());

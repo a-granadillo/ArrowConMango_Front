@@ -57,7 +57,7 @@ void main() {
       expect(result, isA<Success<AppProgress>>());
       final progress = (result as Success<AppProgress>).value;
       expect(progress.unlockedLevels, isEmpty);
-      expect(progress.currentToken, isEmpty);
+      expect(progress.currentLevel, equals(0));
     });
 
     test('should_return_mapped_entity_when_progress_exists', () async {
@@ -76,7 +76,7 @@ void main() {
       expect(result, isA<Success<AppProgress>>());
       final progress = (result as Success<AppProgress>).value;
       expect(progress.unlockedLevels, equals([1, 2]));
-      expect(progress.currentToken, equals('3'));
+      expect(progress.currentLevel, equals(3));
     });
 
     test('should_store_mapped_model_when_saveProgress_called', () async {
@@ -84,7 +84,7 @@ void main() {
       final repo = HiveProgressRepository(box, mapper);
       const progress = AppProgress(
         unlockedLevels: [1, 2, 3],
-        currentToken: '4',
+        currentLevel: 4,
       );
 
       final result = await repo.saveProgress(progress);

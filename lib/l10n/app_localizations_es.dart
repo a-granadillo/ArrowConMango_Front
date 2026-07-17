@@ -229,4 +229,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String leaderboardCurrentPlayer(String name) {
     return '$name (Tú)';
   }
+
+  @override
+  String leaderboardLevelsSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count niveles',
+      one: '1 nivel',
+    );
+    return '$_temp0';
+  }
 }

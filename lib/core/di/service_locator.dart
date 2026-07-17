@@ -22,11 +22,11 @@ import '../../features/game/domain/repositories/i_level_repository.dart';
 import '../../features/game/domain/repositories/i_progress_repository.dart';
 import '../../features/game/presentation/bloc/cube3d/cube3d_game_cubit.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
-import '../../features/leaderboard/data/mock_leaderboard_repository.dart';
 import '../../features/leaderboard/domain/i_leaderboard_repository.dart';
 import '../../features/player/data/auth_token_store.dart';
 import '../../features/player/data/guest_name_generator.dart';
 import '../../features/player/data/player_local_data_source.dart';
+import '../../features/player/data/remote_player_data_source.dart';
 import '../../features/player/domain/guest_player.dart';
 import '../../features/player/domain/i_player_repository.dart';
 import '../../features/player/presentation/player_cubit.dart';
@@ -87,6 +87,7 @@ Future<void> setupServiceLocator() async {
       () => AuthInterceptor(
         tokenStore: sl<AuthTokenStore>(),
         guestUuid: initialPlayer.uuid,
+        guestDisplayName: initialPlayer.displayName,
       ),
     )
     ..registerLazySingleton<ApiClient>(
@@ -134,13 +135,6 @@ Future<void> setupServiceLocator() async {
         audioService: sl<AudioService>(),
       ),
     );
-
-  // --- Leaderboard (Guest-First) — fallback mock data source ---
-  if (!sl.isRegistered<ILeaderboardRepository>()) {
-    sl.registerLazySingleton<ILeaderboardRepository>(
-      () => MockLeaderboardRepository(),
-    );
-  }
 }
 
 /// Key in [playerBox] tracking which [LevelDefinitions.catalogVersion] the
@@ -202,6 +196,10 @@ void _wrapPlayerRepository() {
     ..unregister<PlayerCubit>()
     ..registerSingleton<IPlayerRepository>(decorated)
     ..registerSingleton<PlayerCubit>(
-      PlayerCubit(dataSource: decorated, initial: existingState),
+      PlayerCubit(
+        dataSource: decorated,
+        initial: existingState,
+        remoteDataSource: sl<RemotePlayerDataSource>(),
+      ),
     );
 }
