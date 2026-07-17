@@ -6,6 +6,9 @@ import 'package:arrowconmango_front/features/game/application/use_cases/load_pro
 import 'package:arrowconmango_front/features/game/application/use_cases/save_local_progress_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/submit_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/level_best.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/scoring_strategy.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/level_not_found_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/progress_event.dart';
@@ -27,10 +30,12 @@ class ProgressBloc extends Bloc<ProgressEvent, ProgressState> {
     required SaveLocalProgressUseCase saveLocalProgressUseCase,
     required UnlockNextLevelUseCase unlockNextLevelUseCase,
     required SubmitScoreUseCase submitScoreUseCase,
+    required ScoringStrategy scoringStrategy,
   })  : _loadProgressUseCase = loadProgressUseCase,
         _saveLocalProgressUseCase = saveLocalProgressUseCase,
         _unlockNextLevelUseCase = unlockNextLevelUseCase,
         _submitScoreUseCase = submitScoreUseCase,
+        _scoringStrategy = scoringStrategy,
         super(const ProgressInitial()) {
     on<ProgressLoadStarted>(_onProgressLoadStarted);
     on<ProgressLevelCompleted>(_onProgressLevelCompleted);
@@ -41,6 +46,7 @@ class ProgressBloc extends Bloc<ProgressEvent, ProgressState> {
   final SaveLocalProgressUseCase _saveLocalProgressUseCase;
   final UnlockNextLevelUseCase _unlockNextLevelUseCase;
   final SubmitScoreUseCase _submitScoreUseCase;
+  final ScoringStrategy _scoringStrategy;
 
   Future<void> _onProgressLoadStarted(
     ProgressLoadStarted event,
@@ -93,25 +99,42 @@ class ProgressBloc extends Bloc<ProgressEvent, ProgressState> {
 
     switch (unlockResult) {
       case Success(:final value):
-        final updatedProgress = value;
-        final saveResult = await _saveLocalProgressUseCase(
-          progress: updatedProgress,
-        );
-
-        switch (saveResult) {
-          case Success():
-            emit(ProgressLoaded(progress: updatedProgress));
-          case Error(:final failure):
-            emit(ProgressError(message: failure.message));
-        }
+        await _saveBestAndEmit(value, event, emit);
 
       case Error(:final failure):
         if (failure is LevelNotFoundFailure) {
-          // Último nivel: no hay siguiente nivel, mantenemos el progreso actual.
-          emit(ProgressLoaded(progress: currentProgress));
+          // Último nivel: no hay siguiente nivel que desbloquear, pero el
+          // mejor tiempo de este nivel se registra igual.
+          await _saveBestAndEmit(currentProgress, event, emit);
         } else {
           emit(ProgressError(message: failure.message));
         }
+    }
+  }
+
+  /// Records [event]'s score as the level's best run (keeping the better of
+  /// old/new — see [AppProgress.withBest]), persists it, and emits the
+  /// result.
+  Future<void> _saveBestAndEmit(
+    AppProgress progress,
+    ProgressLevelCompleted event,
+    Emitter<ProgressState> emit,
+  ) async {
+    final updatedProgress = progress.withBest(
+      event.currentLevelId,
+      LevelBest(moves: event.moves, timeElapsedSeconds: event.elapsedSeconds),
+      _scoringStrategy,
+    );
+
+    final saveResult = await _saveLocalProgressUseCase(
+      progress: updatedProgress,
+    );
+
+    switch (saveResult) {
+      case Success():
+        emit(ProgressLoaded(progress: updatedProgress));
+      case Error(:final failure):
+        emit(ProgressError(message: failure.message));
     }
   }
 

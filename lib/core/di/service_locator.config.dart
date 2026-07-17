@@ -176,6 +176,16 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       dispose: _i478.disposeAudioService,
     );
+    gh.lazySingleton<_i10.IProgressRepository>(
+      () => _i1036.SyncedProgressRepository(
+        local: gh<_i329.HiveProgressRepository>(),
+        remote: gh<_i1063.RemoteProgressDataSource>(),
+        mapper: gh<_i557.AppProgressMapper>(),
+        connectivity: gh<_i895.Connectivity>(),
+        scoringStrategy: gh<_i440.ScoringStrategy>(),
+        pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
+      ),
+    );
     gh.lazySingleton<_i76.ILevelRepository>(
       () => _i821.HiveLevelRepository(
         gh<_i979.Box<_i50.LevelModel>>(),
@@ -186,14 +196,11 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i151.AudioSettingsCubit(service: gh<_i910.AudioService>()),
       dispose: _i151.disposeAudioSettingsCubit,
     );
-    gh.lazySingleton<_i10.IProgressRepository>(
-      () => _i1036.SyncedProgressRepository(
-        local: gh<_i329.HiveProgressRepository>(),
-        remote: gh<_i1063.RemoteProgressDataSource>(),
-        mapper: gh<_i557.AppProgressMapper>(),
-        connectivity: gh<_i895.Connectivity>(),
-        pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
-      ),
+    gh.lazySingleton<_i739.LoadProgressUseCase>(
+      () => _i739.LoadProgressUseCase(gh<_i10.IProgressRepository>()),
+    );
+    gh.lazySingleton<_i16.SaveLocalProgressUseCase>(
+      () => _i16.SaveLocalProgressUseCase(gh<_i10.IProgressRepository>()),
     );
     gh.lazySingleton<_i1040.GetLevelListUseCase>(
       () => _i1040.GetLevelListUseCase(
@@ -220,18 +227,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i61.LevelMapper>(),
       ),
     );
-    gh.lazySingleton<_i739.LoadProgressUseCase>(
-      () => _i739.LoadProgressUseCase(gh<_i10.IProgressRepository>()),
-    );
-    gh.lazySingleton<_i16.SaveLocalProgressUseCase>(
-      () => _i16.SaveLocalProgressUseCase(gh<_i10.IProgressRepository>()),
-    );
     gh.lazySingleton<_i424.ProgressBloc>(
       () => _i424.ProgressBloc(
         loadProgressUseCase: gh<_i739.LoadProgressUseCase>(),
         saveLocalProgressUseCase: gh<_i16.SaveLocalProgressUseCase>(),
         unlockNextLevelUseCase: gh<_i1015.UnlockNextLevelUseCase>(),
         submitScoreUseCase: gh<_i908.SubmitScoreUseCase>(),
+        scoringStrategy: gh<_i440.ScoringStrategy>(),
       ),
     );
     return this;

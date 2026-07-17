@@ -3,9 +3,11 @@ import 'package:arrowconmango_front/features/game/application/use_cases/save_loc
 import 'package:arrowconmango_front/features/game/application/use_cases/submit_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/unlock_next_level_use_case.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/level_best.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/level_not_found_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:arrowconmango_front/features/game/domain/services/move_based_scoring.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/progress_bloc.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/progress_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/progress_state.dart';
@@ -97,6 +99,7 @@ void main() {
       saveLocalProgressUseCase: fakeSave,
       unlockNextLevelUseCase: fakeUnlock,
       submitScoreUseCase: fakeSubmitScore,
+      scoringStrategy: const MoveBasedScoring(),
     );
   }
 
@@ -106,7 +109,7 @@ void main() {
       // Arrange
       setUp: () {
         fakeLoad.result = const Success<AppProgress>(
-          AppProgress(unlockedLevels: [1, 2], currentToken: 'token-a'),
+          AppProgress(unlockedLevels: [1, 2], currentLevel: 2),
         );
       },
       build: buildBloc,
@@ -116,7 +119,7 @@ void main() {
       expect: () => [
         const ProgressLoading(),
         const ProgressLoaded(
-          progress: AppProgress(unlockedLevels: [1, 2], currentToken: 'token-a'),
+          progress: AppProgress(unlockedLevels: [1, 2], currentLevel: 2),
         ),
       ],
       verify: (_) {
@@ -147,7 +150,7 @@ void main() {
       // Arrange
       build: buildBloc,
       seed: () => const ProgressLoaded(
-        progress: AppProgress(unlockedLevels: [1], currentToken: 'token-b'),
+        progress: AppProgress(unlockedLevels: [1], currentLevel: 1),
       ),
       // Act
       act: (bloc) => bloc.add(const ProgressLoadStarted()),
@@ -165,13 +168,13 @@ void main() {
       // Arrange
       setUp: () {
         fakeUnlock.result = const Success<AppProgress>(
-          AppProgress(unlockedLevels: [1, 2, 3], currentToken: 'token-c'),
+          AppProgress(unlockedLevels: [1, 2, 3], currentLevel: 3),
         );
         fakeSave.result = const Success<void>(null);
       },
       build: buildBloc,
       seed: () => const ProgressLoaded(
-        progress: AppProgress(unlockedLevels: [1, 2], currentToken: 'token-c'),
+        progress: AppProgress(unlockedLevels: [1, 2], currentLevel: 2),
       ),
       // Act
       act: (bloc) => bloc.add(
@@ -186,7 +189,8 @@ void main() {
         const ProgressLoaded(
           progress: AppProgress(
             unlockedLevels: [1, 2, 3],
-            currentToken: 'token-c',
+            currentLevel: 3,
+            best: {2: LevelBest(moves: 10, timeElapsedSeconds: 20)},
           ),
         ),
       ],
@@ -197,7 +201,8 @@ void main() {
           equals(
             const AppProgress(
               unlockedLevels: [1, 2, 3],
-              currentToken: 'token-c',
+              currentLevel: 3,
+              best: {2: LevelBest(moves: 10, timeElapsedSeconds: 20)},
             ),
           ),
         );
@@ -209,19 +214,20 @@ void main() {
     );
 
     blocTest<ProgressBloc, ProgressState>(
-      'should keep current progress when unlocking the next level fails with '
-      'LevelNotFoundFailure (last level)',
+      'should record the best run for the last level (no next level to '
+      'unlock) when unlocking fails with LevelNotFoundFailure',
       // Arrange
       setUp: () {
         fakeUnlock.result = Error<AppProgress>(
           const LevelNotFoundFailure(levelId: 16),
         );
+        fakeSave.result = const Success<void>(null);
       },
       build: buildBloc,
       seed: () => const ProgressLoaded(
         progress: AppProgress(
           unlockedLevels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-          currentToken: 'token-d',
+          currentLevel: 15,
         ),
       ),
       // Act
@@ -233,19 +239,28 @@ void main() {
         ),
       ),
       // Assert
-      expect: () => <ProgressState>[],
-      verify: (bloc) {
+      expect: () => [
+        const ProgressLoaded(
+          progress: AppProgress(
+            unlockedLevels: [
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+            ],
+            currentLevel: 15,
+            best: {15: LevelBest(moves: 3, timeElapsedSeconds: 5)},
+          ),
+        ),
+      ],
+      verify: (_) {
         expect(fakeUnlock.calledCurrentLevelId, equals(15));
         expect(
-          bloc.state,
+          fakeSave.calledProgress,
           equals(
-            const ProgressLoaded(
-              progress: AppProgress(
-                unlockedLevels: [
-                  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                ],
-                currentToken: 'token-d',
-              ),
+            const AppProgress(
+              unlockedLevels: [
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+              ],
+              currentLevel: 15,
+              best: {15: LevelBest(moves: 3, timeElapsedSeconds: 5)},
             ),
           ),
         );
@@ -257,7 +272,7 @@ void main() {
       // Arrange
       setUp: () {
         fakeUnlock.result = const Success<AppProgress>(
-          AppProgress(unlockedLevels: [1, 2], currentToken: 'token-e'),
+          AppProgress(unlockedLevels: [1, 2], currentLevel: 2),
         );
         fakeSave.result = Error<void>(
           const GenericFailure('save failed'),
@@ -265,7 +280,7 @@ void main() {
       },
       build: buildBloc,
       seed: () => const ProgressLoaded(
-        progress: AppProgress(unlockedLevels: [1], currentToken: 'token-e'),
+        progress: AppProgress(unlockedLevels: [1], currentLevel: 1),
       ),
       // Act
       act: (bloc) => bloc.add(
@@ -284,7 +299,11 @@ void main() {
         expect(
           fakeSave.calledProgress,
           equals(
-            const AppProgress(unlockedLevels: [1, 2], currentToken: 'token-e'),
+            const AppProgress(
+              unlockedLevels: [1, 2],
+              currentLevel: 2,
+              best: {1: LevelBest(moves: 8, timeElapsedSeconds: 12)},
+            ),
           ),
         );
       },
@@ -301,7 +320,7 @@ void main() {
         const ProgressUpdatedExternally(
           progress: AppProgress(
             unlockedLevels: [1, 2, 3],
-            currentToken: 'token-f',
+            currentLevel: 3,
           ),
         ),
       ),
@@ -310,7 +329,7 @@ void main() {
         const ProgressLoaded(
           progress: AppProgress(
             unlockedLevels: [1, 2, 3],
-            currentToken: 'token-f',
+            currentLevel: 3,
           ),
         ),
       ],
