@@ -8,6 +8,7 @@ import 'package:arrowconmango_front/features/game/data/repositories/synced_progr
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:arrowconmango_front/features/game/domain/services/move_based_scoring.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
@@ -48,6 +49,7 @@ void main() {
   late _FakePendingBox pendingBox;
   late StreamController<List<ConnectivityResult>> connectivityController;
   const mapper = AppProgressMapper();
+  const scoringStrategy = MoveBasedScoring();
 
   setUp(() {
     local = _MockHiveProgressRepository();
@@ -67,6 +69,7 @@ void main() {
       remote: remote,
       mapper: mapper,
       connectivity: connectivity,
+      scoringStrategy: scoringStrategy,
       pendingFlagBox: pendingBox,
     );
   }
@@ -79,7 +82,7 @@ void main() {
         (_) async => const AppProgressModel(currentLevel: 1, completedLevels: [1]),
       );
       final repo = buildRepo();
-      const progress = AppProgress(unlockedLevels: [1], currentToken: '1');
+      const progress = AppProgress(unlockedLevels: [1], currentLevel: 1);
 
       final result = await repo.saveProgress(progress);
       await Future.delayed(Duration.zero); // Wait for async push
@@ -96,7 +99,7 @@ void main() {
           .thenAnswer((_) async => const Success<void>(null));
       when(() => remote.push(any())).thenThrow(Exception('offline'));
       final repo = buildRepo();
-      const progress = AppProgress(unlockedLevels: [1], currentToken: '1');
+      const progress = AppProgress(unlockedLevels: [1], currentLevel: 1);
 
       final result = await repo.saveProgress(progress);
       await Future.delayed(Duration.zero); // Wait for async push
@@ -126,7 +129,7 @@ void main() {
           .thenAnswer((_) async => const Success<void>(null));
       when(() => remote.push(any())).thenThrow(Exception('offline'));
       final repo = buildRepo();
-      const progress = AppProgress(unlockedLevels: [1], currentToken: '1');
+      const progress = AppProgress(unlockedLevels: [1], currentLevel: 1);
       await repo.saveProgress(progress);
       await Future<void>.delayed(Duration.zero); // Wait for async push
       expect(pendingBox.get('progress_sync_pending'), isTrue);
@@ -148,7 +151,7 @@ void main() {
     test('should_flush_pending_progress_on_startup_when_flag_already_set',
         () async {
       await pendingBox.put('progress_sync_pending', true);
-      const progress = AppProgress(unlockedLevels: [2], currentToken: '2');
+      const progress = AppProgress(unlockedLevels: [2], currentLevel: 2);
       when(() => local.loadProgress())
           .thenAnswer((_) async => const Success<AppProgress>(progress));
       when(() => remote.push(any())).thenAnswer(
@@ -167,7 +170,7 @@ void main() {
   group('loadProgress', () {
     test('should_merge_remote_and_local_progress_when_remote_succeeds',
         () async {
-      const localProgress = AppProgress(unlockedLevels: [1], currentToken: '1');
+      const localProgress = AppProgress(unlockedLevels: [1], currentLevel: 1);
       when(() => local.loadProgress())
           .thenAnswer((_) async => const Success<AppProgress>(localProgress));
       when(() => local.saveProgress(any()))
@@ -183,13 +186,13 @@ void main() {
       expect(result, isA<Success<AppProgress>>());
       final merged = (result as Success<AppProgress>).value;
       expect(merged.unlockedLevels, equals([1, 2, 3]));
-      expect(merged.currentToken, equals('3'));
+      expect(merged.currentLevel, equals(3));
       verify(() => local.saveProgress(merged)).called(1);
     });
 
     test('should_fall_back_to_local_progress_when_remote_fetch_fails',
         () async {
-      const localProgress = AppProgress(unlockedLevels: [1], currentToken: '1');
+      const localProgress = AppProgress(unlockedLevels: [1], currentLevel: 1);
       when(() => local.loadProgress())
           .thenAnswer((_) async => const Success<AppProgress>(localProgress));
       when(() => remote.fetch()).thenThrow(Exception('offline'));

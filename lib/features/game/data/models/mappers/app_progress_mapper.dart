@@ -1,37 +1,48 @@
 import 'package:arrowconmango_front/features/game/data/models/app_progress_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/level_best_model.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/level_best.dart';
 import 'package:injectable/injectable.dart';
 
 /// Converts [AppProgressModel] to/from [AppProgress].
-///
-/// The domain [AppProgress] entity stores progress as a sorted list of
-/// unlocked levels and an opaque token. The data model adds a dedicated
-/// current-level indicator and optional per-level scores, so the conversion
-/// is lossy for scores and the token is used to persist the current level.
-///
-/// **TODO:** Consider adding a `currentLevel` field to [AppProgress] entity
-/// instead of repurposing `currentToken`, which is semantically meant for
-/// authentication/session state.
 @lazySingleton
 class AppProgressMapper {
   const AppProgressMapper();
 
   AppProgress toEntity(AppProgressModel model) {
+    final best = model.best;
     return AppProgress(
       unlockedLevels: [...model.completedLevels]..sort(),
-      currentToken: model.currentLevel.toString(),
+      currentLevel: model.currentLevel,
+      best: best == null
+          ? const {}
+          : best.map(
+              (levelId, levelBestModel) => MapEntry(
+                levelId,
+                LevelBest(
+                  moves: levelBestModel.moves,
+                  timeElapsedSeconds: levelBestModel.timeElapsedSeconds,
+                ),
+              ),
+            ),
     );
   }
 
   AppProgressModel toModel(AppProgress entity) {
-    final completedLevels = [...entity.unlockedLevels];
-    final currentLevel = int.tryParse(entity.currentToken) ??
-        (completedLevels.isEmpty ? 0 : completedLevels.last);
-
     return AppProgressModel(
-      currentLevel: currentLevel,
-      completedLevels: completedLevels,
-      scores: null,
+      currentLevel: entity.currentLevel,
+      completedLevels: [...entity.unlockedLevels],
+      best: entity.best.isEmpty
+          ? null
+          : entity.best.map(
+              (levelId, best) => MapEntry(
+                levelId,
+                LevelBestModel(
+                  moves: best.moves,
+                  timeElapsedSeconds: best.timeElapsedSeconds,
+                ),
+              ),
+            ),
     );
   }
 }

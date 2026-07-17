@@ -1,5 +1,6 @@
 import 'package:arrowconmango_front/features/game/data/models/app_progress_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/arrow_model.dart';
+import 'package:arrowconmango_front/features/game/data/models/level_best_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/arrow_trajectory.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_size_model.dart';
 import 'package:arrowconmango_front/features/game/data/models/board_state_model.dart';
@@ -168,12 +169,15 @@ void main() {
   });
 
   group('AppProgressModel JSON round-trip', () {
-    test('should_preserve_all_fields_with_scores', () {
+    test('should_preserve_all_fields_with_best', () {
       // Arrange
       const original = AppProgressModel(
         currentLevel: 3,
         completedLevels: [1, 2],
-        scores: {'1': 950, '2': 800},
+        best: {
+          1: LevelBestModel(moves: 5, timeElapsedSeconds: 20),
+          2: LevelBestModel(moves: 3, timeElapsedSeconds: 12),
+        },
       );
 
       // Act
@@ -182,15 +186,21 @@ void main() {
 
       // Assert
       expect(restored, equals(original));
-      expect(restored.scores, equals({'1': 950, '2': 800}));
+      expect(
+        restored.best,
+        equals({
+          1: const LevelBestModel(moves: 5, timeElapsedSeconds: 20),
+          2: const LevelBestModel(moves: 3, timeElapsedSeconds: 12),
+        }),
+      );
     });
 
-    test('should_omit_scores_when_null', () {
+    test('should_omit_best_when_null', () {
       // Arrange
       const original = AppProgressModel(
         currentLevel: 1,
         completedLevels: [],
-        scores: null,
+        best: null,
       );
 
       // Act
@@ -199,16 +209,16 @@ void main() {
 
       // Assert
       expect(restored, equals(original));
-      expect(json.containsKey('scores'), isFalse);
-      expect(restored.scores, isNull);
+      expect(json.containsKey('best'), isFalse);
+      expect(restored.best, isNull);
     });
 
-    test('should_handle_empty_scores_map', () {
+    test('should_handle_empty_best_map', () {
       // Arrange
       const original = AppProgressModel(
         currentLevel: 2,
         completedLevels: [1],
-        scores: {},
+        best: {},
       );
 
       // Act
@@ -217,7 +227,7 @@ void main() {
 
       // Assert
       expect(restored, equals(original));
-      expect(restored.scores, isEmpty);
+      expect(restored.best, isEmpty);
     });
   });
 }
