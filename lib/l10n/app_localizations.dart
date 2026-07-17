@@ -176,18 +176,6 @@ abstract class AppLocalizations {
   /// **'Idioma'**
   String get settingsLanguage;
 
-  /// No description provided for @settingsBoard3D.
-  ///
-  /// In es, this message translates to:
-  /// **'Tablero 3D (demo)'**
-  String get settingsBoard3D;
-
-  /// No description provided for @settingsBoard3DSubtitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Vista previa del renderizado por capas Z'**
-  String get settingsBoard3DSubtitle;
-
   /// No description provided for @settingsDialogPlayerName.
   ///
   /// In es, this message translates to:

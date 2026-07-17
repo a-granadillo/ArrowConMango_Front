@@ -17,8 +17,6 @@
   "settingsEdit": "Edit",
   "settingsSound": "Sound",
   "settingsLanguage": "Language",
-  "settingsBoard3D": "3D Board (demo)",
-  "settingsBoard3DSubtitle": "Preview of Z-layer rendering",
   "settingsDialogPlayerName": "Player name",
   "settingsDialogHint": "Your name",
   "settingsDialogCancel": "Cancel",

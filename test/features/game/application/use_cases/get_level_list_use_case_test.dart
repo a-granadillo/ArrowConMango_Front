@@ -1,8 +1,10 @@
 import 'package:arrowconmango_front/features/game/application/dtos/level_summary.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/get_level_list_use_case.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/level_best.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:arrowconmango_front/features/game/domain/services/move_based_scoring.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/fakes/fake_level_repository.dart';
@@ -20,6 +22,7 @@ void main() {
       useCase = GetLevelListUseCase(
         fakeLevelRepository,
         fakeProgressRepository,
+        const MoveBasedScoring(),
       );
     });
 
@@ -47,6 +50,71 @@ void main() {
                 LevelSummary(levelId: 3, isUnlocked: true),
               ]),
             );
+          case Error(:final failure):
+            fail('Expected Success, got Error: $failure');
+        }
+      },
+    );
+
+    test(
+      'should_report_mangosEarned_per_level_from_its_own_best_run '
+      '(regression: level select used to fake 3/3 for every completed level)',
+      () async {
+        // Arrange
+        fakeLevelRepository.countResult = const Success<int>(3);
+        fakeProgressRepository.loadResult = const Success<AppProgress>(
+          AppProgress(
+            unlockedLevels: [1, 2, 3],
+            best: {
+              // Slow run: low score -> 1 star.
+              1: LevelBest(moves: 5, timeElapsedSeconds: 80),
+              // Fast run: high score -> 3 stars.
+              2: LevelBest(moves: 5, timeElapsedSeconds: 1),
+            },
+          ),
+        );
+
+        // Act
+        final result = await useCase();
+
+        // Assert
+        switch (result) {
+          case Success(:final value):
+            expect(value[0].mangosEarned, 1);
+            expect(value[1].mangosEarned, 3);
+            // Level 3 was never completed, even though it's unlocked.
+            expect(value[2].mangosEarned, isNull);
+            expect(value[2].isCompleted, isFalse);
+          case Error(:final failure):
+            fail('Expected Success, got Error: $failure');
+        }
+      },
+    );
+
+    test(
+      'should_report_the_last_level_as_completed_when_it_has_a_best_run '
+      '(regression: the level selector used to derive "completed" from '
+      'whether the NEXT level was unlocked, which is always false for '
+      'the last level)',
+      () async {
+        // Arrange
+        fakeLevelRepository.countResult = const Success<int>(3);
+        fakeProgressRepository.loadResult = const Success<AppProgress>(
+          AppProgress(
+            unlockedLevels: [1, 2, 3],
+            best: {3: LevelBest(moves: 5, timeElapsedSeconds: 1)},
+          ),
+        );
+
+        // Act
+        final result = await useCase();
+
+        // Assert
+        switch (result) {
+          case Success(:final value):
+            expect(value.last.levelId, 3);
+            expect(value.last.isCompleted, isTrue);
+            expect(value.last.mangosEarned, 3);
           case Error(:final failure):
             fail('Expected Success, got Error: $failure');
         }

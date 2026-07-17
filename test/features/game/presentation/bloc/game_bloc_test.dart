@@ -23,6 +23,7 @@ import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.
 import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
+import 'package:arrowconmango_front/features/game/presentation/bloc/arrow_collision_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_bloc.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart';
@@ -524,6 +525,43 @@ void main() {
     );
 
     blocTest<GameBloc, GameState>(
+      'should emit an ArrowCollisionEvent on arrowCollisions when blocked '
+      '(regression: a blocked move had no visual collision feedback at all)',
+      // Arrange
+      setUp: () {
+        fakeTriggerExit.result = Error<GameSession>(
+          PathBlockedFailure(
+            movingArrowId: 'arrow_1',
+            blockingArrowId: 'arrow_2',
+          ),
+        );
+        fakeEvaluateState.result = const GameEvaluation(
+          status: GameStatus.ongoing,
+          score: initialScore,
+          moveCount: 0,
+          elapsedSeconds: 0,
+          arrowsRemaining: 1,
+        );
+      },
+      build: buildBloc,
+      seed: playingSeed,
+      // Act
+      act: (bloc) async {
+        final events = <ArrowCollisionEvent>[];
+        final sub = bloc.arrowCollisions.listen(events.add);
+        bloc.add(const TriggerArrowExit(arrowId: 'arrow_1'));
+        await Future<void>.delayed(Duration.zero);
+        expect(events, [
+          const ArrowCollisionEvent(
+            movingArrowId: 'arrow_1',
+            blockingArrowId: 'arrow_2',
+          ),
+        ]);
+        await sub.cancel();
+      },
+    );
+
+    blocTest<GameBloc, GameState>(
       'should emit no new states when TriggerArrowExit returns ArrowNotFoundFailure',
       // Arrange
       setUp: () {
@@ -830,6 +868,86 @@ void main() {
         const GameLoading(levelId: 1),
         expectedRetryState(),
       ],
+    );
+  });
+
+  group('Survival mode (endless) level counter', () {
+    blocTest<GameBloc, GameState>(
+      'should count levelsCompleted by 1 per level, not 2 '
+      '(regression: victory and NextEndlessLevel used to both increment it)',
+      build: buildBloc,
+      act: (bloc) async {
+        final level = Level(
+          levelId: -1,
+          geometry: const BoardGeometry2D(rows: 7, cols: 7),
+          templateBoard: singleArrowBoard(),
+        );
+        final session = GameSession(
+          sessionId: 'session--1',
+          boardState: singleArrowBoard(),
+          startedAtMs: clockValue,
+        );
+        fakeLoadLevel.result = Success(level);
+        fakeStartSession.result = Success(session);
+        fakeEvaluateState.result = const GameEvaluation(
+          status: GameStatus.ongoing,
+          score: initialScore,
+          moveCount: 0,
+          elapsedSeconds: 0,
+          arrowsRemaining: 1,
+        );
+
+        // Enter survival mode (negative level id).
+        bloc.add(const LoadLevel(levelId: -1));
+        await Future<void>.delayed(Duration.zero);
+
+        // Win the level.
+        final previousBoard = singleArrowBoard();
+        final exitedArrow = previousBoard.arrows.first;
+        fakeTriggerExit.result = Success(
+          GameSession(
+            sessionId: 'session--1',
+            boardState: BoardState(arrows: const []),
+            history: const CommandHistory().push(
+              ArrowExitCommand(
+                exitedArrow: exitedArrow,
+                previousState: previousBoard,
+              ),
+            ),
+            moveCount: 1,
+            startedAtMs: clockValue,
+          ),
+        );
+        fakeEvaluateState.result = const GameEvaluation(
+          status: GameStatus.victory,
+          score: evalScore,
+          moveCount: 1,
+          elapsedSeconds: 5,
+          arrowsRemaining: 0,
+        );
+        fakeCalculateScore.result = const Success(finalScore);
+        bloc.add(const TriggerArrowExit(arrowId: 'arrow_1'));
+        // _onTriggerArrowExit awaits a 450ms exit-animation delay before
+        // emitting GameVictory; wait past it so the counter increment lands.
+        await Future<void>.delayed(const Duration(milliseconds: 550));
+
+        // Move on to the next endless level.
+        fakeEvaluateState.result = const GameEvaluation(
+          status: GameStatus.ongoing,
+          score: initialScore,
+          moveCount: 0,
+          elapsedSeconds: 0,
+          arrowsRemaining: 1,
+        );
+        bloc.add(const NextEndlessLevel());
+        await Future<void>.delayed(Duration.zero);
+      },
+      verify: (bloc) {
+        final state = bloc.state;
+        expect(state, isA<GamePlaying>());
+        // Exactly one level was completed, so the counter must read 1 — not 2.
+        expect((state as GamePlaying).levelsCompleted, 1);
+      },
     );
   });
 

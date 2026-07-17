@@ -12,6 +12,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../domain/entities/arrow_entity.dart';
+import '../bloc/arrow_collision_event.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
@@ -39,13 +40,16 @@ class _GameScreenState extends State<GameScreen> {
   Timer? _timer;
   List<ArrowEntity> _prevArrows = const [];
   final List<ExitingArrowData> _exiting = [];
+  final List<ImpactingArrowData> _impacting = [];
+  StreamSubscription<ArrowCollisionEvent>? _collisionSub;
   final ArrowColorAssigner _colors = ArrowColorAssigner();
   int _seq = 0;
 
   @override
   void initState() {
     super.initState();
-    context.read<GameBloc>().add(LoadLevel(levelId: widget.levelId));
+    final bloc = context.read<GameBloc>();
+    bloc.add(LoadLevel(levelId: widget.levelId));
     // The BLoC has no internal clock — pump ticks so the timer advances.
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
@@ -53,12 +57,44 @@ class _GameScreenState extends State<GameScreen> {
           .read<GameBloc>()
           .add(Tick(nowMs: DateTime.now().millisecondsSinceEpoch));
     });
+    _collisionSub = bloc.arrowCollisions.listen(_onArrowCollision);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _collisionSub?.cancel();
     super.dispose();
+  }
+
+  /// Spawns impact-flash animations for the two arrows that just collided.
+  void _onArrowCollision(ArrowCollisionEvent event) {
+    if (!mounted) return;
+    final arrows = _prevArrows;
+    for (final arrowId in {event.movingArrowId, event.blockingArrowId}) {
+      ArrowEntity? arrow;
+      for (final candidate in arrows) {
+        if (candidate.id == arrowId) {
+          arrow = candidate;
+          break;
+        }
+      }
+      if (arrow == null) continue;
+      final id = 'impact_${_seq++}';
+      _impacting.add(
+        ImpactingArrowData(
+          id: id,
+          arrow: arrow,
+          onComplete: () => _removeImpacting(id),
+        ),
+      );
+    }
+    setState(() {});
+  }
+
+  void _removeImpacting(String id) {
+    if (!mounted) return;
+    setState(() => _impacting.removeWhere((e) => e.id == id));
   }
 
   void _onState(BuildContext context, GameState state) {
@@ -169,6 +205,7 @@ class _GameScreenState extends State<GameScreen> {
                         cols: state.cols,
                         arrows: state.boardState.arrows,
                         exitingArrows: _exiting,
+                        impactingArrows: _impacting,
                         colorOf: _colors.colorOf,
                         onArrowTap: (id) =>
                             bloc.add(TriggerArrowExit(arrowId: id)),

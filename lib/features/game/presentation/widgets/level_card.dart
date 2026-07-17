@@ -14,11 +14,16 @@ class LevelCard extends StatelessWidget {
     required this.levelId,
     required this.state,
     required this.difficulty,
+    this.mangosEarned,
     this.onTap,
   });
 
   final int levelId;
   final LevelTileState state;
+
+  /// Mangos (1-3) earned on this level's best run. Only meaningful when
+  /// [state] is [LevelTileState.completed].
+  final int? mangosEarned;
 
   /// Spanish difficulty label shown as the subtitle (Fácil/Medio/Difícil).
   final String difficulty;
@@ -93,7 +98,10 @@ class LevelCard extends StatelessWidget {
             children: [
               for (var i = 0; i < 3; i++) ...[
                 if (i > 0) const SizedBox(width: 3),
-                AppSvgs.icon(AppSvgs.miniMango, 14),
+                Opacity(
+                  opacity: i < (mangosEarned ?? 0) ? 1 : 0.35,
+                  child: AppSvgs.icon(AppSvgs.miniMango, 14),
+                ),
               ],
             ],
           )
