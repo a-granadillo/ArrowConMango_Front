@@ -195,7 +195,15 @@ class LevelGenerator {
       // Skip under-filled boards: if we exhausted attempts without reaching
       // the target arrow count, try the next seed instead of proceeding with
       // a board that won't meet the difficulty target.
-      if (arrows.length < config.arrowCount) continue;
+      //
+      // currentSeed must advance here too — otherwise `Random(currentSeed)`
+      // reconstructs the exact same board on the next boardAttempts
+      // iteration, and this loop burns up to 150 attempts retrying an
+      // identical, unreachable arrowCount.
+      if (arrows.length < config.arrowCount) {
+        currentSeed++;
+        continue;
+      }
 
       // Analyze blocking dependencies using the ArrowBlockingGraph
       graph = _buildBlockingGraph(arrows, config);
