@@ -24,6 +24,11 @@ import '../../features/game/presentation/screens/settings_screen.dart';
 import '../../features/game/presentation/screens/splash_screen.dart';
 import '../../features/leaderboard/presentation/leaderboard_cubit.dart';
 import '../../features/leaderboard/presentation/leaderboard_screen.dart';
+import '../../features/player/data/session_store.dart';
+import '../../features/player/presentation/bloc/auth_cubit.dart';
+import '../../features/player/presentation/screens/auth_gate_screen.dart';
+import '../../features/player/presentation/screens/login_screen.dart';
+import '../../features/player/presentation/screens/register_screen.dart';
 import '../di/service_locator.dart';
 import '../widgets/mango_background.dart';
 import 'app_routes.dart';
@@ -33,12 +38,48 @@ import 'app_routes.dart';
 /// NOTE: `/game`, `/victory` and `/defeat` currently render placeholders.
 /// They are replaced by the real screens in issues #5 (Game) and #12 (Results).
 GoRouter buildAppRouter() {
+  final sessionStore = sl<SessionStore>();
+
   return GoRouter(
     initialLocation: AppRoutes.splash,
+    // Re-evaluates `redirect` whenever the session mode changes — this is
+    // what sends the player back to the auth gate when AuthInterceptor
+    // force-signs-out an authenticated session whose token expired (see
+    // auth_interceptor.dart's onError branch for SessionMode.authenticated).
+    refreshListenable: sessionStore,
+    redirect: (context, state) {
+      final onAuthFlow = state.matchedLocation == AppRoutes.splash ||
+          state.matchedLocation.startsWith(AppRoutes.authGate);
+      if (sessionStore.mode == SessionMode.none && !onAuthFlow) {
+        return AppRoutes.authGate;
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authGate,
+        builder: (context, state) => BlocProvider<AuthCubit>(
+          create: (_) => sl<AuthCubit>(),
+          child: const AuthGateScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.authLogin,
+        builder: (context, state) => BlocProvider<AuthCubit>(
+          create: (_) => sl<AuthCubit>(),
+          child: const LoginScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.authRegister,
+        builder: (context, state) => BlocProvider<AuthCubit>(
+          create: (_) => sl<AuthCubit>(),
+          child: const RegisterScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.menu,

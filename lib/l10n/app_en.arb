@@ -22,6 +22,32 @@
   "settingsDialogHint": "Your name",
   "settingsDialogCancel": "Cancel",
   "settingsDialogSave": "Save",
+  "settingsAccount": "Account",
+  "settingsSignedInAs": "Signed in as {username}",
+  "@settingsSignedInAs": {
+    "placeholders": { "username": { "type": "String" } }
+  },
+  "settingsPlayingAsGuest": "Playing as a guest",
+  "settingsSignOut": "Sign out",
+  "settingsSignIn": "Sign in / Create account",
+
+  "authGateTitle": "Welcome!",
+  "authGateSubtitle": "Choose how you want to play",
+  "authGateCreateAccount": "Create account",
+  "authGateSignIn": "Sign in",
+  "authGatePlayAsGuest": "Play as guest",
+
+  "authEmailLabel": "Email",
+  "authPasswordLabel": "Password",
+  "authUsernameLabel": "Player name",
+  "authLoginTitle": "Sign in",
+  "authLoginSubmit": "Sign in",
+  "authRegisterTitle": "Create account",
+  "authRegisterSubmit": "Sign up",
+  "authValidationEmailRequired": "Enter a valid email",
+  "authValidationPasswordTooShort": "6 characters minimum",
+  "authValidationUsernameTooShort": "2 characters minimum",
+  "authMigratingProgress": "Syncing your progress...",
 
   "levelSelectTitle": "Select Level",
   "levelSelectAvailable": "{unlocked} of {total} available",

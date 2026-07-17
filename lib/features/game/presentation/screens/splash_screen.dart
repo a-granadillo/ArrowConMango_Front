@@ -10,6 +10,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../../../player/data/session_store.dart';
 
 /// Brief branded loading screen, then navigates to the main menu.
 class SplashScreen extends StatefulWidget {
@@ -27,16 +28,19 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
   }
 
-  void _goToMenu() {
+  /// Existing installs (already a guest or logged in) skip straight to the
+  /// menu; a brand-new install (no session yet) sees the auth gate.
+  void _continue() {
     if (!mounted) return;
     context.read<AudioService>().playBgm(AudioTrack.menuTheme);
-    context.go(AppRoutes.menu);
+    final mode = context.read<SessionStore>().mode;
+    context.go(mode == SessionMode.none ? AppRoutes.authGate : AppRoutes.menu);
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _goToMenu,
+      onTap: _continue,
       child: Scaffold(
         body: Container(
           decoration: const BoxDecoration(gradient: AppGradients.brand),

@@ -42,6 +42,11 @@ dependencies:
   equatable: ^2.0.7
   flutter_bloc: ^8.1.6
 
+  # Direct dep (was transitive via flutter_bloc) — ChangeNotifierProvider is
+  # needed for SessionStore, which RepositoryProvider explicitly rejects
+  # (Provider disallows Listenable/Stream subtypes; see session_store.dart).
+  provider: ^6.1.5
+
   # Lightweight key-value database for local persistence.
   hive: ^2.2.3
   hive_flutter: ^1.1.0
