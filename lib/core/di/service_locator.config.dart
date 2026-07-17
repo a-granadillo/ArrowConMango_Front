@@ -71,6 +71,7 @@ import '../../features/leaderboard/domain/i_leaderboard_repository.dart'
     as _i651;
 import '../../features/leaderboard/presentation/leaderboard_cubit.dart'
     as _i143;
+import '../../features/player/data/remote_player_data_source.dart' as _i803;
 import '../audio/audio_service.dart' as _i910;
 import '../audio/audio_service_impl.dart' as _i478;
 import '../audio/audio_settings_cubit.dart' as _i151;
@@ -124,6 +125,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i1063.RemoteProgressDataSource>(
       () => _i1063.RemoteProgressDataSource(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i803.RemotePlayerDataSource>(
+      () => _i803.RemotePlayerDataSource(gh<_i361.Dio>()),
     );
     gh.factory<_i143.LeaderboardCubit>(
       () => _i143.LeaderboardCubit(
