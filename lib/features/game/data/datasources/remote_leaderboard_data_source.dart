@@ -38,4 +38,37 @@ class RemoteLeaderboardDataSource {
     return (response.data ?? [])
         .cast<Map<String, dynamic>>();
   }
+
+  /// String-levelId sibling of [submit], for community levels (backend
+  /// UUIDs) — [submit] stays int-only so the campaign call site never has
+  /// to change.
+  Future<void> submitForLevel({
+    required String levelId,
+    required int moves,
+    required int elapsedSeconds,
+  }) async {
+    await _dio.post<void>(
+      '/leaderboard',
+      data: {
+        'levelId': levelId,
+        'moves': moves,
+        'timeMs': elapsedSeconds * 1000,
+      },
+    );
+  }
+
+  /// Fetches a single level's own top scores from `GET /leaderboard?level=`.
+  Future<List<Map<String, dynamic>>> fetchByLevel(
+    String levelId, {
+    int? top,
+  }) async {
+    final response = await _dio.get<List<dynamic>>(
+      '/leaderboard',
+      queryParameters: {
+        'level': levelId,
+        'top': ?top,
+      },
+    );
+    return (response.data ?? []).cast<Map<String, dynamic>>();
+  }
 }

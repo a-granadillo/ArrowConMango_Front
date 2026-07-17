@@ -11,6 +11,9 @@ import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../domain/repositories/i_creative_level_repository.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
@@ -23,13 +26,32 @@ import '../widgets/result_stat.dart';
 
 /// Victory screen: faithful reproduction of the design's "Dialogo
 /// Enhorabuena" — a celebratory bottom sheet with confetti, a 1-3 mango
-/// rating, stats and the next-level action. Persists the unlock through
-/// [ProgressBloc] on entry.
+/// rating, stats and the next-level action. On entry, persists the result
+/// according to what kind of level was just played:
+///  - campaign level: unlocks the next one via [ProgressBloc] (default);
+///  - community level ([communityLevelId] set): submits the score to that
+///    level's own ranking — never touches local campaign progress, since
+///    [result.levelId] is a synthetic id for community levels, not a real
+///    campaign slot;
+///  - editor test-play ([onEditorTestSolved] set): calls back into the
+///    still-alive [LevelEditorCubit] that launched this test session and
+///    persists nothing — it's a private rehearsal, not a real play. A
+///    closure rather than a BuildContext lookup because go_router pushes
+///    this screen as a sibling route, not a descendant of the editor
+///    screen's local BlocProvider.
 class VictoryScreen extends StatefulWidget {
-  const VictoryScreen({super.key, required this.result, this.bloc});
+  const VictoryScreen({
+    super.key,
+    required this.result,
+    this.bloc,
+    this.communityLevelId,
+    this.onEditorTestSolved,
+  });
 
   final GameVictory result;
   final GameBloc? bloc;
+  final String? communityLevelId;
+  final VoidCallback? onEditorTestSolved;
 
   @override
   State<VictoryScreen> createState() => _VictoryScreenState();
@@ -48,10 +70,27 @@ class _VictoryScreenState extends State<VictoryScreen> {
   @override
   void initState() {
     super.initState();
-    // Persist the unlock once, after the first frame (only in campaign mode).
-    if (!widget.result.isEndlessMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final onEditorTestSolved = widget.onEditorTestSolved;
+      if (onEditorTestSolved != null) {
+        onEditorTestSolved();
+        return;
+      }
+      final communityLevelId = widget.communityLevelId;
+      if (communityLevelId != null) {
+        // Fire-and-forget, mirroring SubmitScoreUseCase's posture elsewhere:
+        // a failed submission has no meaningful UI recovery here, and the
+        // level's own ranking screen is where the player would notice.
+        GetIt.instance<ICreativeLevelRepository>().submitScore(
+          levelId: communityLevelId,
+          moves: widget.result.moveCount,
+          elapsedSeconds: widget.result.elapsedSeconds,
+        );
+        return;
+      }
+      // Persist the unlock once, after the first frame (only in campaign mode).
+      if (!widget.result.isEndlessMode) {
         context.read<ProgressBloc>().add(
               ProgressLevelCompleted(
                 currentLevelId: widget.result.levelId,
@@ -59,8 +98,8 @@ class _VictoryScreenState extends State<VictoryScreen> {
                 elapsedSeconds: widget.result.elapsedSeconds,
               ),
             );
-      });
-    }
+      }
+    });
   }
 
   VoidCallback _withClick(VoidCallback action) => () {
@@ -159,7 +198,18 @@ class _VictoryScreenState extends State<VictoryScreen> {
                   child: OutlinedButton(
                     onPressed: _withClick(() {
                       _audioService?.playBgm(AudioTrack.menuTheme);
-                      context.go(AppRoutes.menu);
+                      if (widget.onEditorTestSolved != null ||
+                          widget.communityLevelId != null) {
+                        // Return to whichever creative screen launched this
+                        // play session (editor or community list), rather
+                        // than resetting the whole nav stack to the main
+                        // menu — that flow pushed exactly [GameScreen, this
+                        // screen] on top of it, so two pops land there.
+                        context.pop();
+                        context.pop();
+                      } else {
+                        context.go(AppRoutes.menu);
+                      }
                     }),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),

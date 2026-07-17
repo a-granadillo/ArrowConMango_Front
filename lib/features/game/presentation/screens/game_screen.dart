@@ -12,6 +12,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../domain/entities/arrow_entity.dart';
+import '../../domain/entities/level.dart';
 import '../bloc/arrow_collision_event.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
@@ -27,10 +28,40 @@ import '../../../../l10n/app_localizations.dart';
 /// Faithful reproduction of the design's "Juego" screen: orange gradient
 /// header with home/restart icons and 3 translucent stat chips, dark-wood
 /// framed board, and the exact instruction copy below it.
+///
+/// Plays either a campaign/endless level (pass [levelId]) or an external
+/// one — a community level or an editor draft under test — by passing
+/// [externalLevel] instead. Exactly one of the two must be set.
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key, required this.levelId});
+  const GameScreen({
+    super.key,
+    this.levelId,
+    this.externalLevel,
+    this.externalTimeLimitSeconds,
+    this.communityLevelId,
+    this.onEditorTestSolved,
+  }) : assert(
+          (levelId != null) != (externalLevel != null),
+          'Pass exactly one of levelId or externalLevel',
+        );
 
-  final int levelId;
+  final int? levelId;
+  final Level? externalLevel;
+  final int? externalTimeLimitSeconds;
+
+  /// When playing a community level, its real backend id — threaded
+  /// through to [VictoryScreen]/[DefeatScreen] so a win submits a score
+  /// against the level's own ranking rather than local campaign progress.
+  final String? communityLevelId;
+
+  /// Set for the editor's "test my draft" session: called on victory to
+  /// mark the draft solved in the [LevelEditorCubit] that launched this
+  /// play session, instead of persisting anything. A closure (rather than
+  /// a communityLevelId-style value) because it must reach back into that
+  /// specific, still-alive cubit instance — see [VictoryScreen].
+  final VoidCallback? onEditorTestSolved;
+
+  bool get isEditorTestPlay => onEditorTestSolved != null;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -49,7 +80,17 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     final bloc = context.read<GameBloc>();
-    bloc.add(LoadLevel(levelId: widget.levelId));
+    final externalLevel = widget.externalLevel;
+    if (externalLevel != null) {
+      bloc.add(
+        LoadExternalLevel(
+          level: externalLevel,
+          timeLimitSeconds: widget.externalTimeLimitSeconds,
+        ),
+      );
+    } else {
+      bloc.add(LoadLevel(levelId: widget.levelId!));
+    }
     // The BLoC has no internal clock — pump ticks so the timer advances.
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
@@ -107,24 +148,28 @@ class _GameScreenState extends State<GameScreen> {
         _colors.reset();
       case GameVictory():
         _timer?.cancel();
-        if (state.isEndlessMode) {
-          // En modo supervivencia, hacemos push en vez de pushReplacement
-          // y pasamos el bloc para preservar el estado
+        if (state.isEndlessMode || widget.externalLevel != null) {
+          // Push (not pushReplacement) + pass the bloc: endless mode and
+          // external levels (community/editor test-play) both need RetryLevel
+          // / NextEndlessLevel to keep working from the result screen, which
+          // requires the same live bloc instance.
           context.push(AppRoutes.victory, extra: {
             'result': state,
             'bloc': context.read<GameBloc>(),
+            'communityLevelId': widget.communityLevelId,
+            'onEditorTestSolved': widget.onEditorTestSolved,
           });
         } else {
           context.pushReplacement(AppRoutes.victory, extra: state);
         }
       case GameDefeat():
         _timer?.cancel();
-        if (state.isEndlessMode) {
-          // En modo supervivencia, hacemos push en vez de pushReplacement
-          // y pasamos el bloc para preservar el estado
+        if (state.isEndlessMode || widget.externalLevel != null) {
           context.push(AppRoutes.defeat, extra: {
             'result': state,
             'bloc': context.read<GameBloc>(),
+            'communityLevelId': widget.communityLevelId,
+            'isEditorTestPlay': widget.isEditorTestPlay,
           });
         } else {
           context.pushReplacement(AppRoutes.defeat, extra: state);

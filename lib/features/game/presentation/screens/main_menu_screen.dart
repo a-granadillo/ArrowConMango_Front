@@ -120,6 +120,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 14),
+                                _PlayButton(
+                                  label: 'MODO CREATIVO',
+                                  bg: AppColors.mango,
+                                  shadow: const Color(0xFFD4A017),
+                                  onTap: _withClick(
+                                    () => context.push(AppRoutes.creativeHub),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
                                 Row(
                                   children: [
                                     Expanded(

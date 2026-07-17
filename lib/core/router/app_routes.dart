@@ -14,4 +14,11 @@ abstract final class AppRoutes {
 
   /// Concrete game path for a given level id.
   static String gameFor(int levelId) => '/game/$levelId';
+
+  // ── Modo Creativo ─────────────────────────────────────────────────────
+  static const String creativeHub = '/creative';
+  static const String creativeEditor = '/creative/editor';
+  static const String creativeMine = '/creative/mine';
+  static const String creativeCommunity = '/creative/community';
+  static const String creativeRanking = '/creative/ranking';
 }

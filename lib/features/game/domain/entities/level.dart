@@ -19,11 +19,17 @@ class Level extends Equatable {
 
   final BoardState templateBoard;
 
+  /// Explicit difficulty label for levels whose [levelId] doesn't fall in
+  /// the campaign's 1-15 range and so can't derive one — community levels,
+  /// which carry their own difficulty from the backend instead.
+  final String? difficultyOverride;
+
   const Level({
     required this.levelId,
     this.name = '',
     required this.geometry,
     required this.templateBoard,
+    this.difficultyOverride,
   });
 
   int get rows => switch (geometry) {
@@ -42,6 +48,7 @@ class Level extends Equatable {
   /// - 6-10 → Medium
   /// - 11+  → Hard
   String difficulty() {
+    if (difficultyOverride != null) return difficultyOverride!;
     if (levelId <= 5) return 'Easy';
     if (levelId <= 10) return 'Medium';
     return 'Hard';
@@ -63,7 +70,8 @@ class Level extends Equatable {
   }
 
   @override
-  List<Object?> get props => [levelId, name, geometry, templateBoard];
+  List<Object?> get props =>
+      [levelId, name, geometry, templateBoard, difficultyOverride];
 
   @override
   String toString() =>

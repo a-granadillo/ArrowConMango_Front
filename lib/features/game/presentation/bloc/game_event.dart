@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../domain/entities/level.dart';
+
 /// {@template game_event}
 /// Base class for all events that can be dispatched to the [GameBloc].
 /// {@endtemplate}
@@ -21,6 +23,22 @@ final class LoadLevel extends GameEvent {
 
   @override
   List<Object?> get props => [levelId];
+}
+
+/// Loads an already-built [Level] directly, bypassing [ILevelRepository] —
+/// for levels that don't live in the local catalogue (community levels
+/// fetched from the backend, or a draft being test-played in the editor).
+final class LoadExternalLevel extends GameEvent {
+  const LoadExternalLevel({required this.level, this.timeLimitSeconds});
+
+  final Level level;
+
+  /// Overrides the bloc's default time limit — a community level's own
+  /// [LevelRules.timeLimitSeconds], when set.
+  final int? timeLimitSeconds;
+
+  @override
+  List<Object?> get props => [level, timeLimitSeconds];
 }
 
 /// Requests the exit of the arrow identified by [arrowId].
