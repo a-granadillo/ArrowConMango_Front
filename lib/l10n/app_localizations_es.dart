@@ -63,6 +63,71 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsDialogSave => 'Guardar';
 
   @override
+  String get settingsAccount => 'Cuenta';
+
+  @override
+  String settingsSignedInAs(String username) {
+    return 'Sesión iniciada como $username';
+  }
+
+  @override
+  String get settingsPlayingAsGuest => 'Jugando como invitado';
+
+  @override
+  String get settingsSignOut => 'Cerrar sesión';
+
+  @override
+  String get settingsSignIn => 'Iniciar sesión / Crear cuenta';
+
+  @override
+  String get authGateTitle => '¡Bienvenido!';
+
+  @override
+  String get authGateSubtitle => 'Elige cómo quieres jugar';
+
+  @override
+  String get authGateCreateAccount => 'Crear cuenta';
+
+  @override
+  String get authGateSignIn => 'Iniciar sesión';
+
+  @override
+  String get authGatePlayAsGuest => 'Jugar como invitado';
+
+  @override
+  String get authEmailLabel => 'Correo electrónico';
+
+  @override
+  String get authPasswordLabel => 'Contraseña';
+
+  @override
+  String get authUsernameLabel => 'Nombre de jugador';
+
+  @override
+  String get authLoginTitle => 'Iniciar sesión';
+
+  @override
+  String get authLoginSubmit => 'Entrar';
+
+  @override
+  String get authRegisterTitle => 'Crear cuenta';
+
+  @override
+  String get authRegisterSubmit => 'Registrarme';
+
+  @override
+  String get authValidationEmailRequired => 'Ingresa un correo válido';
+
+  @override
+  String get authValidationPasswordTooShort => 'Mínimo 6 caracteres';
+
+  @override
+  String get authValidationUsernameTooShort => 'Mínimo 2 caracteres';
+
+  @override
+  String get authMigratingProgress => 'Sincronizando tu progreso...';
+
+  @override
   String get levelSelectTitle => 'Seleccionar Nivel';
 
   @override

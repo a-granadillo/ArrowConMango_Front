@@ -22,6 +22,32 @@
   "settingsDialogHint": "Tu nombre",
   "settingsDialogCancel": "Cancelar",
   "settingsDialogSave": "Guardar",
+  "settingsAccount": "Cuenta",
+  "settingsSignedInAs": "Sesión iniciada como {username}",
+  "@settingsSignedInAs": {
+    "placeholders": { "username": { "type": "String" } }
+  },
+  "settingsPlayingAsGuest": "Jugando como invitado",
+  "settingsSignOut": "Cerrar sesión",
+  "settingsSignIn": "Iniciar sesión / Crear cuenta",
+
+  "authGateTitle": "¡Bienvenido!",
+  "authGateSubtitle": "Elige cómo quieres jugar",
+  "authGateCreateAccount": "Crear cuenta",
+  "authGateSignIn": "Iniciar sesión",
+  "authGatePlayAsGuest": "Jugar como invitado",
+
+  "authEmailLabel": "Correo electrónico",
+  "authPasswordLabel": "Contraseña",
+  "authUsernameLabel": "Nombre de jugador",
+  "authLoginTitle": "Iniciar sesión",
+  "authLoginSubmit": "Entrar",
+  "authRegisterTitle": "Crear cuenta",
+  "authRegisterSubmit": "Registrarme",
+  "authValidationEmailRequired": "Ingresa un correo válido",
+  "authValidationPasswordTooShort": "Mínimo 6 caracteres",
+  "authValidationUsernameTooShort": "Mínimo 2 caracteres",
+  "authMigratingProgress": "Sincronizando tu progreso...",
 
   "levelSelectTitle": "Seleccionar Nivel",
   "levelSelectAvailable": "{unlocked} de {total} disponibles",

@@ -9,9 +9,11 @@ import '../../../../core/audio/audio_settings_state.dart';
 import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/i18n/locale_cubit.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../../../player/data/session_store.dart';
 import '../../../player/domain/guest_player.dart';
 import '../../../player/presentation/player_cubit.dart';
 
@@ -136,11 +138,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 12),
+                const _AccountCard(),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Shows whether the player is a guest or logged-in, and lets them sign out
+/// or reach the auth gate to create an account/sign in.
+///
+/// Listens to [SessionStore] directly (it's a [ChangeNotifier], not a BLoC)
+/// since signing out elsewhere — e.g. an expired token forcing a logout via
+/// [AuthInterceptor] — must be reflected here without a manual refresh.
+class _AccountCard extends StatelessWidget {
+  const _AccountCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final sessionStore = context.read<SessionStore>();
+    final l10n = context.l10n;
+    return ListenableBuilder(
+      listenable: sessionStore,
+      builder: (context, _) {
+        final isAuthenticated = sessionStore.mode == SessionMode.authenticated;
+        return _SettingCard(
+          icon: Icons.account_circle_rounded,
+          title: l10n.settingsAccount,
+          subtitle: isAuthenticated
+              ? l10n.settingsSignedInAs(
+                  context.watch<PlayerCubit>().state.displayName,
+                )
+              : l10n.settingsPlayingAsGuest,
+          trailing: TextButton(
+            onPressed: () => isAuthenticated
+                ? sessionStore.signOut()
+                : context.push(AppRoutes.authGate),
+            child: Text(
+              isAuthenticated ? l10n.settingsSignOut : l10n.settingsSignIn,
+            ),
+          ),
+        );
+      },
     );
   }
 }

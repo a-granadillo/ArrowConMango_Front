@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
 import 'core/audio/audio_service.dart';
 import 'core/audio/audio_settings_cubit.dart';
@@ -10,6 +11,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/game/presentation/bloc/progress_bloc.dart';
 import 'features/game/presentation/bloc/progress_event.dart';
+import 'features/player/data/session_store.dart';
 import 'features/player/presentation/player_cubit.dart';
 import 'l10n/app_localizations.dart';
 
@@ -69,6 +71,7 @@ class _ArrowConMangoAppState extends State<ArrowConMangoApp>
           BlocProvider<AudioSettingsCubit>.value(
             value: sl<AudioSettingsCubit>(),
           ),
+          ChangeNotifierProvider<SessionStore>.value(value: sl<SessionStore>()),
         ],
         child: BlocBuilder<LocaleCubit, Locale>(
           builder: (context, locale) => MaterialApp.router(

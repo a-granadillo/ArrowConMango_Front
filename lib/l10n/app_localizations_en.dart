@@ -63,6 +63,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDialogSave => 'Save';
 
   @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String settingsSignedInAs(String username) {
+    return 'Signed in as $username';
+  }
+
+  @override
+  String get settingsPlayingAsGuest => 'Playing as a guest';
+
+  @override
+  String get settingsSignOut => 'Sign out';
+
+  @override
+  String get settingsSignIn => 'Sign in / Create account';
+
+  @override
+  String get authGateTitle => 'Welcome!';
+
+  @override
+  String get authGateSubtitle => 'Choose how you want to play';
+
+  @override
+  String get authGateCreateAccount => 'Create account';
+
+  @override
+  String get authGateSignIn => 'Sign in';
+
+  @override
+  String get authGatePlayAsGuest => 'Play as guest';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authPasswordLabel => 'Password';
+
+  @override
+  String get authUsernameLabel => 'Player name';
+
+  @override
+  String get authLoginTitle => 'Sign in';
+
+  @override
+  String get authLoginSubmit => 'Sign in';
+
+  @override
+  String get authRegisterTitle => 'Create account';
+
+  @override
+  String get authRegisterSubmit => 'Sign up';
+
+  @override
+  String get authValidationEmailRequired => 'Enter a valid email';
+
+  @override
+  String get authValidationPasswordTooShort => '6 characters minimum';
+
+  @override
+  String get authValidationUsernameTooShort => '2 characters minimum';
+
+  @override
+  String get authMigratingProgress => 'Syncing your progress...';
+
+  @override
   String get levelSelectTitle => 'Select Level';
 
   @override

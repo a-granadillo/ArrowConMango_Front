@@ -206,6 +206,132 @@ abstract class AppLocalizations {
   /// **'Guardar'**
   String get settingsDialogSave;
 
+  /// No description provided for @settingsAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta'**
+  String get settingsAccount;
+
+  /// No description provided for @settingsSignedInAs.
+  ///
+  /// In es, this message translates to:
+  /// **'Sesión iniciada como {username}'**
+  String settingsSignedInAs(String username);
+
+  /// No description provided for @settingsPlayingAsGuest.
+  ///
+  /// In es, this message translates to:
+  /// **'Jugando como invitado'**
+  String get settingsPlayingAsGuest;
+
+  /// No description provided for @settingsSignOut.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar sesión'**
+  String get settingsSignOut;
+
+  /// No description provided for @settingsSignIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión / Crear cuenta'**
+  String get settingsSignIn;
+
+  /// No description provided for @authGateTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Bienvenido!'**
+  String get authGateTitle;
+
+  /// No description provided for @authGateSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige cómo quieres jugar'**
+  String get authGateSubtitle;
+
+  /// No description provided for @authGateCreateAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear cuenta'**
+  String get authGateCreateAccount;
+
+  /// No description provided for @authGateSignIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión'**
+  String get authGateSignIn;
+
+  /// No description provided for @authGatePlayAsGuest.
+  ///
+  /// In es, this message translates to:
+  /// **'Jugar como invitado'**
+  String get authGatePlayAsGuest;
+
+  /// No description provided for @authEmailLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo electrónico'**
+  String get authEmailLabel;
+
+  /// No description provided for @authPasswordLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get authPasswordLabel;
+
+  /// No description provided for @authUsernameLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de jugador'**
+  String get authUsernameLabel;
+
+  /// No description provided for @authLoginTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión'**
+  String get authLoginTitle;
+
+  /// No description provided for @authLoginSubmit.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar'**
+  String get authLoginSubmit;
+
+  /// No description provided for @authRegisterTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear cuenta'**
+  String get authRegisterTitle;
+
+  /// No description provided for @authRegisterSubmit.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrarme'**
+  String get authRegisterSubmit;
+
+  /// No description provided for @authValidationEmailRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un correo válido'**
+  String get authValidationEmailRequired;
+
+  /// No description provided for @authValidationPasswordTooShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 6 caracteres'**
+  String get authValidationPasswordTooShort;
+
+  /// No description provided for @authValidationUsernameTooShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 2 caracteres'**
+  String get authValidationUsernameTooShort;
+
+  /// No description provided for @authMigratingProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizando tu progreso...'**
+  String get authMigratingProgress;
+
   /// No description provided for @levelSelectTitle.
   ///
   /// In es, this message translates to:
