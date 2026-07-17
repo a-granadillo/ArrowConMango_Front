@@ -25,7 +25,13 @@ class ArrowImpactPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final path = buildBodyPath(arrow, cell);
-    if (path.getBounds().isEmpty) return;
+    // NOTE: don't use path.getBounds().isEmpty here — a straight horizontal
+    // or vertical arrow (the common case) yields a bounding rect with zero
+    // width or height, which Rect.isEmpty also treats as "empty", silently
+    // skipping the paint for most arrows. computeMetrics().isEmpty is the
+    // correct "does this path have anything to stroke" check (matches
+    // ArrowExitPainter).
+    if (path.computeMetrics().isEmpty) return;
 
     // Fast fade-in, slower fade-out: peaks around progress ~0.25.
     final alpha = progress < 0.25
