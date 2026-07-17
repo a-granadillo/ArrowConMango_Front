@@ -49,9 +49,16 @@ void main() {
     cubit = LevelEditorCubit(repo);
   });
 
+  // Replicates the old tap-to-place/select/rotate shortcut on top of the
+  // drag API: a press-and-release with no movement in between.
+  void tap(int row, int col) {
+    cubit.beginDrag(row, col);
+    cubit.endDrag();
+  }
+
   group('placing and selecting arrows', () {
     test('should_place_a_1_cell_right_pointing_arrow_on_an_empty_cell', () {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
 
       expect(cubit.state.arrows, hasLength(1));
       expect(cubit.state.arrows.first.direction, CardinalDirection.right);
@@ -60,10 +67,10 @@ void main() {
     });
 
     test('should_select_an_existing_arrow_on_first_tap', () {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       final id = cubit.state.arrows.first.id;
       cubit.removeSelected(); // deselect via removal, then re-place to reset
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       final newId = cubit.state.arrows.first.id;
 
       // Tapping a different empty cell selects the new placement, not a
@@ -75,32 +82,32 @@ void main() {
     test(
       'should_rotate_the_selected_arrow_on_a_second_tap_of_the_same_cell',
       () {
-        cubit.tapCell(1, 1);
+        tap(1, 1);
         expect(cubit.state.arrows.first.direction, CardinalDirection.right);
 
-        cubit.tapCell(1, 1); // same cell, already selected -> rotate
+        tap(1, 1); // same cell, already selected -> rotate
         expect(cubit.state.arrows.first.direction, CardinalDirection.down);
 
-        cubit.tapCell(1, 1);
+        tap(1, 1);
         expect(cubit.state.arrows.first.direction, CardinalDirection.left);
 
-        cubit.tapCell(1, 1);
+        tap(1, 1);
         expect(cubit.state.arrows.first.direction, CardinalDirection.up);
 
-        cubit.tapCell(1, 1);
+        tap(1, 1);
         expect(cubit.state.arrows.first.direction, CardinalDirection.right);
       },
     );
 
     test('should_reject_a_resize_that_would_overlap_another_arrow', () {
-      cubit.tapCell(0, 0); // A: right, (0,0)
+      tap(0, 0); // A: right, (0,0)
       cubit.resizeSelected(1); // A: right length 2 -> (0,0),(0,1)
       expect(cubit.state.arrows, hasLength(1));
 
-      cubit.tapCell(1, 1); // B: right, (1,1) — selected
-      cubit.tapCell(1, 1); // rotate -> down
-      cubit.tapCell(1, 1); // rotate -> left
-      cubit.tapCell(1, 1); // rotate -> up, tail (1,1), length 1 -> (1,1)
+      tap(1, 1); // B: right, (1,1) — selected
+      tap(1, 1); // rotate -> down
+      tap(1, 1); // rotate -> left
+      tap(1, 1); // rotate -> up, tail (1,1), length 1 -> (1,1)
       final beforeLength = cubit.state.arrows
           .firstWhere((a) => a.id == cubit.state.selectedArrowId)
           .length;
@@ -117,9 +124,74 @@ void main() {
     });
   });
 
+  group('drag placement', () {
+    test('should_sketch_a_live_preview_while_dragging', () {
+      cubit.beginDrag(0, 0);
+      expect(cubit.state.dragPreview, isNotNull);
+      expect(cubit.state.arrows, isEmpty); // not committed yet
+
+      cubit.updateDrag(0, 2);
+      expect(cubit.state.dragPreview!.direction, CardinalDirection.right);
+      expect(cubit.state.dragPreview!.length, 3);
+    });
+
+    test('should_commit_a_multi_cell_arrow_dragged_horizontally', () {
+      cubit.beginDrag(2, 1);
+      cubit.updateDrag(2, 4);
+      cubit.endDrag();
+
+      expect(cubit.state.arrows, hasLength(1));
+      expect(cubit.state.dragPreview, isNull);
+      final arrow = cubit.state.arrows.first;
+      expect(arrow.direction, CardinalDirection.right);
+      expect(arrow.length, 4);
+      expect(cubit.state.selectedArrowId, arrow.id);
+    });
+
+    test('should_commit_a_multi_cell_arrow_dragged_vertically_upward', () {
+      cubit.beginDrag(4, 0);
+      cubit.updateDrag(1, 0);
+      cubit.endDrag();
+
+      final arrow = cubit.state.arrows.first;
+      expect(arrow.direction, CardinalDirection.up);
+      expect(arrow.length, 4);
+    });
+
+    test('should_collapse_a_drag_that_never_moved_to_a_1_cell_arrow', () {
+      cubit.beginDrag(3, 3);
+      cubit.endDrag();
+
+      final arrow = cubit.state.arrows.first;
+      expect(arrow.direction, CardinalDirection.right);
+      expect(arrow.length, 1);
+    });
+
+    test('should_clamp_the_preview_to_the_board_edge', () {
+      // Default board is 6x6; dragging from col 4 far to the right can only
+      // reach col 5.
+      cubit.beginDrag(0, 4);
+      cubit.updateDrag(0, 99);
+
+      expect(cubit.state.dragPreview!.length, 2);
+    });
+
+    test('should_reject_committing_a_drag_that_would_overlap_another_arrow', () {
+      tap(0, 0); // A: right, length 1, occupies (0,0)
+      cubit.resizeSelected(2); // A now occupies (0,0),(0,1),(0,2)
+
+      cubit.beginDrag(2, 0);
+      cubit.updateDrag(0, 0); // straight line up through (1,0) into (0,0)
+      cubit.endDrag();
+
+      expect(cubit.state.arrows, hasLength(1)); // only A, drag rejected
+      expect(cubit.state.errorMessage, isNotNull);
+    });
+  });
+
   group('resizing', () {
     test('should_extend_and_shrink_the_selected_arrow', () {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       expect(cubit.state.arrows.first.length, 1);
 
       cubit.resizeSelected(2);
@@ -130,14 +202,14 @@ void main() {
     });
 
     test('should_refuse_to_shrink_below_length_1', () {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       cubit.resizeSelected(-5);
       expect(cubit.state.arrows.first.length, 1);
     });
 
     test('should_refuse_to_extend_past_the_board_edge', () {
       // Board defaults to 6x6; place at col 5 (last column) pointing right.
-      cubit.tapCell(0, 5);
+      tap(0, 5);
       cubit.resizeSelected(1); // would need col 6, out of bounds
       expect(cubit.state.arrows.first.length, 1);
     });
@@ -145,7 +217,7 @@ void main() {
 
   group('removal', () {
     test('should_remove_the_selected_arrow', () {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       expect(cubit.state.arrows, hasLength(1));
 
       cubit.removeSelected();
@@ -156,7 +228,7 @@ void main() {
 
   group('board size', () {
     test('should_drop_arrows_that_no_longer_fit_after_shrinking', () {
-      cubit.tapCell(5, 5); // valid on the default 6x6 board
+      tap(5, 5); // valid on the default 6x6 board
       expect(cubit.state.arrows, hasLength(1));
 
       cubit.setBoardSize(rows: 4, cols: 4); // (5,5) no longer fits
@@ -164,7 +236,7 @@ void main() {
     });
 
     test('should_keep_arrows_that_still_fit_after_resizing', () {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       cubit.setBoardSize(rows: 8, cols: 8);
       expect(cubit.state.arrows, hasLength(1));
     });
@@ -188,7 +260,7 @@ void main() {
     });
 
     test('should_create_a_new_draft_when_never_saved_before', () async {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       when(() => repo.createLevel(any())).thenAnswer(
         (invocation) async => Success(
           _fakeSaved(invocation.positionalArguments.first as CreativeLevel),
@@ -204,7 +276,7 @@ void main() {
     });
 
     test('should_update_the_existing_draft_on_subsequent_saves', () async {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       when(() => repo.createLevel(any())).thenAnswer(
         (invocation) async => Success(
           _fakeSaved(invocation.positionalArguments.first as CreativeLevel),
@@ -220,7 +292,7 @@ void main() {
           ),
         ),
       );
-      cubit.tapCell(1, 1);
+      tap(1, 1);
       final saved = await cubit.save();
 
       expect(saved, isTrue);
@@ -228,7 +300,7 @@ void main() {
     });
 
     test('should_surface_the_failure_message_when_save_fails', () async {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       when(
         () => repo.createLevel(any()),
       ).thenAnswer((_) async => const Error(GenericFailure('network down')));
@@ -242,7 +314,7 @@ void main() {
 
   group('publish', () {
     test('should_publish_once_saved_and_solved', () async {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       when(() => repo.createLevel(any())).thenAnswer(
         (invocation) async => Success(
           _fakeSaved(invocation.positionalArguments.first as CreativeLevel),
@@ -276,7 +348,7 @@ void main() {
     });
 
     test('should_refuse_to_publish_without_a_prior_solve', () async {
-      cubit.tapCell(0, 0);
+      tap(0, 0);
       when(() => repo.createLevel(any())).thenAnswer(
         (invocation) async => Success(
           _fakeSaved(invocation.positionalArguments.first as CreativeLevel),

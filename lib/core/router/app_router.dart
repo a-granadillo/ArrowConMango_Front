@@ -18,6 +18,7 @@ import '../../features/game/presentation/screens/game_3d_screen.dart';
 import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
 import '../../features/game/presentation/screens/main_menu_screen.dart';
+import '../../features/game/presentation/screens/play_hub_screen.dart';
 import '../../features/game/presentation/screens/victory_screen.dart';
 import '../../features/game/presentation/screens/settings_screen.dart';
 import '../../features/game/presentation/screens/splash_screen.dart';
@@ -42,6 +43,10 @@ GoRouter buildAppRouter() {
       GoRoute(
         path: AppRoutes.menu,
         builder: (context, state) => const MainMenuScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.playHub,
+        builder: (context, state) => const PlayHubScreen(),
       ),
       GoRoute(
         path: AppRoutes.levels,

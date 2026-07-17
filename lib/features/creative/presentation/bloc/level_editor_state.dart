@@ -7,9 +7,14 @@ import '../../../game/domain/entities/arrow_entity.dart';
 /// The editor only builds straight (single-segment) arrows — no bends.
 /// This is a deliberate scope cut: multi-segment editing (choosing where a
 /// path bends) needs a materially more complex interaction model than
-/// tap-to-place / tap-to-rotate / +/- to resize. Straight arrows are fully
+/// drag-to-place / tap-to-rotate / +/- to resize. Straight arrows are fully
 /// valid levels (LevelDefinition.validate() has no bend requirement) and
 /// exercise the same solver, publish, and ranking flow.
+///
+/// Placement is drag-based: pressing an empty cell and dragging along a row
+/// or column sketches [dragPreview] live; releasing commits it as a new
+/// arrow (a drag that never moves collapses to a 1-cell arrow, preserving
+/// the old tap-to-place shortcut).
 class LevelEditorState extends Equatable {
   const LevelEditorState({
     this.id,
@@ -20,6 +25,7 @@ class LevelEditorState extends Equatable {
     this.arrows = const [],
     this.timeLimitSeconds,
     this.selectedArrowId,
+    this.dragPreview,
     this.hasBeenSolved = false,
     this.isPublished = false,
     this.isSaving = false,
@@ -38,6 +44,10 @@ class LevelEditorState extends Equatable {
   final List<ArrowEntity> arrows;
   final int? timeLimitSeconds;
   final String? selectedArrowId;
+
+  /// The arrow currently being sketched by an in-progress drag gesture, not
+  /// yet committed to [arrows]. Null when no drag is in progress.
+  final ArrowEntity? dragPreview;
 
   /// Set once a test-play of the current saved draft ends in victory —
   /// required before [isPublished] can become true (see the
@@ -62,6 +72,8 @@ class LevelEditorState extends Equatable {
     bool clearTimeLimit = false,
     String? selectedArrowId,
     bool clearSelection = false,
+    ArrowEntity? dragPreview,
+    bool clearDragPreview = false,
     bool? hasBeenSolved,
     bool? isPublished,
     bool? isSaving,
@@ -82,6 +94,8 @@ class LevelEditorState extends Equatable {
           clearTimeLimit ? null : (timeLimitSeconds ?? this.timeLimitSeconds),
       selectedArrowId:
           clearSelection ? null : (selectedArrowId ?? this.selectedArrowId),
+      dragPreview:
+          clearDragPreview ? null : (dragPreview ?? this.dragPreview),
       hasBeenSolved: hasBeenSolved ?? this.hasBeenSolved,
       isPublished: isPublished ?? this.isPublished,
       isSaving: isSaving ?? this.isSaving,
@@ -101,6 +115,7 @@ class LevelEditorState extends Equatable {
         arrows,
         timeLimitSeconds,
         selectedArrowId,
+        dragPreview,
         hasBeenSolved,
         isPublished,
         isSaving,

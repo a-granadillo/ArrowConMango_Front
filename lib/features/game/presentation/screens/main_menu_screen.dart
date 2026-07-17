@@ -12,6 +12,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../widgets/menu_buttons.dart';
 
 /// Main menu ("Home") — faithful reproduction of the design.
 class MainMenuScreen extends StatefulWidget {
@@ -94,35 +95,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 28),
                             child: Column(
                               children: [
-                                _PlayButton(
-                                  label: context.l10n.menuCampaignMode,
+                                PlayButton(
+                                  label: context.l10n.menuPlay,
                                   onTap: _withClick(
-                                    () => context.push(AppRoutes.levels),
+                                    () => context.push(AppRoutes.playHub),
                                   ),
                                 ),
                                 const SizedBox(height: 14),
-                                _PlayButton(
-                                  label: context.l10n.menuSurvivalMode,
-                                  bg: AppColors.textDark,
-                                  shadow: const Color(0xFF3E2723),
-                                  onTap: _withClick(() {
-                                    // Navigate to game with levelId -1 (endless mode)
-                                    context.push(AppRoutes.gameFor(-1));
-                                  }),
-                                ),
-                                const SizedBox(height: 14),
-                                _PlayButton(
-                                  label: 'CUBO 3D',
-                                  bg: AppColors.success,
-                                  shadow: AppColors.successDark,
-                                  onTap: _withClick(
-                                    () => context.push(AppRoutes.game3d),
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                _PlayButton(
+                                PlayButton(
                                   label: 'MODO CREATIVO',
                                   bg: AppColors.mango,
+                                  fg: AppColors.textDark,
                                   shadow: const Color(0xFFD4A017),
                                   onTap: _withClick(
                                     () => context.push(AppRoutes.creativeHub),
@@ -132,7 +115,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child:                                       _NavButton(
+                                      child: NavButton(
                                         svg: AppSvgs.niveles,
                                         label: context.l10n.menuLevels,
                                         bg: AppColors.mango,
@@ -145,7 +128,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child:                                       _NavButton(
+                                      child: NavButton(
                                         svg: AppSvgs.ranking,
                                         label: context.l10n.menuRanking,
                                         bg: AppColors.success,
@@ -158,7 +141,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child:                                       _NavButton(
+                                      child: NavButton(
                                         svg: AppSvgs.ajustes,
                                         label: context.l10n.menuSettings,
                                         bg: AppColors.textDark,
@@ -241,112 +224,6 @@ class _GreenHeader extends StatelessWidget {
       child: Transform.rotate(
         angle: deg * 3.14159 / 180,
         child: SvgPicture.string(AppSvgs.leaf, width: size, height: size),
-      ),
-    );
-  }
-}
-
-class _PlayButton extends StatelessWidget {
-  const _PlayButton({
-    required this.onTap,
-    required this.label,
-    this.bg,
-    this.shadow,
-  });
-
-  final VoidCallback onTap;
-  final String label;
-  final Color? bg;
-  final Color? shadow;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: bg,
-          gradient: bg == null
-              ? const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                )
-              : null,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: shadow ?? const Color(0xFFB03800),
-              offset: const Offset(0, 6),
-            ),
-            if (bg == null)
-              const BoxShadow(
-                color: Color(0x59F4843D),
-                offset: Offset(0, 10),
-                blurRadius: 28,
-              ),
-          ],
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.fredoka(
-            fontSize: 26,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2,
-            color: bg != null ? AppColors.mango : Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavButton extends StatelessWidget {
-  const _NavButton({
-    required this.svg,
-    required this.label,
-    required this.bg,
-    required this.fg,
-    required this.shadow,
-    required this.onTap,
-  });
-
-  final String svg;
-  final String label;
-  final Color bg;
-  final Color fg;
-  final Color shadow;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 8),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [BoxShadow(color: shadow, offset: const Offset(0, 5))],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppSvgs.icon(svg, 22),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: fg,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

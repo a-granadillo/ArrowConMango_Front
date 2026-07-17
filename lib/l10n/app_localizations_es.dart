@@ -18,6 +18,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuSubtitle => '¡EL LABERINTO MÁS SABROSO!';
 
   @override
+  String get menuPlay => 'JUGAR';
+
+  @override
   String get menuCampaignMode => 'MODO CAMPAÑA';
 
   @override

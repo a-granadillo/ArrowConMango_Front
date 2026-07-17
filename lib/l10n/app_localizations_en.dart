@@ -18,6 +18,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSubtitle => 'THE TASTIEST MAZE!';
 
   @override
+  String get menuPlay => 'PLAY';
+
+  @override
   String get menuCampaignMode => 'CAMPAIGN MODE';
 
   @override

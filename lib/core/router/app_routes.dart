@@ -2,6 +2,7 @@
 abstract final class AppRoutes {
   static const String splash = '/';
   static const String menu = '/menu';
+  static const String playHub = '/play';
   static const String levels = '/levels';
   static const String settings = '/settings';
   static const String ranking = '/ranking';

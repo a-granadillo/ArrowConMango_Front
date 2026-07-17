@@ -22,6 +22,9 @@ class LevelEditorCubit extends Cubit<LevelEditorState> {
   final ICreativeLevelRepository _repository;
   int _arrowSeq = 0;
 
+  /// Cell the current drag gesture started on, if any (row, col).
+  (int, int)? _dragOrigin;
+
   /// Loads an existing draft/published level for editing.
   Future<void> loadExisting(CreativeLevel level) async {
     emit(
@@ -78,9 +81,12 @@ class LevelEditorCubit extends Cubit<LevelEditorState> {
     );
   }
 
-  /// Tapping a cell: selects the arrow occupying it, or — if empty — places
-  /// a brand-new 1-cell arrow there.
-  void tapCell(int row, int col) {
+  /// Pressing down on a cell: if it's already occupied, select it (tapping a
+  /// selected arrow again rotates it, matching the old tap behavior). If
+  /// it's empty, start sketching a new arrow from there — [updateDrag] and
+  /// [endDrag] shape and commit it as the finger moves.
+  void beginDrag(int row, int col) {
+    if (state.isPublished) return;
     final key = Grid2DNodeId(row: row, col: col).key;
     final existing = state.arrows.where(
       (a) => a.occupiedNodes.any((n) => n.key == key),
@@ -94,26 +100,103 @@ class LevelEditorCubit extends Cubit<LevelEditorState> {
       }
       return;
     }
-    _placeNewArrow(row, col);
-  }
-
-  void _placeNewArrow(int row, int col) {
-    final id = 'a${_arrowSeq++}';
-    final arrow = ArrowEntity(
-      id: id,
-      direction: CardinalDirection.right,
-      occupiedNodes: [Grid2DNodeId(row: row, col: col)],
-    );
-    if (!_fitsWithoutOverlap([...state.arrows, arrow])) return;
+    _dragOrigin = (row, col);
     emit(
       state.copyWith(
-        arrows: [...state.arrows, arrow],
-        selectedArrowId: id,
-        hasBeenSolved: false,
+        clearSelection: true,
+        dragPreview: _previewArrow(row, col, row, col),
         clearInfo: true,
       ),
     );
   }
+
+  /// Updates the in-progress [LevelEditorState.dragPreview] as the finger
+  /// moves over cell ([row], [col]). No-op if no drag is in progress.
+  void updateDrag(int row, int col) {
+    final origin = _dragOrigin;
+    if (origin == null) return;
+    emit(
+      state.copyWith(dragPreview: _previewArrow(origin.$1, origin.$2, row, col)),
+    );
+  }
+
+  /// Commits the sketched [LevelEditorState.dragPreview] as a new arrow, or
+  /// silently discards it if it would overlap another arrow. No-op if no
+  /// drag is in progress.
+  void endDrag() {
+    final preview = state.dragPreview;
+    _dragOrigin = null;
+    if (preview == null) {
+      emit(state.copyWith(clearDragPreview: true));
+      return;
+    }
+    final arrow = ArrowEntity(
+      id: 'a${_arrowSeq++}',
+      direction: preview.direction,
+      occupiedNodes: preview.occupiedNodes,
+    );
+    if (!_fitsWithoutOverlap([...state.arrows, arrow])) {
+      emit(
+        state.copyWith(
+          clearDragPreview: true,
+          errorMessage: 'Esa flecha se sale del tablero o se cruza con otra.',
+        ),
+      );
+      return;
+    }
+    emit(
+      state.copyWith(
+        arrows: [...state.arrows, arrow],
+        selectedArrowId: arrow.id,
+        clearDragPreview: true,
+        hasBeenSolved: false,
+      ),
+    );
+  }
+
+  /// Builds the straight-line preview arrow from ([startRow], [startCol]) to
+  /// wherever the finger currently is, clamped to the board bounds. A drag
+  /// that hasn't moved yet collapses to a 1-cell arrow pointing right.
+  ArrowEntity _previewArrow(
+    int startRow,
+    int startCol,
+    int currentRow,
+    int currentCol,
+  ) {
+    final dRow = currentRow - startRow;
+    final dCol = currentCol - startCol;
+    final CardinalDirection direction;
+    final int length;
+    if (dRow.abs() >= dCol.abs() && dRow != 0) {
+      direction = dRow > 0 ? CardinalDirection.down : CardinalDirection.up;
+      length = dRow.abs() + 1;
+    } else if (dCol != 0) {
+      direction = dCol > 0 ? CardinalDirection.right : CardinalDirection.left;
+      length = dCol.abs() + 1;
+    } else {
+      direction = CardinalDirection.right;
+      length = 1;
+    }
+    final clampedLength = length.clamp(
+      1,
+      _maxStepsInBounds(startRow, startCol, direction),
+    );
+    return ArrowEntity(
+      id: '_preview',
+      direction: direction,
+      occupiedNodes: _straightRun(startRow, startCol, direction, clampedLength),
+    );
+  }
+
+  /// How many cells fit between ([row], [col]) and the board edge along
+  /// [direction], inclusive of the starting cell.
+  int _maxStepsInBounds(int row, int col, CardinalDirection direction) =>
+      switch (direction) {
+        CardinalDirection.up => row + 1,
+        CardinalDirection.down => state.rows - row,
+        CardinalDirection.left => col + 1,
+        CardinalDirection.right => state.cols - col,
+      };
 
   void removeSelected() {
     final selectedId = state.selectedArrowId;

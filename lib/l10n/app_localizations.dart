@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'¡EL LABERINTO MÁS SABROSO!'**
   String get menuSubtitle;
 
+  /// No description provided for @menuPlay.
+  ///
+  /// In es, this message translates to:
+  /// **'JUGAR'**
+  String get menuPlay;
+
   /// No description provided for @menuCampaignMode.
   ///
   /// In es, this message translates to:
