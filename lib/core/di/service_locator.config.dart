@@ -31,12 +31,16 @@ import '../../features/game/application/use_cases/save_local_progress_use_case.d
     as _i16;
 import '../../features/game/application/use_cases/start_game_session_use_case.dart'
     as _i469;
+import '../../features/game/application/use_cases/submit_score_use_case.dart'
+    as _i908;
 import '../../features/game/application/use_cases/trigger_arrow_exit_use_case.dart'
     as _i47;
 import '../../features/game/application/use_cases/undo_move_use_case.dart'
     as _i457;
 import '../../features/game/application/use_cases/unlock_next_level_use_case.dart'
     as _i1015;
+import '../../features/game/data/datasources/remote_leaderboard_data_source.dart'
+    as _i924;
 import '../../features/game/data/datasources/remote_progress_data_source.dart'
     as _i1063;
 import '../../features/game/data/models/app_progress_model.dart' as _i358;
@@ -61,8 +65,8 @@ import '../../features/game/domain/repositories/i_progress_repository.dart'
 import '../../features/game/domain/services/collision_validator.dart' as _i775;
 import '../../features/game/presentation/bloc/menu_bloc.dart' as _i49;
 import '../../features/game/presentation/bloc/progress_bloc.dart' as _i424;
-import '../../features/leaderboard/data/mock_leaderboard_repository.dart'
-    as _i328;
+import '../../features/leaderboard/data/api_leaderboard_repository.dart'
+    as _i330;
 import '../../features/leaderboard/domain/i_leaderboard_repository.dart'
     as _i651;
 import '../../features/leaderboard/presentation/leaderboard_cubit.dart'
@@ -113,19 +117,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1070.BoardStateMapper>(
       () => _i1070.BoardStateMapper(gh<_i330.ArrowMapper>()),
     );
-    gh.lazySingleton<_i651.ILeaderboardRepository>(
-      () => _i328.MockLeaderboardRepository(),
+    gh.lazySingleton<_i924.RemoteLeaderboardDataSource>(
+      () => _i924.RemoteLeaderboardDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i1063.RemoteProgressDataSource>(
       () => _i1063.RemoteProgressDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i803.RemotePlayerDataSource>(
       () => _i803.RemotePlayerDataSource(gh<_i361.Dio>()),
-    );
-    gh.factory<_i143.LeaderboardCubit>(
-      () => _i143.LeaderboardCubit(
-        repository: gh<_i651.ILeaderboardRepository>(),
-      ),
     );
     gh.lazySingleton<_i979.Box<dynamic>>(
       () => registerModule.playerBox,
@@ -144,10 +143,18 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i749.EvaluateGameStateUseCase>(
       () => _i749.EvaluateGameStateUseCase(gh<_i440.ScoringStrategy>()),
     );
+    gh.lazySingleton<_i651.ILeaderboardRepository>(
+      () => _i330.ApiLeaderboardRepository(
+        gh<_i924.RemoteLeaderboardDataSource>(),
+      ),
+    );
     gh.lazySingleton<_i598.AudioSettingsLocalDataSource>(
       () => _i598.AudioSettingsLocalDataSource(
         box: gh<_i979.Box<dynamic>>(instanceName: 'audioBox'),
       ),
+    );
+    gh.lazySingleton<_i908.SubmitScoreUseCase>(
+      () => _i908.SubmitScoreUseCase(gh<_i924.RemoteLeaderboardDataSource>()),
     );
     gh.lazySingleton<_i329.HiveProgressRepository>(
       () => _i329.HiveProgressRepository(
@@ -170,6 +177,21 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       dispose: _i478.disposeAudioService,
     );
+    gh.lazySingleton<_i10.IProgressRepository>(
+      () => _i1036.SyncedProgressRepository(
+        local: gh<_i329.HiveProgressRepository>(),
+        remote: gh<_i1063.RemoteProgressDataSource>(),
+        mapper: gh<_i557.AppProgressMapper>(),
+        connectivity: gh<_i895.Connectivity>(),
+        scoringStrategy: gh<_i440.ScoringStrategy>(),
+        pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
+      ),
+    );
+    gh.factory<_i143.LeaderboardCubit>(
+      () => _i143.LeaderboardCubit(
+        repository: gh<_i651.ILeaderboardRepository>(),
+      ),
+    );
     gh.lazySingleton<_i76.ILevelRepository>(
       () => _i821.HiveLevelRepository(
         gh<_i979.Box<_i50.LevelModel>>(),
@@ -180,14 +202,11 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i151.AudioSettingsCubit(service: gh<_i910.AudioService>()),
       dispose: _i151.disposeAudioSettingsCubit,
     );
-    gh.lazySingleton<_i10.IProgressRepository>(
-      () => _i1036.SyncedProgressRepository(
-        local: gh<_i329.HiveProgressRepository>(),
-        remote: gh<_i1063.RemoteProgressDataSource>(),
-        mapper: gh<_i557.AppProgressMapper>(),
-        connectivity: gh<_i895.Connectivity>(),
-        pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
-      ),
+    gh.lazySingleton<_i739.LoadProgressUseCase>(
+      () => _i739.LoadProgressUseCase(gh<_i10.IProgressRepository>()),
+    );
+    gh.lazySingleton<_i16.SaveLocalProgressUseCase>(
+      () => _i16.SaveLocalProgressUseCase(gh<_i10.IProgressRepository>()),
     );
     gh.lazySingleton<_i1040.GetLevelListUseCase>(
       () => _i1040.GetLevelListUseCase(
@@ -214,17 +233,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i61.LevelMapper>(),
       ),
     );
-    gh.lazySingleton<_i739.LoadProgressUseCase>(
-      () => _i739.LoadProgressUseCase(gh<_i10.IProgressRepository>()),
-    );
-    gh.lazySingleton<_i16.SaveLocalProgressUseCase>(
-      () => _i16.SaveLocalProgressUseCase(gh<_i10.IProgressRepository>()),
-    );
     gh.lazySingleton<_i424.ProgressBloc>(
       () => _i424.ProgressBloc(
         loadProgressUseCase: gh<_i739.LoadProgressUseCase>(),
         saveLocalProgressUseCase: gh<_i16.SaveLocalProgressUseCase>(),
         unlockNextLevelUseCase: gh<_i1015.UnlockNextLevelUseCase>(),
+        submitScoreUseCase: gh<_i908.SubmitScoreUseCase>(),
+        scoringStrategy: gh<_i440.ScoringStrategy>(),
       ),
     );
     return this;
