@@ -22,13 +22,24 @@ final class ProgressLoadStarted extends ProgressEvent {
 /// unlocked.
 final class ProgressLevelCompleted extends ProgressEvent {
   /// Creates a [ProgressLevelCompleted] event.
-  const ProgressLevelCompleted({required this.currentLevelId});
+  const ProgressLevelCompleted({
+    required this.currentLevelId,
+    required this.moves,
+    required this.elapsedSeconds,
+  });
 
   /// Identifier of the level that was just completed.
   final int currentLevelId;
 
+  /// Number of moves used to complete the level, submitted to the
+  /// leaderboard alongside [elapsedSeconds].
+  final int moves;
+
+  /// Time taken to complete the level, in seconds.
+  final int elapsedSeconds;
+
   @override
-  List<Object?> get props => [currentLevelId];
+  List<Object?> get props => [currentLevelId, moves, elapsedSeconds];
 }
 
 /// Replaces the current progress with an externally provided value.

@@ -105,5 +105,10 @@
   "leaderboardCurrentPlayer": "{name} (Tú)",
   "@leaderboardCurrentPlayer": {
     "placeholders": { "name": { "type": "String" } }
+  },
+
+  "leaderboardLevelsSub": "{count, plural, =1{1 nivel} other{{count} niveles}}",
+  "@leaderboardLevelsSub": {
+    "placeholders": { "count": { "type": "int" } }
   }
 }

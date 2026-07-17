@@ -1,15 +1,17 @@
 import 'package:equatable/equatable.dart';
 
+import 'level_best_model.dart';
+
 /// Serializable representation of the player's global progress.
 class AppProgressModel extends Equatable {
   final int currentLevel;
   final List<int> completedLevels;
-  final Map<String, int>? scores;
+  final Map<int, LevelBestModel>? best;
 
   const AppProgressModel({
     required this.currentLevel,
     required this.completedLevels,
-    this.scores,
+    this.best,
   });
 
   factory AppProgressModel.fromJson(Map<String, dynamic> json) {
@@ -18,8 +20,12 @@ class AppProgressModel extends Equatable {
       completedLevels: (json['completedLevels'] as List<dynamic>)
           .map((levelId) => levelId as int)
           .toList(),
-      scores: (json['scores'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(key, value as int)),
+      best: (json['best'] as Map<String, dynamic>?)?.map(
+        (key, value) => MapEntry(
+          int.parse(key),
+          LevelBestModel.fromJson(value as Map<String, dynamic>),
+        ),
+      ),
     );
   }
 
@@ -29,14 +35,16 @@ class AppProgressModel extends Equatable {
       'completedLevels': completedLevels,
     };
 
-    final scoresValue = scores;
-    if (scoresValue != null) {
-      json['scores'] = scoresValue;
+    final bestValue = best;
+    if (bestValue != null) {
+      json['best'] = bestValue.map(
+        (key, value) => MapEntry(key.toString(), value.toJson()),
+      );
     }
 
     return json;
   }
 
   @override
-  List<Object?> get props => [currentLevel, completedLevels, scores];
+  List<Object?> get props => [currentLevel, completedLevels, best];
 }
