@@ -15,6 +15,14 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:hive/hive.dart' as _i979;
 import 'package:injectable/injectable.dart' as _i526;
 
+import '../../features/creative/presentation/bloc/community_levels_cubit.dart'
+    as _i524;
+import '../../features/creative/presentation/bloc/level_editor_cubit.dart'
+    as _i129;
+import '../../features/creative/presentation/bloc/level_ranking_cubit.dart'
+    as _i559;
+import '../../features/creative/presentation/bloc/my_levels_cubit.dart'
+    as _i405;
 import '../../features/game/application/use_cases/calculate_score_use_case.dart'
     as _i513;
 import '../../features/game/application/use_cases/evaluate_game_state_use_case.dart'
@@ -39,6 +47,8 @@ import '../../features/game/application/use_cases/undo_move_use_case.dart'
     as _i457;
 import '../../features/game/application/use_cases/unlock_next_level_use_case.dart'
     as _i1015;
+import '../../features/game/data/datasources/remote_creative_level_data_source.dart'
+    as _i80;
 import '../../features/game/data/datasources/remote_leaderboard_data_source.dart'
     as _i924;
 import '../../features/game/data/datasources/remote_level_data_source.dart'
@@ -53,6 +63,8 @@ import '../../features/game/data/models/mappers/arrow_mapper.dart' as _i330;
 import '../../features/game/data/models/mappers/board_state_mapper.dart'
     as _i1070;
 import '../../features/game/data/models/mappers/level_mapper.dart' as _i61;
+import '../../features/game/data/repositories/api_creative_level_repository.dart'
+    as _i718;
 import '../../features/game/data/repositories/hive_level_repository.dart'
     as _i821;
 import '../../features/game/data/repositories/hive_progress_repository.dart'
@@ -62,6 +74,8 @@ import '../../features/game/data/repositories/synced_level_repository.dart'
 import '../../features/game/data/repositories/synced_progress_repository.dart'
     as _i1036;
 import '../../features/game/domain/entities/scoring_strategy.dart' as _i440;
+import '../../features/game/domain/repositories/i_creative_level_repository.dart'
+    as _i48;
 import '../../features/game/domain/repositories/i_level_repository.dart'
     as _i76;
 import '../../features/game/domain/repositories/i_progress_repository.dart'
@@ -121,6 +135,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1070.BoardStateMapper>(
       () => _i1070.BoardStateMapper(gh<_i330.ArrowMapper>()),
     );
+    gh.lazySingleton<_i80.RemoteCreativeLevelDataSource>(
+      () => _i80.RemoteCreativeLevelDataSource(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i924.RemoteLeaderboardDataSource>(
       () => _i924.RemoteLeaderboardDataSource(gh<_i361.Dio>()),
     );
@@ -178,6 +195,13 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       instanceName: 'cube3d',
     );
+    gh.lazySingleton<_i48.ICreativeLevelRepository>(
+      () => _i718.ApiCreativeLevelRepository(
+        gh<_i80.RemoteCreativeLevelDataSource>(),
+        gh<_i924.RemoteLeaderboardDataSource>(),
+        gh<_i1070.BoardStateMapper>(),
+      ),
+    );
     gh.lazySingleton<_i821.HiveLevelRepository>(
       () => _i821.HiveLevelRepository(
         gh<_i979.Box<_i50.LevelModel>>(),
@@ -205,6 +229,18 @@ extension GetItInjectableX on _i174.GetIt {
         repository: gh<_i651.ILeaderboardRepository>(),
       ),
     );
+    gh.factory<_i524.CommunityLevelsCubit>(
+      () => _i524.CommunityLevelsCubit(gh<_i48.ICreativeLevelRepository>()),
+    );
+    gh.factory<_i129.LevelEditorCubit>(
+      () => _i129.LevelEditorCubit(gh<_i48.ICreativeLevelRepository>()),
+    );
+    gh.factory<_i559.LevelRankingCubit>(
+      () => _i559.LevelRankingCubit(gh<_i48.ICreativeLevelRepository>()),
+    );
+    gh.factory<_i405.MyLevelsCubit>(
+      () => _i405.MyLevelsCubit(gh<_i48.ICreativeLevelRepository>()),
+    );
     gh.lazySingleton<_i151.AudioSettingsCubit>(
       () => _i151.AudioSettingsCubit(service: gh<_i910.AudioService>()),
       dispose: _i151.disposeAudioSettingsCubit,
@@ -223,17 +259,6 @@ extension GetItInjectableX on _i174.GetIt {
         connectivity: gh<_i895.Connectivity>(),
       ),
     );
-    gh.lazySingleton<_i1040.GetLevelListUseCase>(
-      () => _i1040.GetLevelListUseCase(
-        gh<_i76.ILevelRepository>(),
-        gh<_i10.IProgressRepository>(),
-        gh<_i440.ScoringStrategy>(),
-      ),
-    );
-    gh.factory<_i49.MenuBloc>(
-      () =>
-          _i49.MenuBloc(getLevelListUseCase: gh<_i1040.GetLevelListUseCase>()),
-    );
     gh.lazySingleton<_i1015.UnlockNextLevelUseCase>(
       () => _i1015.UnlockNextLevelUseCase(
         gh<_i10.IProgressRepository>(),
@@ -249,6 +274,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i61.LevelMapper>(),
       ),
     );
+    gh.lazySingleton<_i1040.GetLevelListUseCase>(
+      () => _i1040.GetLevelListUseCase(
+        gh<_i76.ILevelRepository>(),
+        gh<_i10.IProgressRepository>(),
+        gh<_i440.ScoringStrategy>(),
+      ),
+    );
     gh.lazySingleton<_i424.ProgressBloc>(
       () => _i424.ProgressBloc(
         loadProgressUseCase: gh<_i739.LoadProgressUseCase>(),
@@ -257,6 +289,10 @@ extension GetItInjectableX on _i174.GetIt {
         submitScoreUseCase: gh<_i908.SubmitScoreUseCase>(),
         scoringStrategy: gh<_i440.ScoringStrategy>(),
       ),
+    );
+    gh.factory<_i49.MenuBloc>(
+      () =>
+          _i49.MenuBloc(getLevelListUseCase: gh<_i1040.GetLevelListUseCase>()),
     );
     return this;
   }

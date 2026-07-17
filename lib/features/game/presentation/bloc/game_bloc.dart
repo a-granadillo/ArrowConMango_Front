@@ -64,6 +64,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
        _timeLimitInSeconds = timeLimitInSeconds,
        super(const GameInitial()) {
     on<LoadLevel>(_onLoadLevel);
+    on<LoadExternalLevel>(_onLoadExternalLevel);
     on<TriggerArrowExit>(_onTriggerArrowExit);
     on<UndoMove>(_onUndoMove);
     on<Tick>(_onTick);
@@ -175,6 +176,62 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         }
       case Error(failure: final failure):
         emit(GameError(message: failure.message, levelId: event.levelId));
+    }
+  }
+
+  /// The last level loaded via [LoadExternalLevel], kept so [RetryLevel]
+  /// can restart it without going through [_loadLevelUseCase] (which only
+  /// knows the local campaign/endless catalogue — an external level, e.g.
+  /// a community level or an editor draft under test, was never in it).
+  Level? _externalLevel;
+
+  /// The time limit an external level was loaded with — kept separately
+  /// from [_totalTimeRemaining] (which counts down during play) so
+  /// [RetryLevel] restarts with the full limit, not whatever was left when
+  /// the player died.
+  int _externalLevelTimeLimitSeconds = 60;
+
+  /// Mirrors [_onLoadLevel]'s success path, skipping the local-repository
+  /// lookup since [event.level] is already in hand.
+  Future<void> _onLoadExternalLevel(
+    LoadExternalLevel event,
+    Emitter<GameState> emit,
+  ) async {
+    _externalLevel = event.level;
+    _externalLevelTimeLimitSeconds =
+        event.timeLimitSeconds ?? _timeLimitInSeconds;
+    await _startExternalLevelSession(
+      event.level,
+      _externalLevelTimeLimitSeconds,
+      emit,
+    );
+  }
+
+  Future<void> _startExternalLevelSession(
+    Level level,
+    int timeLimitInSeconds,
+    Emitter<GameState> emit,
+  ) async {
+    emit(GameLoading(levelId: level.levelId));
+
+    _isEndlessMode = false;
+    _livesRemaining = 3;
+    _totalTimeRemaining = timeLimitInSeconds;
+    _levelsCompleted = 0;
+
+    final nowMs = _clock();
+    final sessionResult = _startGameSessionUseCase(
+      level: level,
+      sessionId: 'session-${level.levelId}',
+      startedAtMs: nowMs,
+    );
+
+    switch (sessionResult) {
+      case Success(value: final session):
+        await _emitPlayingState(session, level, emit);
+        _audioService?.playBgm(AudioTrack.gameTheme);
+      case Error(failure: final failure):
+        emit(GameError(message: failure.message, levelId: level.levelId));
     }
   }
 
@@ -354,6 +411,16 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       _livesRemaining = 3;
       _totalTimeRemaining = 30;
       _levelsCompleted = 0;
+    }
+
+    final external = _externalLevel;
+    if (external != null && external.levelId == levelId) {
+      await _startExternalLevelSession(
+        external,
+        _externalLevelTimeLimitSeconds,
+        emit,
+      );
+      return;
     }
 
     emit(GameLoading(levelId: levelId));

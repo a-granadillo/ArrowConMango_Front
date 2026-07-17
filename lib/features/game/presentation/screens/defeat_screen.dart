@@ -23,10 +23,20 @@ import '../../../../l10n/app_localizations.dart';
 /// handle, stats card, button language) so it reads as part of the same
 /// system rather than an ad-hoc screen.
 class DefeatScreen extends StatelessWidget {
-  const DefeatScreen({super.key, required this.result, this.bloc});
+  const DefeatScreen({
+    super.key,
+    required this.result,
+    this.bloc,
+    this.communityLevelId,
+    this.isEditorTestPlay = false,
+  });
 
   final GameDefeat result;
   final GameBloc? bloc;
+  final String? communityLevelId;
+  final bool isEditorTestPlay;
+
+  bool get _isExternalLevel => isEditorTestPlay || communityLevelId != null;
 
   String _reasonText(AppLocalizations l10n) => switch (result.reason) {
         DefeatReason.timeExpired => l10n.defeatTimeExpired,
@@ -110,7 +120,15 @@ class DefeatScreen extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: withClick(() {
                       audioService.playBgm(AudioTrack.menuTheme);
-                      context.go(AppRoutes.menu);
+                      if (_isExternalLevel) {
+                        // See VictoryScreen's Menu button: return to the
+                        // editor/community screen that launched this play
+                        // session instead of resetting the whole nav stack.
+                        context.pop();
+                        context.pop();
+                      } else {
+                        context.go(AppRoutes.menu);
+                      }
                     }),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -133,15 +151,15 @@ class DefeatScreen extends StatelessWidget {
                   flex: 2,
                   child: GestureDetector(
                     onTap: withClick(() {
-                      if (result.isEndlessMode && hasLivesRemaining) {
-                        // En modo supervivencia con vidas restantes, reintentar reusando el bloc
-                        if (bloc != null) {
-                          bloc!.add(const RetryLevel());
-                          context.pop();
-                        } else {
-                          final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000 + 1);
-                          context.pushReplacement(AppRoutes.gameFor(nextLevelId));
-                        }
+                      if ((result.isEndlessMode && hasLivesRemaining) ||
+                          (_isExternalLevel && bloc != null)) {
+                        // Reintentar reusando el bloc existente — el único
+                        // camino válido para supervivencia y para niveles
+                        // externos (comunidad / prueba en el editor), que
+                        // no existen en el catálogo local que resolvería
+                        // AppRoutes.gameFor(id).
+                        bloc!.add(const RetryLevel());
+                        context.pop();
                       } else {
                         // En modo campaña o game over, reintentar el mismo nivel
                         context.pushReplacement(

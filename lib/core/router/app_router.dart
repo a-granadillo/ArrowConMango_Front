@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/creative/presentation/screens/community_levels_screen.dart';
+import '../../features/creative/presentation/screens/creative_hub_screen.dart';
+import '../../features/creative/presentation/screens/level_editor_screen.dart';
+import '../../features/creative/presentation/screens/level_ranking_screen.dart';
+import '../../features/creative/presentation/screens/my_levels_screen.dart';
+import '../../features/game/domain/entities/creative_level.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
 import '../../features/game/presentation/bloc/game_state.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
@@ -12,6 +18,7 @@ import '../../features/game/presentation/screens/game_3d_screen.dart';
 import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
 import '../../features/game/presentation/screens/main_menu_screen.dart';
+import '../../features/game/presentation/screens/play_hub_screen.dart';
 import '../../features/game/presentation/screens/victory_screen.dart';
 import '../../features/game/presentation/screens/settings_screen.dart';
 import '../../features/game/presentation/screens/splash_screen.dart';
@@ -36,6 +43,10 @@ GoRouter buildAppRouter() {
       GoRoute(
         path: AppRoutes.menu,
         builder: (context, state) => const MainMenuScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.playHub,
+        builder: (context, state) => const PlayHubScreen(),
       ),
       GoRoute(
         path: AppRoutes.levels,
@@ -84,6 +95,9 @@ GoRouter buildAppRouter() {
             return VictoryScreen(
               result: extra['result'] as GameVictory,
               bloc: extra['bloc'] as GameBloc?,
+              communityLevelId: extra['communityLevelId'] as String?,
+              onEditorTestSolved:
+                  extra['onEditorTestSolved'] as VoidCallback?,
             );
           }
           return const _Placeholder(
@@ -103,6 +117,8 @@ GoRouter buildAppRouter() {
             return DefeatScreen(
               result: extra['result'] as GameDefeat,
               bloc: extra['bloc'] as GameBloc?,
+              communityLevelId: extra['communityLevelId'] as String?,
+              isEditorTestPlay: extra['isEditorTestPlay'] as bool? ?? false,
             );
           }
           return const _Placeholder(
@@ -110,6 +126,28 @@ GoRouter buildAppRouter() {
             message: 'No hay un resultado que mostrar.',
           );
         },
+      ),
+      GoRoute(
+        path: AppRoutes.creativeHub,
+        builder: (context, state) => const CreativeHubScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeEditor,
+        builder: (context, state) =>
+            LevelEditorScreen(existing: state.extra as CreativeLevel?),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeMine,
+        builder: (context, state) => const MyLevelsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeCommunity,
+        builder: (context, state) => const CommunityLevelsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeRanking,
+        builder: (context, state) =>
+            LevelRankingScreen(level: state.extra as CreativeLevel),
       ),
     ],
   );
