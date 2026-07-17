@@ -41,6 +41,8 @@ import '../../features/game/application/use_cases/unlock_next_level_use_case.dar
     as _i1015;
 import '../../features/game/data/datasources/remote_leaderboard_data_source.dart'
     as _i924;
+import '../../features/game/data/datasources/remote_level_data_source.dart'
+    as _i518;
 import '../../features/game/data/datasources/remote_progress_data_source.dart'
     as _i1063;
 import '../../features/game/data/models/app_progress_model.dart' as _i358;
@@ -201,12 +203,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i143.LeaderboardCubit>(
       () => _i143.LeaderboardCubit(
         repository: gh<_i651.ILeaderboardRepository>(),
-      ),
-    );
-    gh.lazySingleton<_i76.ILevelRepository>(
-      () => _i821.HiveLevelRepository(
-        gh<_i979.Box<_i50.LevelModel>>(),
-        gh<_i61.LevelMapper>(),
       ),
     );
     gh.lazySingleton<_i151.AudioSettingsCubit>(
