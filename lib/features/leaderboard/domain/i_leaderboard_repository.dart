@@ -1,14 +1,14 @@
-import '../../player/domain/guest_player.dart';
 import 'leaderboard_entry.dart';
 
-/// Port for fetching the global leaderboard.
+/// Port for fetching a level's own leaderboard or the survival leaderboard.
 ///
-/// Implementations return the ranking with [currentPlayer] merged in and
-/// flagged, so the UI can highlight the local guest. Backed by mock data for
-/// now; a real backend (`GET /leaderboard`) can implement the same interface.
+/// Both return top N plus the requesting player's own row (with their real
+/// rank, even if outside the top) — see [LeaderboardPage].
 abstract interface class ILeaderboardRepository {
-  Future<List<LeaderboardEntry>> fetchTopPlayers({
-    required GuestPlayer currentPlayer,
-    int limit = 20,
+  Future<LeaderboardPage> fetchByLevel({
+    required String levelId,
+    int top = 10,
   });
+
+  Future<LeaderboardPage> fetchSurvival({int top = 10});
 }

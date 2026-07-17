@@ -6,9 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../game/domain/entities/creative_level.dart';
 import '../bloc/level_ranking_cubit.dart';
 
-/// A single community level's own ranking — `GET /leaderboard?level=`, not
-/// the global leaderboard. No display names are available on this
-/// endpoint, so rows fall back to a truncated userId.
+/// A single community level's own ranking — `GET /leaderboard/:nivel`.
 class LevelRankingScreen extends StatelessWidget {
   const LevelRankingScreen({super.key, required this.level});
 
@@ -43,14 +41,15 @@ class LevelRankingScreen extends StatelessWidget {
                       separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, i) {
                         final entry = entries[i];
-                        final shortId = entry.userId.length > 8
-                            ? entry.userId.substring(0, 8)
-                            : entry.userId;
                         return Card(
                           elevation: 0,
-                          color: Colors.white,
+                          color: entry.isMe ? AppColors.cream2 : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
+                            side: entry.isMe
+                                ? const BorderSide(
+                                    color: AppColors.primary, width: 2)
+                                : BorderSide.none,
                           ),
                           child: ListTile(
                             leading: CircleAvatar(
@@ -59,7 +58,11 @@ class LevelRankingScreen extends StatelessWidget {
                                   : AppColors.cream2,
                               child: Text('${entry.rank}'),
                             ),
-                            title: Text('Jugador $shortId'),
+                            title: Text(
+                              entry.isMe
+                                  ? '${entry.displayName} (Tú)'
+                                  : entry.displayName,
+                            ),
                             subtitle: Text(
                               '${entry.moves} movimientos · '
                               '${(entry.timeMs / 1000).toStringAsFixed(1)}s',

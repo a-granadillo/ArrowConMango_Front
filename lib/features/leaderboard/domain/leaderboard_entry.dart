@@ -1,6 +1,14 @@
 import 'package:equatable/equatable.dart';
 
-/// A single row in the global leaderboard.
+/// What [LeaderboardEntry.secondaryValue] counts, so the UI knows how to
+/// label it (levels completed doesn't apply to a per-level or survival
+/// ranking the same way "moves" or "runs" do).
+enum LeaderboardMetric { levels, moves, survivalRuns }
+
+/// A single row in a leaderboard — either a level's own ranking or the
+/// survival ranking. [mangos] is the headline number next to the mango icon
+/// (mango stars for survival, score points for a level); [secondaryValue]
+/// is a smaller supporting count whose meaning [metric] disambiguates.
 class LeaderboardEntry extends Equatable {
   const LeaderboardEntry({
     required this.rank,
@@ -8,11 +16,12 @@ class LeaderboardEntry extends Equatable {
     required this.displayName,
     required this.mangos,
     required this.colorValue,
-    this.levelsCompleted = 0,
+    this.secondaryValue = 0,
+    this.metric = LeaderboardMetric.levels,
     this.isCurrentPlayer = false,
   });
 
-  /// 1-based position in the ranking.
+  /// 1-based position in the full ranking (not just the visible top slice).
   final int rank;
 
   /// Anonymous player id (UUID).
@@ -21,7 +30,7 @@ class LeaderboardEntry extends Equatable {
   /// Public display name.
   final String displayName;
 
-  /// Score (collected mangos).
+  /// Headline number shown next to the mango icon.
   final int mangos;
 
   /// Avatar background color as a 0xAARRGGBB value, matching the design's
@@ -29,10 +38,13 @@ class LeaderboardEntry extends Equatable {
   /// stays Flutter-free; the presentation layer maps it to a `Color`.
   final int colorValue;
 
-  /// Number of levels completed, shown as the subtitle under the name.
-  final int levelsCompleted;
+  /// Secondary count shown as the subtitle under the name — see [metric].
+  final int secondaryValue;
 
-  /// Whether this row is the local guest player (highlighted in the UI).
+  /// Disambiguates what [secondaryValue] counts.
+  final LeaderboardMetric metric;
+
+  /// Whether this row is the requesting player (backend-flagged `isMe`).
   final bool isCurrentPlayer;
 
   /// First letter used for the avatar badge.
@@ -46,7 +58,22 @@ class LeaderboardEntry extends Equatable {
         displayName,
         mangos,
         colorValue,
-        levelsCompleted,
+        secondaryValue,
+        metric,
         isCurrentPlayer,
       ];
+}
+
+/// A leaderboard response: the visible top slice, plus the requesting
+/// player's own row with their real rank — present even when they fall
+/// outside [top], so the UI can pin it at the bottom (see
+/// `GET /leaderboard/:nivel` and `GET /leaderboard/supervivencia`).
+class LeaderboardPage extends Equatable {
+  const LeaderboardPage({required this.top, required this.me});
+
+  final List<LeaderboardEntry> top;
+  final LeaderboardEntry? me;
+
+  @override
+  List<Object?> get props => [top, me];
 }

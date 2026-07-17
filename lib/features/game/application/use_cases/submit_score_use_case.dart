@@ -25,6 +25,9 @@ class SubmitScoreUseCase {
         levelId: levelId,
         moves: moves,
         elapsedSeconds: elapsedSeconds,
+        // Convention shared with GameBloc/LoadLevelUseCase: a negative
+        // levelId is a survival run, never a real campaign level id.
+        mode: levelId < 0 ? 'survival' : 'campaign',
       );
     } catch (_) {
       // Best-effort: swallow. See class doc.

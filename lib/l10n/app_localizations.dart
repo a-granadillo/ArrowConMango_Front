@@ -608,18 +608,6 @@ abstract class AppLocalizations {
   /// **'Los mejores cosechadores'**
   String get leaderboardSubtitle;
 
-  /// No description provided for @leaderboardLinkAccount.
-  ///
-  /// In es, this message translates to:
-  /// **'Vincular cuenta (Google / Apple)'**
-  String get leaderboardLinkAccount;
-
-  /// No description provided for @leaderboardSignInComingSoon.
-  ///
-  /// In es, this message translates to:
-  /// **'Inicio de sesión con Google/Apple — próximamente 🥭'**
-  String get leaderboardSignInComingSoon;
-
   /// No description provided for @leaderboardCurrentPlayer.
   ///
   /// In es, this message translates to:
@@ -631,6 +619,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, =1{1 nivel} other{{count} niveles}}'**
   String leaderboardLevelsSub(int count);
+
+  /// No description provided for @leaderboardMovesSub.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 movimiento} other{{count} movimientos}}'**
+  String leaderboardMovesSub(int count);
+
+  /// No description provided for @leaderboardRunsSub.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 partida} other{{count} partidas}}'**
+  String leaderboardRunsSub(int count);
+
+  /// No description provided for @leaderboardTabByLevel.
+  ///
+  /// In es, this message translates to:
+  /// **'Por Nivel'**
+  String get leaderboardTabByLevel;
+
+  /// No description provided for @leaderboardTabSurvival.
+  ///
+  /// In es, this message translates to:
+  /// **'Supervivencia'**
+  String get leaderboardTabSurvival;
+
+  /// No description provided for @leaderboardSelectLevel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nivel {level}'**
+  String leaderboardSelectLevel(int level);
+
+  /// No description provided for @leaderboardYourPosition.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu posición'**
+  String get leaderboardYourPosition;
+
+  /// No description provided for @leaderboardEmptyByLevel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nadie ha completado este nivel todavía.'**
+  String get leaderboardEmptyByLevel;
+
+  /// No description provided for @leaderboardEmptySurvival.
+  ///
+  /// In es, this message translates to:
+  /// **'Nadie ha jugado Supervivencia todavía.'**
+  String get leaderboardEmptySurvival;
 }
 
 class _AppLocalizationsDelegate

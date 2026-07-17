@@ -280,13 +280,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaderboardSubtitle => 'The best harvesters';
 
   @override
-  String get leaderboardLinkAccount => 'Link account (Google / Apple)';
-
-  @override
-  String get leaderboardSignInComingSoon =>
-      'Google/Apple sign-in — coming soon 🥭';
-
-  @override
   String leaderboardCurrentPlayer(String name) {
     return '$name (You)';
   }
@@ -301,4 +294,46 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String leaderboardMovesSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moves',
+      one: '1 move',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String leaderboardRunsSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count runs',
+      one: '1 run',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get leaderboardTabByLevel => 'By Level';
+
+  @override
+  String get leaderboardTabSurvival => 'Survival';
+
+  @override
+  String leaderboardSelectLevel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get leaderboardYourPosition => 'Your position';
+
+  @override
+  String get leaderboardEmptyByLevel => 'No one has completed this level yet.';
+
+  @override
+  String get leaderboardEmptySurvival => 'No one has played Survival yet.';
 }
