@@ -2,6 +2,8 @@
 // Public named parameters are intentionally assigned to private fields
 // in the initializer list so the BLoC exposes a clean constructor API.
 
+import 'dart:async';
+
 import 'package:arrowconmango_front/features/game/application/dtos/game_evaluation.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/calculate_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/evaluate_game_state_use_case.dart';
@@ -19,6 +21,7 @@ import 'package:arrowconmango_front/features/game/domain/errors/arrow_not_found_
 import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
+import 'package:arrowconmango_front/features/game/presentation/bloc/arrow_collision_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
 import 'package:arrowconmango_front/core/audio/audio_service.dart';
 import 'package:arrowconmango_front/core/audio/audio_track.dart';
@@ -86,6 +89,19 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   int _totalTimeRemaining = 60;
   int _levelsCompleted = 0;
   bool _isEndlessMode = false;
+
+  /// One-shot collision signals for the UI to trigger impact animations —
+  /// see [ArrowCollisionEvent].
+  final _arrowCollisionController =
+      StreamController<ArrowCollisionEvent>.broadcast();
+  Stream<ArrowCollisionEvent> get arrowCollisions =>
+      _arrowCollisionController.stream;
+
+  @override
+  Future<void> close() {
+    _arrowCollisionController.close();
+    return super.close();
+  }
 
   static int _defaultClock() => DateTime.now().millisecondsSinceEpoch;
 
@@ -214,6 +230,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       case Error(failure: final failure):
         if (failure is PathBlockedFailure) {
           _audioService?.playSfx(SfxClip.block);
+          _arrowCollisionController.add(
+            ArrowCollisionEvent(
+              movingArrowId: failure.movingArrowId,
+              blockingArrowId: failure.blockingArrowId,
+            ),
+          );
           _livesRemaining--;
           final level = _levelForState(state);
           final newSession = session.afterMistake();
@@ -360,10 +382,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   Future<void> _onNextEndlessLevel(NextEndlessLevel event, Emitter<GameState> emit) async {
-    // Incrementar niveles completados y agregar tiempo
-    _levelsCompleted++;
-    _totalTimeRemaining += 10;
-    
+    // Niveles completados y tiempo extra ya se sumaron en _emitVictoryState
+    // cuando se ganó el nivel anterior; este handler solo carga el siguiente.
+
     // Generar un nuevo nivel con seed diferente
     final newLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
 

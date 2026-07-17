@@ -9,7 +9,6 @@ import '../../../../core/audio/audio_settings_state.dart';
 import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/i18n/locale_cubit.dart';
-import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
@@ -135,18 +134,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Text('English'),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _SettingCard(
-                  icon: Icons.view_in_ar_rounded,
-                  title: context.l10n.settingsBoard3D,
-                  subtitle: context.l10n.settingsBoard3DSubtitle,
-                  trailing: IconButton(
-                    icon: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-                    onPressed: _withClick(
-                      () => context.push(AppRoutes.board3dDemo),
-                    ),
                   ),
                 ),
               ],

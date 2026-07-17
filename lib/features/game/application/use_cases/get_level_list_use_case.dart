@@ -1,9 +1,11 @@
 import 'package:arrowconmango_front/features/game/application/dtos/level_summary.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/app_progress.dart';
+import 'package:arrowconmango_front/features/game/domain/entities/scoring_strategy.dart';
 import 'package:arrowconmango_front/features/game/domain/errors/generic_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/i_level_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/i_progress_repository.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
+import 'package:arrowconmango_front/features/game/domain/services/mango_stars.dart';
 import 'package:injectable/injectable.dart';
 
 /// Returns a list of [LevelSummary] entries for every level available.
@@ -18,8 +20,13 @@ import 'package:injectable/injectable.dart';
 class GetLevelListUseCase {
   final ILevelRepository _levelRepository;
   final IProgressRepository _progressRepository;
+  final ScoringStrategy _scoringStrategy;
 
-  const GetLevelListUseCase(this._levelRepository, this._progressRepository);
+  const GetLevelListUseCase(
+    this._levelRepository,
+    this._progressRepository,
+    this._scoringStrategy,
+  );
 
   Future<Result<List<LevelSummary>>> call() async {
     try {
@@ -45,9 +52,18 @@ class GetLevelListUseCase {
         levelCount,
         (index) {
           final levelId = index + 1;
+          final best = progress.best[levelId];
+          final mangosEarned = best == null
+              ? null
+              : MangoStars.fromPoints(
+                  _scoringStrategy
+                      .calculateScore(best.moves, best.timeElapsedSeconds)
+                      .totalPoints,
+                );
           return LevelSummary(
             levelId: levelId,
             isUnlocked: progress.unlockedLevels.contains(levelId),
+            mangosEarned: mangosEarned,
           );
         },
       );

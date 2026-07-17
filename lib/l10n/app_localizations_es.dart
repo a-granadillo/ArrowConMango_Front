@@ -48,13 +48,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsLanguage => 'Idioma';
 
   @override
-  String get settingsBoard3D => 'Tablero 3D (demo)';
-
-  @override
-  String get settingsBoard3DSubtitle =>
-      'Vista previa del renderizado por capas Z';
-
-  @override
   String get settingsDialogPlayerName => 'Nombre de jugador';
 
   @override

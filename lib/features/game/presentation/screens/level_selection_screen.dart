@@ -140,9 +140,7 @@ class _LevelGrid extends StatelessWidget {
   LevelTileState _stateFor(int index) {
     final level = levels[index];
     if (!level.isUnlocked) return LevelTileState.locked;
-    final hasNextUnlocked =
-        index + 1 < levels.length && levels[index + 1].isUnlocked;
-    return hasNextUnlocked ? LevelTileState.completed : LevelTileState.unlocked;
+    return level.isCompleted ? LevelTileState.completed : LevelTileState.unlocked;
   }
 
   @override
@@ -161,6 +159,7 @@ class _LevelGrid extends StatelessWidget {
         return LevelCard(
           levelId: level.levelId,
           state: _stateFor(index),
+          mangosEarned: level.mangosEarned,
           difficulty: LevelSelectionScreen.difficultyFor(
             level.levelId,
             context.l10n,

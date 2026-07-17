@@ -2,8 +2,7 @@ import '../../../data/topologies/grid_2d_topology.dart';
 import '../../../domain/entities/cardinal_direction.dart';
 import 'board_3d_view.dart';
 
-/// Sample 3D board used by [Board3DDemoScreen] to exercise the issue #44
-/// widget kit end-to-end.
+/// Sample 3D board used to exercise the issue #44 widget kit end-to-end.
 ///
 /// Hand-picked so every layer has at least one neighboring layer with both a
 /// planar and an axial arrow, making the ghosting and ⊙/⊗ glyphs visible no
