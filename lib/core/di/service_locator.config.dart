@@ -223,17 +223,6 @@ extension GetItInjectableX on _i174.GetIt {
         connectivity: gh<_i895.Connectivity>(),
       ),
     );
-    gh.lazySingleton<_i1040.GetLevelListUseCase>(
-      () => _i1040.GetLevelListUseCase(
-        gh<_i76.ILevelRepository>(),
-        gh<_i10.IProgressRepository>(),
-        gh<_i440.ScoringStrategy>(),
-      ),
-    );
-    gh.factory<_i49.MenuBloc>(
-      () =>
-          _i49.MenuBloc(getLevelListUseCase: gh<_i1040.GetLevelListUseCase>()),
-    );
     gh.lazySingleton<_i1015.UnlockNextLevelUseCase>(
       () => _i1015.UnlockNextLevelUseCase(
         gh<_i10.IProgressRepository>(),
@@ -249,6 +238,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i61.LevelMapper>(),
       ),
     );
+    gh.lazySingleton<_i1040.GetLevelListUseCase>(
+      () => _i1040.GetLevelListUseCase(
+        gh<_i76.ILevelRepository>(),
+        gh<_i10.IProgressRepository>(),
+        gh<_i440.ScoringStrategy>(),
+      ),
+    );
     gh.lazySingleton<_i424.ProgressBloc>(
       () => _i424.ProgressBloc(
         loadProgressUseCase: gh<_i739.LoadProgressUseCase>(),
@@ -257,6 +253,10 @@ extension GetItInjectableX on _i174.GetIt {
         submitScoreUseCase: gh<_i908.SubmitScoreUseCase>(),
         scoringStrategy: gh<_i440.ScoringStrategy>(),
       ),
+    );
+    gh.factory<_i49.MenuBloc>(
+      () =>
+          _i49.MenuBloc(getLevelListUseCase: gh<_i1040.GetLevelListUseCase>()),
     );
     return this;
   }
