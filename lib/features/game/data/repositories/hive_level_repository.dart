@@ -12,7 +12,10 @@ import 'package:injectable/injectable.dart';
 ///
 /// Stores [LevelModel] objects in a [Box] keyed by level ID and maps them
 /// to domain [Level] / [GameSession] entities on read.
-@LazySingleton(as: ILevelRepository)
+///
+/// Not registered as [ILevelRepository] itself — [SyncedLevelRepository]
+/// decorates this with backend sync and is the one that fills that role.
+@lazySingleton
 class HiveLevelRepository implements ILevelRepository {
   final Box<LevelModel> _levelsBox;
   final LevelMapper _levelMapper;

@@ -2,6 +2,8 @@
 // Public named parameters are intentionally assigned to private fields
 // in the initializer list so the BLoC exposes a clean constructor API.
 
+import 'dart:async';
+
 import 'package:arrowconmango_front/features/game/application/dtos/game_evaluation.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/calculate_score_use_case.dart';
 import 'package:arrowconmango_front/features/game/application/use_cases/evaluate_game_state_use_case.dart';
@@ -19,6 +21,7 @@ import 'package:arrowconmango_front/features/game/domain/errors/arrow_not_found_
 import 'package:arrowconmango_front/features/game/domain/errors/path_blocked_failure.dart';
 import 'package:arrowconmango_front/features/game/domain/repositories/result.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
+import 'package:arrowconmango_front/features/game/presentation/bloc/arrow_collision_event.dart';
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_event.dart';
 import 'package:arrowconmango_front/core/audio/audio_service.dart';
 import 'package:arrowconmango_front/core/audio/audio_track.dart';
@@ -61,6 +64,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
        _timeLimitInSeconds = timeLimitInSeconds,
        super(const GameInitial()) {
     on<LoadLevel>(_onLoadLevel);
+    on<LoadExternalLevel>(_onLoadExternalLevel);
     on<TriggerArrowExit>(_onTriggerArrowExit);
     on<UndoMove>(_onUndoMove);
     on<Tick>(_onTick);
@@ -86,6 +90,19 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   int _totalTimeRemaining = 60;
   int _levelsCompleted = 0;
   bool _isEndlessMode = false;
+
+  /// One-shot collision signals for the UI to trigger impact animations —
+  /// see [ArrowCollisionEvent].
+  final _arrowCollisionController =
+      StreamController<ArrowCollisionEvent>.broadcast();
+  Stream<ArrowCollisionEvent> get arrowCollisions =>
+      _arrowCollisionController.stream;
+
+  @override
+  Future<void> close() {
+    _arrowCollisionController.close();
+    return super.close();
+  }
 
   static int _defaultClock() => DateTime.now().millisecondsSinceEpoch;
 
@@ -162,6 +179,62 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
   }
 
+  /// The last level loaded via [LoadExternalLevel], kept so [RetryLevel]
+  /// can restart it without going through [_loadLevelUseCase] (which only
+  /// knows the local campaign/endless catalogue — an external level, e.g.
+  /// a community level or an editor draft under test, was never in it).
+  Level? _externalLevel;
+
+  /// The time limit an external level was loaded with — kept separately
+  /// from [_totalTimeRemaining] (which counts down during play) so
+  /// [RetryLevel] restarts with the full limit, not whatever was left when
+  /// the player died.
+  int _externalLevelTimeLimitSeconds = 60;
+
+  /// Mirrors [_onLoadLevel]'s success path, skipping the local-repository
+  /// lookup since [event.level] is already in hand.
+  Future<void> _onLoadExternalLevel(
+    LoadExternalLevel event,
+    Emitter<GameState> emit,
+  ) async {
+    _externalLevel = event.level;
+    _externalLevelTimeLimitSeconds =
+        event.timeLimitSeconds ?? _timeLimitInSeconds;
+    await _startExternalLevelSession(
+      event.level,
+      _externalLevelTimeLimitSeconds,
+      emit,
+    );
+  }
+
+  Future<void> _startExternalLevelSession(
+    Level level,
+    int timeLimitInSeconds,
+    Emitter<GameState> emit,
+  ) async {
+    emit(GameLoading(levelId: level.levelId));
+
+    _isEndlessMode = false;
+    _livesRemaining = 3;
+    _totalTimeRemaining = timeLimitInSeconds;
+    _levelsCompleted = 0;
+
+    final nowMs = _clock();
+    final sessionResult = _startGameSessionUseCase(
+      level: level,
+      sessionId: 'session-${level.levelId}',
+      startedAtMs: nowMs,
+    );
+
+    switch (sessionResult) {
+      case Success(value: final session):
+        await _emitPlayingState(session, level, emit);
+        _audioService?.playBgm(AudioTrack.gameTheme);
+      case Error(failure: final failure):
+        emit(GameError(message: failure.message, levelId: level.levelId));
+    }
+  }
+
   Future<void> _onTriggerArrowExit(
     TriggerArrowExit event,
     Emitter<GameState> emit,
@@ -214,6 +287,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       case Error(failure: final failure):
         if (failure is PathBlockedFailure) {
           _audioService?.playSfx(SfxClip.block);
+          _arrowCollisionController.add(
+            ArrowCollisionEvent(
+              movingArrowId: failure.movingArrowId,
+              blockingArrowId: failure.blockingArrowId,
+            ),
+          );
           _livesRemaining--;
           final level = _levelForState(state);
           final newSession = session.afterMistake();
@@ -334,6 +413,16 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       _levelsCompleted = 0;
     }
 
+    final external = _externalLevel;
+    if (external != null && external.levelId == levelId) {
+      await _startExternalLevelSession(
+        external,
+        _externalLevelTimeLimitSeconds,
+        emit,
+      );
+      return;
+    }
+
     emit(GameLoading(levelId: levelId));
 
     final levelResult = await _loadLevelUseCase(levelId: levelId);
@@ -360,10 +449,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   Future<void> _onNextEndlessLevel(NextEndlessLevel event, Emitter<GameState> emit) async {
-    // Incrementar niveles completados y agregar tiempo
-    _levelsCompleted++;
-    _totalTimeRemaining += 10;
-    
+    // Niveles completados y tiempo extra ya se sumaron en _emitVictoryState
+    // cuando se ganó el nivel anterior; este handler solo carga el siguiente.
+
     // Generar un nuevo nivel con seed diferente
     final newLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000);
 

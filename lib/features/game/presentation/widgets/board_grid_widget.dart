@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/arrow_entity.dart';
 import 'animations/arrow_exit_animation.dart';
+import 'animations/arrow_impact_animation.dart';
 import 'painting/arrows_layer_painter.dart';
 import 'painting/board_surface_painter.dart';
 
@@ -21,6 +22,19 @@ class ExitingArrowData {
   final VoidCallback onComplete;
 }
 
+/// A just-collided arrow, rendered as a one-shot impact flash overlay.
+class ImpactingArrowData {
+  const ImpactingArrowData({
+    required this.id,
+    required this.arrow,
+    required this.onComplete,
+  });
+
+  final String id;
+  final ArrowEntity arrow;
+  final VoidCallback onComplete;
+}
+
 /// Renders the puzzle board: a dark-wood frame around a dotted surface, with
 /// arrows drawn as thin snake-like strokes (a single [ArrowsLayerPainter]).
 ///
@@ -36,6 +50,7 @@ class BoardGridWidget extends StatelessWidget {
     required this.onArrowTap,
     required this.colorOf,
     this.exitingArrows = const [],
+    this.impactingArrows = const [],
     this.onArrowLongPress,
   });
 
@@ -48,6 +63,9 @@ class BoardGridWidget extends StatelessWidget {
   final Color Function(String id) colorOf;
 
   final List<ExitingArrowData> exitingArrows;
+
+  /// Arrows currently flashing an impact animation (see [ImpactingArrowData]).
+  final List<ImpactingArrowData> impactingArrows;
 
   /// Callback for long-press on a switchable arrow.
   final void Function(String arrowId)? onArrowLongPress;
@@ -126,6 +144,15 @@ class BoardGridWidget extends StatelessWidget {
                           cols: cols,
                           color: exiting.color,
                           onComplete: exiting.onComplete,
+                        ),
+                      ),
+                    for (final impacting in impactingArrows)
+                      Positioned.fill(
+                        key: ValueKey(impacting.id),
+                        child: ArrowImpactAnimation(
+                          arrow: impacting.arrow,
+                          cell: cell,
+                          onComplete: impacting.onComplete,
                         ),
                       ),
                   ],

@@ -6,30 +6,15 @@ import 'package:arrowconmango_front/features/game/data/models/mappers/level_mapp
 import 'package:arrowconmango_front/features/game/data/topologies/grid_2d_topology.dart';
 import 'package:arrowconmango_front/features/game/domain/entities/board_state.dart';
 import 'package:arrowconmango_front/features/game/domain/services/collision_validator.dart';
+import 'package:arrowconmango_front/features/game/domain/services/level_solver.dart';
 import 'package:test/test.dart';
 
-/// Greedily drains [board]: repeatedly removes any arrow whose exit path is
-/// clear, until nothing can move. Returns the arrows still stuck (empty ⇒ the
-/// board was fully cleared, i.e. the level is solvable).
-///
-/// The exit rule is monotone (removing an arrow never blocks another), so this
-/// greedy drain is an exact decision procedure: it clears the board iff a
-/// solving order exists.
-List<String> _drain(BoardState board, CollisionValidator validator) {
-  var current = board;
-  var madeProgress = true;
-  while (madeProgress && !current.isEmpty) {
-    madeProgress = false;
-    for (final arrow in current.arrows) {
-      if (validator.checkExit(arrow, current).canExit) {
-        current = current.withoutArrow(arrow);
-        madeProgress = true;
-        break;
-      }
-    }
-  }
-  return current.arrows.map((a) => a.id).toList();
-}
+/// Thin wrapper matching this file's existing `List<String>` (empty ⇒
+/// solvable) assertion style — the actual decision procedure is
+/// [LevelSolver], shared with the level editor's "resolve before publish"
+/// requirement and the generator's own acceptance check.
+List<String> _drain(BoardState board, CollisionValidator validator) =>
+    LevelSolver.solve(board, validator).stuckArrowIds;
 
 void main() {
   // Topology must be at least as large as the biggest board so exit

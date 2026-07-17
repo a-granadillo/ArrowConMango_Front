@@ -22,7 +22,7 @@ void main() {
         // Arrange
         const progress = AppProgress(
           unlockedLevels: [1, 2, 3],
-          currentToken: 'session-token',
+          currentLevel: 3,
         );
         fakeRepository.loadResult = const Success<AppProgress>(progress);
 

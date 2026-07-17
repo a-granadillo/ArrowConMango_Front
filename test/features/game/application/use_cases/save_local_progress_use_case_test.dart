@@ -23,7 +23,7 @@ void main() {
         fakeRepository.saveResult = const Success<void>(null);
         const progress = AppProgress(
           unlockedLevels: [1, 2],
-          currentToken: 'session-token',
+          currentLevel: 3,
         );
 
         // Act
@@ -47,7 +47,7 @@ void main() {
         fakeRepository.saveResult = const Error<void>(expectedFailure);
         const progress = AppProgress(
           unlockedLevels: [3],
-          currentToken: 'another-token',
+          currentLevel: 3,
         );
 
         // Act

@@ -28,6 +28,8 @@ void main() {
       const Stream<GameState>.empty(),
       initialState: makePlaying(elapsedSeconds: 65),
     );
+    when(() => bloc.arrowCollisions)
+        .thenAnswer((_) => const Stream.empty());
   });
 
   tearDown(() => bloc.close());

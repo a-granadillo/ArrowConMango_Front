@@ -22,11 +22,11 @@ import '../../features/game/domain/repositories/i_level_repository.dart';
 import '../../features/game/domain/repositories/i_progress_repository.dart';
 import '../../features/game/presentation/bloc/cube3d/cube3d_game_cubit.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
-import '../../features/leaderboard/data/mock_leaderboard_repository.dart';
 import '../../features/leaderboard/domain/i_leaderboard_repository.dart';
 import '../../features/player/data/auth_token_store.dart';
 import '../../features/player/data/guest_name_generator.dart';
 import '../../features/player/data/player_local_data_source.dart';
+import '../../features/player/data/remote_player_data_source.dart';
 import '../../features/player/domain/guest_player.dart';
 import '../../features/player/domain/i_player_repository.dart';
 import '../../features/player/presentation/player_cubit.dart';
@@ -61,7 +61,7 @@ Future<void> setupServiceLocator() async {
   final playerBox = await Hive.openBox<dynamic>(PlayerLocalDataSource.boxName);
   await Hive.openBox<dynamic>(AudioSettingsLocalDataSource.boxName);
 
-  _seedLevels(levelsBox);
+  await _seedLevels(levelsBox, playerBox);
   seedProgressIfEmpty(progressBox);
 
   // --- Player (Guest-First identity) ---
@@ -87,6 +87,7 @@ Future<void> setupServiceLocator() async {
       () => AuthInterceptor(
         tokenStore: sl<AuthTokenStore>(),
         guestUuid: initialPlayer.uuid,
+        guestDisplayName: initialPlayer.displayName,
       ),
     )
     ..registerLazySingleton<ApiClient>(
@@ -134,23 +135,33 @@ Future<void> setupServiceLocator() async {
         audioService: sl<AudioService>(),
       ),
     );
-
-  // --- Leaderboard (Guest-First) — fallback mock data source ---
-  if (!sl.isRegistered<ILeaderboardRepository>()) {
-    sl.registerLazySingleton<ILeaderboardRepository>(
-      () => MockLeaderboardRepository(),
-    );
-  }
 }
 
+/// Key in [playerBox] tracking which [LevelDefinitions.catalogVersion] the
+/// levels box was last seeded from.
+const String _levelsSeedVersionKey = 'levels_seed_version';
+
 /// Populates the levels box from the code-defined level catalogue on first
-/// launch. Keyed by level id so [HiveLevelRepository] can `get(levelId)`.
-void _seedLevels(Box<LevelModel> box) {
-  if (box.isNotEmpty) return;
+/// launch, or whenever [LevelDefinitions.catalogVersion] has been bumped
+/// since the last seed (e.g. after fixing the generator or tuning
+/// arrowCounts) — otherwise stale, previously-cached levels would survive
+/// indefinitely. Keyed by level id so [HiveLevelRepository] can
+/// `get(levelId)`. [SyncedLevelRepository] may overwrite these entries
+/// afterwards with the backend's copy when it's reachable.
+Future<void> _seedLevels(
+  Box<LevelModel> box,
+  Box<dynamic> playerBox,
+) async {
+  final seededVersion = playerBox.get(_levelsSeedVersionKey) as int?;
+  if (box.isNotEmpty && seededVersion == LevelDefinitions.catalogVersion) {
+    return;
+  }
+
   final entries = <int, LevelModel>{
     for (final level in LevelDefinitions.campaignLevels) level.id: level,
   };
-  box.putAll(entries);
+  await box.putAll(entries);
+  await playerBox.put(_levelsSeedVersionKey, LevelDefinitions.catalogVersion);
 }
 
 /// Re-registers an existing abstraction [T] wrapped with the supplied AOP
@@ -185,6 +196,10 @@ void _wrapPlayerRepository() {
     ..unregister<PlayerCubit>()
     ..registerSingleton<IPlayerRepository>(decorated)
     ..registerSingleton<PlayerCubit>(
-      PlayerCubit(dataSource: decorated, initial: existingState),
+      PlayerCubit(
+        dataSource: decorated,
+        initial: existingState,
+        remoteDataSource: sl<RemotePlayerDataSource>(),
+      ),
     );
 }

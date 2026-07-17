@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'¡EL LABERINTO MÁS SABROSO!'**
   String get menuSubtitle;
 
+  /// No description provided for @menuPlay.
+  ///
+  /// In es, this message translates to:
+  /// **'JUGAR'**
+  String get menuPlay;
+
   /// No description provided for @menuCampaignMode.
   ///
   /// In es, this message translates to:
@@ -175,18 +181,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Idioma'**
   String get settingsLanguage;
-
-  /// No description provided for @settingsBoard3D.
-  ///
-  /// In es, this message translates to:
-  /// **'Tablero 3D (demo)'**
-  String get settingsBoard3D;
-
-  /// No description provided for @settingsBoard3DSubtitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Vista previa del renderizado por capas Z'**
-  String get settingsBoard3DSubtitle;
 
   /// No description provided for @settingsDialogPlayerName.
   ///
@@ -505,6 +499,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{name} (Tú)'**
   String leaderboardCurrentPlayer(String name);
+
+  /// No description provided for @leaderboardLevelsSub.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 nivel} other{{count} niveles}}'**
+  String leaderboardLevelsSub(int count);
 }
 
 class _AppLocalizationsDelegate

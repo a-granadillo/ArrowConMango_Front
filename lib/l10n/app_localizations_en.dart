@@ -18,6 +18,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSubtitle => 'THE TASTIEST MAZE!';
 
   @override
+  String get menuPlay => 'PLAY';
+
+  @override
   String get menuCampaignMode => 'CAMPAIGN MODE';
 
   @override
@@ -46,12 +49,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'Language';
-
-  @override
-  String get settingsBoard3D => '3D Board (demo)';
-
-  @override
-  String get settingsBoard3DSubtitle => 'Preview of Z-layer rendering';
 
   @override
   String get settingsDialogPlayerName => 'Player name';
@@ -227,5 +224,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String leaderboardCurrentPlayer(String name) {
     return '$name (You)';
+  }
+
+  @override
+  String leaderboardLevelsSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count levels',
+      one: '1 level',
+    );
+    return '$_temp0';
   }
 }

@@ -10,6 +10,11 @@ import 'silhouettes.dart';
 class LevelDefinitions {
   LevelDefinitions._();
 
+  /// Bump when [campaignLevels] changes in a way that must force a reseed
+  /// of already-installed apps' local levels box (e.g. a generator fix or
+  /// retuned arrowCounts) — see `_seedLevels` in the composition root.
+  static const int catalogVersion = 2;
+
   /// The 15 campaign levels mapped to their specific structural configurations and visual silhouettes.
   static final List<LevelModel> campaignLevels = [
     // --- EASY LEVELS (mostly 6x6, straight and L-shapes, ~15 arrows) ---
@@ -39,7 +44,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 7,
         cols: 7,
-        arrowCount: 15,
+        arrowCount: 9,
         straightRatio: 0.60,
         lShapeRatio: 0.40,
         zShapeRatio: 0.0,
@@ -58,7 +63,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 7,
         cols: 7,
-        arrowCount: 15,
+        arrowCount: 8,
         straightRatio: 0.60,
         lShapeRatio: 0.40,
         zShapeRatio: 0.0,
@@ -77,7 +82,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 7,
         cols: 7,
-        arrowCount: 16,
+        arrowCount: 11,
         straightRatio: 0.60,
         lShapeRatio: 0.40,
         zShapeRatio: 0.0,
@@ -96,7 +101,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 7,
         cols: 7,
-        arrowCount: 12,
+        arrowCount: 8,
         straightRatio: 0.60,
         lShapeRatio: 0.40,
         zShapeRatio: 0.0,
@@ -117,7 +122,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 9,
         cols: 9,
-        arrowCount: 20,
+        arrowCount: 12,
         straightRatio: 0.30,
         lShapeRatio: 0.35,
         zShapeRatio: 0.20,
@@ -136,7 +141,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 9,
         cols: 9,
-        arrowCount: 22,
+        arrowCount: 16,
         straightRatio: 0.30,
         lShapeRatio: 0.35,
         zShapeRatio: 0.20,
@@ -155,7 +160,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 9,
         cols: 9,
-        arrowCount: 20,
+        arrowCount: 14,
         straightRatio: 0.30,
         lShapeRatio: 0.35,
         zShapeRatio: 0.20,
@@ -174,7 +179,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 9,
         cols: 9,
-        arrowCount: 20,
+        arrowCount: 11,
         straightRatio: 0.30,
         lShapeRatio: 0.35,
         zShapeRatio: 0.20,
@@ -193,7 +198,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 9,
         cols: 9,
-        arrowCount: 25,
+        arrowCount: 15,
         straightRatio: 0.30,
         lShapeRatio: 0.35,
         zShapeRatio: 0.20,
@@ -214,7 +219,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 12,
         cols: 12,
-        arrowCount: 38,
+        arrowCount: 13,
         straightRatio: 0.15,
         lShapeRatio: 0.35,
         zShapeRatio: 0.30,
@@ -233,7 +238,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 12,
         cols: 12,
-        arrowCount: 40,
+        arrowCount: 22,
         straightRatio: 0.15,
         lShapeRatio: 0.35,
         zShapeRatio: 0.30,
@@ -252,7 +257,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 11,
         cols: 10,
-        arrowCount: 35,
+        arrowCount: 17,
         straightRatio: 0.15,
         lShapeRatio: 0.35,
         zShapeRatio: 0.30,
@@ -271,7 +276,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 12,
         cols: 12,
-        arrowCount: 42,
+        arrowCount: 15,
         straightRatio: 0.15,
         lShapeRatio: 0.35,
         zShapeRatio: 0.30,
@@ -290,7 +295,7 @@ class LevelDefinitions {
       config: const LevelConfig(
         rows: 12,
         cols: 12,
-        arrowCount: 50,
+        arrowCount: 21,
         straightRatio: 0.15,
         lShapeRatio: 0.35,
         zShapeRatio: 0.30,

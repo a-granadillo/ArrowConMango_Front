@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/app_progress.dart';
+import '../../domain/entities/scoring_strategy.dart';
 import '../../domain/repositories/i_progress_repository.dart';
 import '../../domain/repositories/result.dart';
 import '../datasources/remote_progress_data_source.dart';
@@ -27,10 +28,12 @@ class SyncedProgressRepository implements IProgressRepository {
     required RemoteProgressDataSource remote,
     required AppProgressMapper mapper,
     required Connectivity connectivity,
+    required ScoringStrategy scoringStrategy,
     @Named('playerBox') required Box<dynamic> pendingFlagBox,
   })  : _local = local,
         _remote = remote,
         _mapper = mapper,
+        _scoringStrategy = scoringStrategy,
         _pendingFlagBox = pendingFlagBox {
     connectivity.onConnectivityChanged.listen((results) {
       if (results.any((result) => result != ConnectivityResult.none)) {
@@ -45,6 +48,7 @@ class SyncedProgressRepository implements IProgressRepository {
   final HiveProgressRepository _local;
   final RemoteProgressDataSource _remote;
   final AppProgressMapper _mapper;
+  final ScoringStrategy _scoringStrategy;
   final Box<dynamic> _pendingFlagBox;
 
   bool get _hasPending =>
@@ -123,12 +127,17 @@ class SyncedProgressRepository implements IProgressRepository {
   AppProgress _merge(AppProgress local, AppProgress remote) {
     final unlocked = {...local.unlockedLevels, ...remote.unlockedLevels}.toList()
       ..sort();
-    final localLevel = int.tryParse(local.currentToken) ?? 0;
-    final remoteLevel = int.tryParse(remote.currentToken) ?? 0;
-    final currentLevel = localLevel > remoteLevel ? localLevel : remoteLevel;
-    return AppProgress(
-      unlockedLevels: unlocked,
-      currentToken: currentLevel.toString(),
-    );
+    final currentLevel = local.currentLevel > remote.currentLevel
+        ? local.currentLevel
+        : remote.currentLevel;
+
+    var merged = AppProgress(unlockedLevels: unlocked, currentLevel: currentLevel);
+    for (final entry in local.best.entries) {
+      merged = merged.withBest(entry.key, entry.value, _scoringStrategy);
+    }
+    for (final entry in remote.best.entries) {
+      merged = merged.withBest(entry.key, entry.value, _scoringStrategy);
+    }
+    return merged;
   }
 }

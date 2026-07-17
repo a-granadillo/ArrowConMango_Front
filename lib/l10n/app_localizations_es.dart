@@ -18,6 +18,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuSubtitle => '¡EL LABERINTO MÁS SABROSO!';
 
   @override
+  String get menuPlay => 'JUGAR';
+
+  @override
   String get menuCampaignMode => 'MODO CAMPAÑA';
 
   @override
@@ -46,13 +49,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'Idioma';
-
-  @override
-  String get settingsBoard3D => 'Tablero 3D (demo)';
-
-  @override
-  String get settingsBoard3DSubtitle =>
-      'Vista previa del renderizado por capas Z';
 
   @override
   String get settingsDialogPlayerName => 'Nombre de jugador';
@@ -228,5 +224,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String leaderboardCurrentPlayer(String name) {
     return '$name (Tú)';
+  }
+
+  @override
+  String leaderboardLevelsSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count niveles',
+      one: '1 nivel',
+    );
+    return '$_temp0';
   }
 }

@@ -6,6 +6,7 @@
   "splashTapToContinue": "Toca para continuar",
 
   "menuSubtitle": "¡EL LABERINTO MÁS SABROSO!",
+  "menuPlay": "JUGAR",
   "menuCampaignMode": "MODO CAMPAÑA",
   "menuSurvivalMode": "SUPERVIVENCIA",
   "menuLevels": "Niveles",
@@ -17,8 +18,6 @@
   "settingsEdit": "Editar",
   "settingsSound": "Sonido",
   "settingsLanguage": "Idioma",
-  "settingsBoard3D": "Tablero 3D (demo)",
-  "settingsBoard3DSubtitle": "Vista previa del renderizado por capas Z",
   "settingsDialogPlayerName": "Nombre de jugador",
   "settingsDialogHint": "Tu nombre",
   "settingsDialogCancel": "Cancelar",
@@ -105,5 +104,10 @@
   "leaderboardCurrentPlayer": "{name} (Tú)",
   "@leaderboardCurrentPlayer": {
     "placeholders": { "name": { "type": "String" } }
+  },
+
+  "leaderboardLevelsSub": "{count, plural, =1{1 nivel} other{{count} niveles}}",
+  "@leaderboardLevelsSub": {
+    "placeholders": { "count": { "type": "int" } }
   }
 }
