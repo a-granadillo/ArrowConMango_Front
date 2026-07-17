@@ -48,8 +48,7 @@ class AuthCubit extends Cubit<AuthState> {
         username: username,
       );
       await _sessionStore.startAuthenticated(result.token);
-      emit(const AuthAuthenticated());
-      await _migrateLocalProgress();
+      await _resetLocalProgress();
       emit(const AuthAuthenticated(progressMigrated: true));
     } on DioException catch (e) {
       emit(AuthFailure(_messageFor(e)));
@@ -61,8 +60,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final token = await _remoteAuth.login(email: email, password: password);
       await _sessionStore.startAuthenticated(token);
-      emit(const AuthAuthenticated());
-      await _migrateLocalProgress();
+      await _progressRepo.loadProgress();
       emit(const AuthAuthenticated(progressMigrated: true));
     } on DioException catch (e) {
       emit(AuthFailure(_messageFor(e)));
@@ -75,17 +73,13 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthGuest());
   }
 
-  Future<void> signOut() => _sessionStore.signOut();
+  Future<void> signOut() async {
+    await _sessionStore.signOut();
+    await _progressRepo.saveProgress(const AppProgress(unlockedLevels: [1], currentLevel: 1));
+  }
 
-  /// Best-effort: re-saving local progress triggers [IProgressRepository]'s
-  /// existing fire-and-forget remote push. A failure here (offline, backend
-  /// down) is not fatal — [SyncedProgressRepository]'s pending-flag retry
-  /// picks it up once connectivity returns, same as any other save.
-  Future<void> _migrateLocalProgress() async {
-    final result = await _progressRepo.loadProgress();
-    if (result case Success<AppProgress>(:final value)) {
-      await _progressRepo.saveProgress(value);
-    }
+  Future<void> _resetLocalProgress() async {
+    await _progressRepo.saveProgress(const AppProgress(unlockedLevels: [1], currentLevel: 1));
   }
 
   String _messageFor(DioException e) {

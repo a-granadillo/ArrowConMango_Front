@@ -24,6 +24,8 @@ import '../../features/game/presentation/screens/settings_screen.dart';
 import '../../features/game/presentation/screens/splash_screen.dart';
 import '../../features/leaderboard/presentation/leaderboard_cubit.dart';
 import '../../features/leaderboard/presentation/leaderboard_screen.dart';
+import '../../features/player/presentation/bloc/auth_cubit.dart';
+import '../../features/player/presentation/screens/auth_gate_screen.dart';
 import '../di/service_locator.dart';
 import '../widgets/mango_background.dart';
 import 'app_routes.dart';
@@ -39,6 +41,13 @@ GoRouter buildAppRouter() {
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.auth,
+        builder: (context, state) => BlocProvider<AuthCubit>(
+          create: (_) => sl<AuthCubit>(),
+          child: const AuthGateScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.menu,
@@ -57,7 +66,10 @@ GoRouter buildAppRouter() {
       ),
       GoRoute(
         path: AppRoutes.settings,
-        builder: (context, state) => const SettingsScreen(),
+        builder: (context, state) => BlocProvider<AuthCubit>(
+          create: (_) => sl<AuthCubit>(),
+          child: const SettingsScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.game3d,

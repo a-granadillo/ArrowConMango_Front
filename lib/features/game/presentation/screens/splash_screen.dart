@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _goToMenu() {
     if (!mounted) return;
     context.read<AudioService>().playBgm(AudioTrack.menuTheme);
-    context.go(AppRoutes.menu);
+    context.go(AppRoutes.auth);
   }
 
   @override
