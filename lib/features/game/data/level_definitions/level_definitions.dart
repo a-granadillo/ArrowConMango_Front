@@ -10,6 +10,11 @@ import 'silhouettes.dart';
 class LevelDefinitions {
   LevelDefinitions._();
 
+  /// Bump when [campaignLevels] changes in a way that must force a reseed
+  /// of already-installed apps' local levels box (e.g. a generator fix or
+  /// retuned arrowCounts) — see `_seedLevels` in the composition root.
+  static const int catalogVersion = 2;
+
   /// The 15 campaign levels mapped to their specific structural configurations and visual silhouettes.
   static final List<LevelModel> campaignLevels = [
     // --- EASY LEVELS (mostly 6x6, straight and L-shapes, ~15 arrows) ---

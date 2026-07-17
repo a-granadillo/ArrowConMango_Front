@@ -61,7 +61,7 @@ Future<void> setupServiceLocator() async {
   final playerBox = await Hive.openBox<dynamic>(PlayerLocalDataSource.boxName);
   await Hive.openBox<dynamic>(AudioSettingsLocalDataSource.boxName);
 
-  _seedLevels(levelsBox);
+  await _seedLevels(levelsBox, playerBox);
   seedProgressIfEmpty(progressBox);
 
   // --- Player (Guest-First identity) ---
@@ -143,14 +143,31 @@ Future<void> setupServiceLocator() async {
   }
 }
 
+/// Key in [playerBox] tracking which [LevelDefinitions.catalogVersion] the
+/// levels box was last seeded from.
+const String _levelsSeedVersionKey = 'levels_seed_version';
+
 /// Populates the levels box from the code-defined level catalogue on first
-/// launch. Keyed by level id so [HiveLevelRepository] can `get(levelId)`.
-void _seedLevels(Box<LevelModel> box) {
-  if (box.isNotEmpty) return;
+/// launch, or whenever [LevelDefinitions.catalogVersion] has been bumped
+/// since the last seed (e.g. after fixing the generator or tuning
+/// arrowCounts) — otherwise stale, previously-cached levels would survive
+/// indefinitely. Keyed by level id so [HiveLevelRepository] can
+/// `get(levelId)`. [SyncedLevelRepository] may overwrite these entries
+/// afterwards with the backend's copy when it's reachable.
+Future<void> _seedLevels(
+  Box<LevelModel> box,
+  Box<dynamic> playerBox,
+) async {
+  final seededVersion = playerBox.get(_levelsSeedVersionKey) as int?;
+  if (box.isNotEmpty && seededVersion == LevelDefinitions.catalogVersion) {
+    return;
+  }
+
   final entries = <int, LevelModel>{
     for (final level in LevelDefinitions.campaignLevels) level.id: level,
   };
-  box.putAll(entries);
+  await box.putAll(entries);
+  await playerBox.put(_levelsSeedVersionKey, LevelDefinitions.catalogVersion);
 }
 
 /// Re-registers an existing abstraction [T] wrapped with the supplied AOP

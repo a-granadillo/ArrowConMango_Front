@@ -37,6 +37,8 @@ import '../../features/game/application/use_cases/undo_move_use_case.dart'
     as _i457;
 import '../../features/game/application/use_cases/unlock_next_level_use_case.dart'
     as _i1015;
+import '../../features/game/data/datasources/remote_level_data_source.dart'
+    as _i518;
 import '../../features/game/data/datasources/remote_progress_data_source.dart'
     as _i1063;
 import '../../features/game/data/models/app_progress_model.dart' as _i358;
@@ -51,6 +53,8 @@ import '../../features/game/data/repositories/hive_level_repository.dart'
     as _i821;
 import '../../features/game/data/repositories/hive_progress_repository.dart'
     as _i329;
+import '../../features/game/data/repositories/synced_level_repository.dart'
+    as _i385;
 import '../../features/game/data/repositories/synced_progress_repository.dart'
     as _i1036;
 import '../../features/game/domain/entities/scoring_strategy.dart' as _i440;
@@ -115,6 +119,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i651.ILeaderboardRepository>(
       () => _i328.MockLeaderboardRepository(),
     );
+    gh.lazySingleton<_i518.RemoteLevelDataSource>(
+      () => _i518.RemoteLevelDataSource(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i1063.RemoteProgressDataSource>(
       () => _i1063.RemoteProgressDataSource(gh<_i361.Dio>()),
     );
@@ -160,17 +167,17 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       instanceName: 'cube3d',
     );
+    gh.lazySingleton<_i821.HiveLevelRepository>(
+      () => _i821.HiveLevelRepository(
+        gh<_i979.Box<_i50.LevelModel>>(),
+        gh<_i61.LevelMapper>(),
+      ),
+    );
     gh.lazySingleton<_i910.AudioService>(
       () => _i478.AudioServiceImpl(
         settings: gh<_i598.AudioSettingsLocalDataSource>(),
       ),
       dispose: _i478.disposeAudioService,
-    );
-    gh.lazySingleton<_i76.ILevelRepository>(
-      () => _i821.HiveLevelRepository(
-        gh<_i979.Box<_i50.LevelModel>>(),
-        gh<_i61.LevelMapper>(),
-      ),
     );
     gh.lazySingleton<_i151.AudioSettingsCubit>(
       () => _i151.AudioSettingsCubit(service: gh<_i910.AudioService>()),
@@ -183,6 +190,14 @@ extension GetItInjectableX on _i174.GetIt {
         mapper: gh<_i557.AppProgressMapper>(),
         connectivity: gh<_i895.Connectivity>(),
         pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
+      ),
+    );
+    gh.lazySingleton<_i76.ILevelRepository>(
+      () => _i385.SyncedLevelRepository(
+        local: gh<_i821.HiveLevelRepository>(),
+        remote: gh<_i518.RemoteLevelDataSource>(),
+        levelsBox: gh<_i979.Box<_i50.LevelModel>>(),
+        connectivity: gh<_i895.Connectivity>(),
       ),
     );
     gh.lazySingleton<_i1040.GetLevelListUseCase>(
