@@ -212,6 +212,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1040.GetLevelListUseCase(
         gh<_i76.ILevelRepository>(),
         gh<_i10.IProgressRepository>(),
+        gh<_i440.ScoringStrategy>(),
       ),
     );
     gh.factory<_i49.MenuBloc>(

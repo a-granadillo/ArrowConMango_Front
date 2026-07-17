@@ -6,6 +6,7 @@ import 'package:arrowconmango_front/features/game/presentation/bloc/menu_event.d
 import 'package:arrowconmango_front/features/game/presentation/bloc/menu_state.dart';
 import 'package:arrowconmango_front/features/game/presentation/screens/level_selection_screen.dart';
 import 'package:arrowconmango_front/features/game/presentation/widgets/level_card.dart';
+import 'package:arrowconmango_front/features/game/domain/services/move_based_scoring.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,7 +29,11 @@ void main() {
         AppProgress(unlockedLevels: [1, 2, 3]),
       );
     menuBloc = MenuBloc(
-      getLevelListUseCase: GetLevelListUseCase(levelRepo, progressRepo),
+      getLevelListUseCase: GetLevelListUseCase(
+        levelRepo,
+        progressRepo,
+        const MoveBasedScoring(),
+      ),
     );
   });
 
