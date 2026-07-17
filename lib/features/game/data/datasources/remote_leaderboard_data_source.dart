@@ -27,15 +27,4 @@ class RemoteLeaderboardDataSource {
       },
     );
   }
-
-  /// Fetches the global ranking (by total mango stars) from
-  /// `GET /leaderboard/global`.
-  Future<List<Map<String, dynamic>>> fetchGlobal({required int top}) async {
-    final response = await _dio.get<List<dynamic>>(
-      '/leaderboard/global',
-      queryParameters: {'top': top},
-    );
-    return (response.data ?? [])
-        .cast<Map<String, dynamic>>();
-  }
 }

@@ -120,11 +120,19 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i924.RemoteLeaderboardDataSource>(
       () => _i924.RemoteLeaderboardDataSource(gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i924.RemoteLeaderboardDataSource>(
+      () => _i924.RemoteLeaderboardDataSource(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i1063.RemoteProgressDataSource>(
       () => _i1063.RemoteProgressDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i803.RemotePlayerDataSource>(
       () => _i803.RemotePlayerDataSource(gh<_i361.Dio>()),
+    );
+    gh.factory<_i143.LeaderboardCubit>(
+      () => _i143.LeaderboardCubit(
+        repository: gh<_i651.ILeaderboardRepository>(),
+      ),
     );
     gh.lazySingleton<_i979.Box<dynamic>>(
       () => registerModule.playerBox,
@@ -185,11 +193,6 @@ extension GetItInjectableX on _i174.GetIt {
         connectivity: gh<_i895.Connectivity>(),
         scoringStrategy: gh<_i440.ScoringStrategy>(),
         pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
-      ),
-    );
-    gh.factory<_i143.LeaderboardCubit>(
-      () => _i143.LeaderboardCubit(
-        repository: gh<_i651.ILeaderboardRepository>(),
       ),
     );
     gh.lazySingleton<_i76.ILevelRepository>(
