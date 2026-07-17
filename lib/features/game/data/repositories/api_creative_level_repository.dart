@@ -119,24 +119,28 @@ class ApiCreativeLevelRepository implements ICreativeLevelRepository {
     int? top,
   }) async {
     try {
-      final rows = await _leaderboardDataSource.fetchByLevel(
+      final page = await _leaderboardDataSource.fetchByLevel(
         levelId,
         top: top,
       );
-      final entries = [
-        for (var i = 0; i < rows.length; i++)
-          LevelRankEntry(
-            rank: i + 1,
-            userId: rows[i]['userId'] as String,
-            moves: rows[i]['moves'] as int,
-            timeMs: rows[i]['timeMs'] as int,
-            value: rows[i]['value'] as int,
-          ),
-      ];
+      final rows = (page['top'] as List<dynamic>).cast<Map<String, dynamic>>();
+      final entries = [for (final row in rows) _entryFromJson(row)];
       return Success<List<LevelRankEntry>>(entries);
     } catch (e) {
       return Error<List<LevelRankEntry>>(GenericFailure(e.toString()));
     }
+  }
+
+  LevelRankEntry _entryFromJson(Map<String, dynamic> json) {
+    return LevelRankEntry(
+      rank: json['rank'] as int,
+      userId: json['userId'] as String,
+      displayName: json['displayName'] as String,
+      moves: json['moves'] as int,
+      timeMs: json['timeMs'] as int,
+      value: json['value'] as int,
+      isMe: json['isMe'] as bool,
+    );
   }
 
   @override
@@ -150,6 +154,7 @@ class ApiCreativeLevelRepository implements ICreativeLevelRepository {
         levelId: levelId,
         moves: moves,
         elapsedSeconds: elapsedSeconds,
+        mode: 'campaign',
       );
       return const Success<void>(null);
     } catch (e) {

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
-/// Talks to the backend's `POST /leaderboard` endpoint.
+/// Talks to the backend's leaderboard endpoints.
 ///
 /// Time is sent to the wire in **milliseconds**; the game domain tracks
 /// elapsed time in seconds ([Score.timeElapsed]), so the conversion happens
@@ -17,6 +17,7 @@ class RemoteLeaderboardDataSource {
     required int levelId,
     required int moves,
     required int elapsedSeconds,
+    required String mode,
   }) async {
     await _dio.post<void>(
       '/leaderboard',
@@ -24,19 +25,9 @@ class RemoteLeaderboardDataSource {
         'levelId': levelId.toString(),
         'moves': moves,
         'timeMs': elapsedSeconds * 1000,
+        'mode': mode,
       },
     );
-  }
-
-  /// Fetches the global ranking (by total mango stars) from
-  /// `GET /leaderboard/global`.
-  Future<List<Map<String, dynamic>>> fetchGlobal({required int top}) async {
-    final response = await _dio.get<List<dynamic>>(
-      '/leaderboard/global',
-      queryParameters: {'top': top},
-    );
-    return (response.data ?? [])
-        .cast<Map<String, dynamic>>();
   }
 
   /// String-levelId sibling of [submit], for community levels (backend
@@ -46,6 +37,7 @@ class RemoteLeaderboardDataSource {
     required String levelId,
     required int moves,
     required int elapsedSeconds,
+    required String mode,
   }) async {
     await _dio.post<void>(
       '/leaderboard',
@@ -53,22 +45,31 @@ class RemoteLeaderboardDataSource {
         'levelId': levelId,
         'moves': moves,
         'timeMs': elapsedSeconds * 1000,
+        'mode': mode,
       },
     );
   }
 
-  /// Fetches a single level's own top scores from `GET /leaderboard?level=`.
-  Future<List<Map<String, dynamic>>> fetchByLevel(
+  /// Fetches a level's own top scores plus the requesting player's row from
+  /// `GET /leaderboard/:nivel`. Returns the raw `{top, me}` JSON body.
+  Future<Map<String, dynamic>> fetchByLevel(
     String levelId, {
     int? top,
   }) async {
-    final response = await _dio.get<List<dynamic>>(
-      '/leaderboard',
-      queryParameters: {
-        'level': levelId,
-        'top': ?top,
-      },
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/leaderboard/$levelId',
+      queryParameters: {'top': ?top},
     );
-    return (response.data ?? []).cast<Map<String, dynamic>>();
+    return response.data!;
+  }
+
+  /// Fetches the survival ranking plus the requesting player's row from
+  /// `GET /leaderboard/supervivencia`. Returns the raw `{top, me}` JSON body.
+  Future<Map<String, dynamic>> fetchSurvival({int? top}) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/leaderboard/supervivencia',
+      queryParameters: {'top': ?top},
+    );
+    return response.data!;
   }
 }

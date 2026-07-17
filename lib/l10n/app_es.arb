@@ -125,8 +125,6 @@
 
   "leaderboardTitle": "Clasificación",
   "leaderboardSubtitle": "Los mejores cosechadores",
-  "leaderboardLinkAccount": "Vincular cuenta (Google / Apple)",
-  "leaderboardSignInComingSoon": "Inicio de sesión con Google/Apple — próximamente 🥭",
   "leaderboardCurrentPlayer": "{name} (Tú)",
   "@leaderboardCurrentPlayer": {
     "placeholders": { "name": { "type": "String" } }
@@ -135,5 +133,23 @@
   "leaderboardLevelsSub": "{count, plural, =1{1 nivel} other{{count} niveles}}",
   "@leaderboardLevelsSub": {
     "placeholders": { "count": { "type": "int" } }
-  }
+  },
+  "leaderboardMovesSub": "{count, plural, =1{1 movimiento} other{{count} movimientos}}",
+  "@leaderboardMovesSub": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "leaderboardRunsSub": "{count, plural, =1{1 partida} other{{count} partidas}}",
+  "@leaderboardRunsSub": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "leaderboardTabByLevel": "Por Nivel",
+  "leaderboardTabSurvival": "Supervivencia",
+  "leaderboardSelectLevel": "Nivel {level}",
+  "@leaderboardSelectLevel": {
+    "placeholders": { "level": { "type": "int" } }
+  },
+  "leaderboardYourPosition": "Tu posición",
+  "leaderboardEmptyByLevel": "Nadie ha completado este nivel todavía.",
+  "leaderboardEmptySurvival": "Nadie ha jugado Supervivencia todavía."
 }

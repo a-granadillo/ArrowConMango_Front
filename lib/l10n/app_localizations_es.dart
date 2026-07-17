@@ -280,13 +280,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get leaderboardSubtitle => 'Los mejores cosechadores';
 
   @override
-  String get leaderboardLinkAccount => 'Vincular cuenta (Google / Apple)';
-
-  @override
-  String get leaderboardSignInComingSoon =>
-      'Inicio de sesión con Google/Apple — próximamente 🥭';
-
-  @override
   String leaderboardCurrentPlayer(String name) {
     return '$name (Tú)';
   }
@@ -301,4 +294,48 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String leaderboardMovesSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count movimientos',
+      one: '1 movimiento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String leaderboardRunsSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count partidas',
+      one: '1 partida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get leaderboardTabByLevel => 'Por Nivel';
+
+  @override
+  String get leaderboardTabSurvival => 'Supervivencia';
+
+  @override
+  String leaderboardSelectLevel(int level) {
+    return 'Nivel $level';
+  }
+
+  @override
+  String get leaderboardYourPosition => 'Tu posición';
+
+  @override
+  String get leaderboardEmptyByLevel =>
+      'Nadie ha completado este nivel todavía.';
+
+  @override
+  String get leaderboardEmptySurvival =>
+      'Nadie ha jugado Supervivencia todavía.';
 }

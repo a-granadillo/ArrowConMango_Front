@@ -1,7 +1,6 @@
 import 'package:arrowconmango_front/core/aop/aop_leaderboard_repository.dart';
 import 'package:arrowconmango_front/features/leaderboard/domain/i_leaderboard_repository.dart';
 import 'package:arrowconmango_front/features/leaderboard/domain/leaderboard_entry.dart';
-import 'package:arrowconmango_front/features/player/domain/guest_player.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -17,39 +16,46 @@ void main() {
       repository = AopLeaderboardRepository(delegate);
     });
 
-    test('fetchTopPlayers forwards delegate result', () async {
-      final player = GuestPlayer(uuid: 'u1', displayName: 'Player');
-      final entries = [
-        LeaderboardEntry(
-          rank: 1,
-          uuid: 'u1',
-          displayName: 'Top',
-          mangos: 100,
-          colorValue: 0xFFFFFFFF,
-        ),
-      ];
-      when(() => delegate.fetchTopPlayers(currentPlayer: player, limit: 10))
-          .thenAnswer((_) async => entries);
-
-      final result = await repository.fetchTopPlayers(
-        currentPlayer: player,
-        limit: 10,
+    test('fetchByLevel forwards delegate result', () async {
+      final page = LeaderboardPage(
+        top: const [
+          LeaderboardEntry(
+            rank: 1,
+            uuid: 'u1',
+            displayName: 'Top',
+            mangos: 900,
+            colorValue: 0xFFFFFFFF,
+          ),
+        ],
+        me: null,
       );
+      when(() => delegate.fetchByLevel(levelId: '1', top: 10))
+          .thenAnswer((_) async => page);
 
-      expect(result, equals(entries));
-      verify(() => delegate.fetchTopPlayers(currentPlayer: player, limit: 10))
-          .called(1);
+      final result = await repository.fetchByLevel(levelId: '1');
+
+      expect(result, equals(page));
+      verify(() => delegate.fetchByLevel(levelId: '1', top: 10)).called(1);
     });
 
-    test('fetchTopPlayers rethrows non-Result exceptions after logging', () async {
-      final player = GuestPlayer(uuid: 'u1', displayName: 'Player');
-      when(() => delegate.fetchTopPlayers(currentPlayer: player))
+    test('fetchByLevel rethrows non-Result exceptions after logging', () async {
+      when(() => delegate.fetchByLevel(levelId: '1', top: 10))
           .thenThrow(Exception('network down'));
 
       expect(
-        () => repository.fetchTopPlayers(currentPlayer: player),
+        () => repository.fetchByLevel(levelId: '1'),
         throwsA(isA<Exception>()),
       );
+    });
+
+    test('fetchSurvival forwards delegate result', () async {
+      const page = LeaderboardPage(top: [], me: null);
+      when(() => delegate.fetchSurvival(top: 10)).thenAnswer((_) async => page);
+
+      final result = await repository.fetchSurvival();
+
+      expect(result, equals(page));
+      verify(() => delegate.fetchSurvival(top: 10)).called(1);
     });
   });
 }

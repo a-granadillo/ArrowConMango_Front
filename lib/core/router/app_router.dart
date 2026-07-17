@@ -7,6 +7,7 @@ import '../../features/creative/presentation/screens/creative_hub_screen.dart';
 import '../../features/creative/presentation/screens/level_editor_screen.dart';
 import '../../features/creative/presentation/screens/level_ranking_screen.dart';
 import '../../features/creative/presentation/screens/my_levels_screen.dart';
+import '../../features/game/application/use_cases/get_level_list_use_case.dart';
 import '../../features/game/domain/entities/creative_level.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
 import '../../features/game/presentation/bloc/game_state.dart';
@@ -111,7 +112,9 @@ GoRouter buildAppRouter() {
         path: AppRoutes.ranking,
         builder: (context, state) => BlocProvider<LeaderboardCubit>(
           create: (_) => sl<LeaderboardCubit>(),
-          child: const LeaderboardScreen(),
+          child: LeaderboardScreen(
+            getLevelListUseCase: sl<GetLevelListUseCase>(),
+          ),
         ),
       ),
       GoRoute(

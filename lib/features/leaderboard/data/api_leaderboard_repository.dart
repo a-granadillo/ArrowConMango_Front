@@ -1,12 +1,11 @@
 import 'package:injectable/injectable.dart';
 
 import '../../game/data/datasources/remote_leaderboard_data_source.dart';
-import '../../player/domain/guest_player.dart';
 import '../domain/i_leaderboard_repository.dart';
 import '../domain/leaderboard_entry.dart';
-import 'models/player_standing_dto.dart';
 
-/// Real [ILeaderboardRepository], backed by `GET /leaderboard/global`.
+/// Real [ILeaderboardRepository], backed by `GET /leaderboard/:nivel` and
+/// `GET /leaderboard/supervivencia`.
 ///
 /// `colorValue` is UI-only and never sent by the backend: it is derived
 /// deterministically from the player's `uuid` (hash → palette index) so the
@@ -28,26 +27,58 @@ class ApiLeaderboardRepository implements ILeaderboardRepository {
   ];
 
   @override
-  Future<List<LeaderboardEntry>> fetchTopPlayers({
-    required GuestPlayer currentPlayer,
-    int limit = 20,
+  Future<LeaderboardPage> fetchByLevel({
+    required String levelId,
+    int top = 10,
   }) async {
-    final rows = await _dataSource.fetchGlobal(top: limit);
-    return [
-      for (final json in rows)
-        _toEntry(PlayerStandingDto.fromJson(json)),
-    ];
+    final json = await _dataSource.fetchByLevel(levelId, top: top);
+    return _pageFrom(json, _levelEntryFrom);
   }
 
-  LeaderboardEntry _toEntry(PlayerStandingDto dto) {
+  @override
+  Future<LeaderboardPage> fetchSurvival({int top = 10}) async {
+    final json = await _dataSource.fetchSurvival(top: top);
+    return _pageFrom(json, _survivalEntryFrom);
+  }
+
+  LeaderboardPage _pageFrom(
+    Map<String, dynamic> json,
+    LeaderboardEntry Function(Map<String, dynamic>) toEntry,
+  ) {
+    final top = (json['top'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .map(toEntry)
+        .toList();
+    final meJson = json['me'] as Map<String, dynamic>?;
+    return LeaderboardPage(
+      top: top,
+      me: meJson == null ? null : toEntry(meJson),
+    );
+  }
+
+  LeaderboardEntry _levelEntryFrom(Map<String, dynamic> json) {
     return LeaderboardEntry(
-      rank: dto.rank,
-      uuid: dto.userId,
-      displayName: dto.displayName,
-      mangos: dto.mangos,
-      levelsCompleted: dto.levelsCompleted,
-      colorValue: _colorFor(dto.userId),
-      isCurrentPlayer: dto.isMe,
+      rank: json['rank'] as int,
+      uuid: json['userId'] as String,
+      displayName: json['displayName'] as String,
+      mangos: json['value'] as int,
+      colorValue: _colorFor(json['userId'] as String),
+      secondaryValue: json['moves'] as int,
+      metric: LeaderboardMetric.moves,
+      isCurrentPlayer: json['isMe'] as bool,
+    );
+  }
+
+  LeaderboardEntry _survivalEntryFrom(Map<String, dynamic> json) {
+    return LeaderboardEntry(
+      rank: json['rank'] as int,
+      uuid: json['userId'] as String,
+      displayName: json['displayName'] as String,
+      mangos: json['mangos'] as int,
+      colorValue: _colorFor(json['userId'] as String),
+      secondaryValue: json['runs'] as int,
+      metric: LeaderboardMetric.survivalRuns,
+      isCurrentPlayer: json['isMe'] as bool,
     );
   }
 

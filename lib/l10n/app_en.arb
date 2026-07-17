@@ -101,8 +101,15 @@
 
   "leaderboardTitle": "Leaderboard",
   "leaderboardSubtitle": "The best harvesters",
-  "leaderboardLinkAccount": "Link account (Google / Apple)",
-  "leaderboardSignInComingSoon": "Google/Apple sign-in — coming soon 🥭",
   "leaderboardCurrentPlayer": "{name} (You)",
-  "leaderboardLevelsSub": "{count, plural, =1{1 level} other{{count} levels}}"
+  "leaderboardLevelsSub": "{count, plural, =1{1 level} other{{count} levels}}",
+  "leaderboardMovesSub": "{count, plural, =1{1 move} other{{count} moves}}",
+  "leaderboardRunsSub": "{count, plural, =1{1 run} other{{count} runs}}",
+
+  "leaderboardTabByLevel": "By Level",
+  "leaderboardTabSurvival": "Survival",
+  "leaderboardSelectLevel": "Level {level}",
+  "leaderboardYourPosition": "Your position",
+  "leaderboardEmptyByLevel": "No one has completed this level yet.",
+  "leaderboardEmptySurvival": "No one has played Survival yet."
 }
