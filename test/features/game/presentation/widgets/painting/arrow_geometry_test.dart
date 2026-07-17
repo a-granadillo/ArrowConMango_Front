@@ -45,6 +45,26 @@ void main() {
       expect(metrics, hasLength(1));
       expect(metrics.first.length, closeTo(2 * _cell, 0.001));
     });
+
+    test(
+      'a_straight_horizontal_arrows_bounding_box_has_zero_height '
+      '(regression: ArrowImpactPainter used to gate painting on '
+      "path.getBounds().isEmpty, which Flutter's Rect also reports true "
+      'for a zero-height/width rect — silently skipping every straight '
+      'arrow, i.e. most arrows in the game)',
+      () {
+        final a = horizontalArrow('a', row: 0, startCol: 0, length: 3);
+        final path = buildBodyPath(a, _cell);
+
+        // The bug: a straight horizontal line's bounding rect has zero
+        // height, and Rect.isEmpty treats that as "empty" too.
+        expect(path.getBounds().isEmpty, isTrue);
+
+        // The fix: the path itself is real and must be painted —
+        // computeMetrics().isEmpty is the correct "anything to draw?" check.
+        expect(path.computeMetrics().isEmpty, isFalse);
+      },
+    );
   });
 
   group('exitCells', () {
