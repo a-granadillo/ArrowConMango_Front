@@ -73,21 +73,49 @@ List<Offset> hexCorners(Offset center, double size) {
   ];
 }
 
+/// The axial (dq, dr) step for a hex [direction], matching the vectors used
+/// by `HexGraph` (pointy-top layout).
+(int, int) axialVector(HexDirection direction) => switch (direction) {
+      HexDirection.n => (0, -1),
+      HexDirection.ne => (1, -1),
+      HexDirection.se => (1, 0),
+      HexDirection.s => (0, 1),
+      HexDirection.sw => (-1, 1),
+      HexDirection.nw => (-1, 0),
+    };
+
 /// Unit vector (in screen coords: +y is down) for a hex [direction],
 /// matching the axial vectors used by `HexGraph` (pointy-top layout).
 Offset unitVector(Direction direction) {
   if (direction is! HexDirection) return Offset.zero;
-  final (dq, dr) = switch (direction) {
-    HexDirection.n => (0, -1),
-    HexDirection.ne => (1, -1),
-    HexDirection.se => (1, 0),
-    HexDirection.s => (0, 1),
-    HexDirection.sw => (-1, 1),
-    HexDirection.nw => (-1, 0),
-  };
+  final (dq, dr) = axialVector(direction);
   final v = axialToPixel(dq, dr, 1);
   final length = v.distance;
   return length == 0 ? Offset.zero : v / length;
+}
+
+/// Whether axial (q, r) lies within a hexagon-shaped board of the given
+/// [radius] (same rule as `HexBoardGeometry`/`HexGraph`).
+bool _inBounds(int q, int r, int radius) {
+  final s = -q - r;
+  final maxAbs = math.max(q.abs(), math.max(r.abs(), s.abs()));
+  return maxAbs <= radius;
+}
+
+/// Number of hex steps from the arrow's head to just past a board of
+/// [radius] (in-board steps + 1 margin cell so the head clears the frame) —
+/// the hex sibling of the 2D `exitCells`.
+int exitCells(ArrowEntity arrow, int radius) {
+  if (arrow.direction is! HexDirection) return 1;
+  final (dq, dr) = axialVector(arrow.direction as HexDirection);
+  final (hq, hr) = qr(arrow.headNode);
+  var q = hq + dq, r = hr + dr, n = 0;
+  while (_inBounds(q, r, radius)) {
+    n++;
+    q += dq;
+    r += dr;
+  }
+  return n + 1;
 }
 
 /// The polyline through the arrow's occupied cell centers, tail→head.
@@ -118,5 +146,21 @@ Path buildBodyPath(ArrowEntity arrow, double size) {
     final p = axialToPixel(q, r, size);
     path.lineTo(p.dx, p.dy);
   }
+  return path;
+}
+
+/// The full snake exit path: the body polyline continued by a straight
+/// segment from the head out past a board of [radius]. Exactly one contour
+/// (one moveTo) so [Path.computeMetrics] yields a single, extractable
+/// metric — the hex sibling of the 2D `buildExitPath`.
+Path buildExitPath(ArrowEntity arrow, double size, int radius) {
+  final path = buildBodyPath(arrow, size);
+  final (hq, hr) = qr(arrow.headNode);
+  final head = axialToPixel(hq, hr, size);
+  final v = unitVector(arrow.direction);
+  // Center-to-center distance between axially-adjacent pointy-top hexes.
+  final stepDistance = size * _sqrt3;
+  final end = head + v * (exitCells(arrow, radius) * stepDistance);
+  path.lineTo(end.dx, end.dy);
   return path;
 }

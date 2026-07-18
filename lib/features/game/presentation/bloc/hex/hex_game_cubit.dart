@@ -131,13 +131,21 @@ class HexGameCubit extends Cubit<HexGameState> {
       case Error(failure: final failure):
         if (failure is PathBlockedFailure) {
           _audioService?.playSfx(SfxClip.block);
-          _registerMistake(arrowId, moveCount: attemptedMoveCount);
+          _registerMistake(
+            arrowId,
+            blockingArrowId: failure.blockingArrowId,
+            moveCount: attemptedMoveCount,
+          );
         }
         // ArrowNotFoundFailure / other failures: nothing to reflect in the UI.
     }
   }
 
-  void _registerMistake(String arrowId, {required int moveCount}) {
+  void _registerMistake(
+    String arrowId, {
+    required String blockingArrowId,
+    required int moveCount,
+  }) {
     final mistakes = state.mistakes + 1;
     final elapsed = _session!.elapsedSeconds(_clock());
 
@@ -151,6 +159,7 @@ class HexGameCubit extends Cubit<HexGameState> {
           mistakes: mistakes,
           elapsedSeconds: elapsed,
           lastBlockedId: arrowId,
+          lastBlockingId: blockingArrowId,
         ),
       );
       return;
@@ -162,6 +171,7 @@ class HexGameCubit extends Cubit<HexGameState> {
         mistakes: mistakes,
         elapsedSeconds: elapsed,
         lastBlockedId: arrowId,
+        lastBlockingId: blockingArrowId,
       ),
     );
   }
@@ -225,6 +235,7 @@ class HexGameCubit extends Cubit<HexGameState> {
         elapsedSeconds: elapsed,
         exitableIds: exitable,
         lastBlockedId: null,
+        lastBlockingId: null,
       ),
     );
   }
@@ -241,7 +252,9 @@ class HexGameCubit extends Cubit<HexGameState> {
 
   /// Clears the transient "blocked" flash once its animation has played.
   void clearBlockedFlash() {
-    if (state.lastBlockedId != null) emit(state.copyWith(lastBlockedId: null));
+    if (state.lastBlockedId != null) {
+      emit(state.copyWith(lastBlockedId: null, lastBlockingId: null));
+    }
   }
 
   /// Advances to the next (harder) level, if any — see

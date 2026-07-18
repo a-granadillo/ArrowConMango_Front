@@ -112,9 +112,32 @@ void main() {
       verify: (cubit) {
         expect(cubit.state.status, HexStatus.playing);
         expect(cubit.state.lastBlockedId, 'a');
+        expect(
+          cubit.state.lastBlockingId,
+          'b',
+          reason: 'both colliding arrows must be identified so the UI can '
+              'flash an impact animation on each of them',
+        );
         expect(cubit.state.board!.arrowCount, 2);
         expect(cubit.state.moveCount, 1, reason: 'wrong taps must still count as moves');
         expect(cubit.state.mistakes, 1);
+      },
+    );
+
+    blocTest<HexGameCubit, HexGameState>(
+      'should_clear_both_blocked_and_blocking_ids_when_clearBlockedFlash_is_called',
+      build: () => _buildCubit(
+        radius: 1,
+        levels: [_levelOf('h1', [arrowA, arrowB], radius: 1)],
+      ),
+      act: (cubit) async {
+        await cubit.loadLevels();
+        cubit.tapArrow('a');
+        cubit.clearBlockedFlash();
+      },
+      verify: (cubit) {
+        expect(cubit.state.lastBlockedId, isNull);
+        expect(cubit.state.lastBlockingId, isNull);
       },
     );
 

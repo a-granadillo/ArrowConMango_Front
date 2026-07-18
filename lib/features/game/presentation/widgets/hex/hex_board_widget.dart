@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../domain/entities/arrow_entity.dart';
+import '../board_grid_widget.dart' show ExitingArrowData, ImpactingArrowData;
+import 'hex_arrow_exit_animation.dart';
+import 'hex_arrow_impact_animation.dart';
 import 'hex_board_painter.dart';
 import 'hex_geometry.dart';
 
@@ -11,12 +14,9 @@ import 'hex_geometry.dart';
 ///
 /// Tapping is resolved by hex cell — the tapped pixel maps to an axial
 /// `(q, r)` via [pixelToAxial], and the arrow occupying that cell is
-/// reported via [onArrowTap].
-///
-/// Unlike [BoardGridWidget], this doesn't yet render exit/impact
-/// animation overlays — the hexagonal mode's first release keeps the board
-/// itself (surface + arrows + tap/long-press) and relies on [HexGameCubit]'s
-/// state transitions for victory/defeat feedback.
+/// reported via [onArrowTap]. Exit/impact animation overlays reuse
+/// [BoardGridWidget]'s [ExitingArrowData]/[ImpactingArrowData] data classes
+/// (they're board-shape-agnostic — just an id/arrow/callback bundle).
 class HexBoardWidget extends StatelessWidget {
   const HexBoardWidget({
     super.key,
@@ -24,6 +24,8 @@ class HexBoardWidget extends StatelessWidget {
     required this.arrows,
     required this.onArrowTap,
     required this.colorOf,
+    this.exitingArrows = const [],
+    this.impactingArrows = const [],
     this.onArrowLongPress,
   });
 
@@ -33,6 +35,11 @@ class HexBoardWidget extends StatelessWidget {
 
   /// Stable color for an arrow id (see [ArrowColorAssigner]).
   final Color Function(String id) colorOf;
+
+  final List<ExitingArrowData> exitingArrows;
+
+  /// Arrows currently flashing an impact animation (see [ImpactingArrowData]).
+  final List<ImpactingArrowData> impactingArrows;
 
   /// Callback for long-press on a switchable arrow.
   final void Function(String arrowId)? onArrowLongPress;
@@ -123,6 +130,28 @@ class HexBoardWidget extends StatelessWidget {
                         ),
                       ),
                     ),
+                    for (final exiting in exitingArrows)
+                      Positioned.fill(
+                        key: ValueKey(exiting.id),
+                        child: HexArrowExitAnimation(
+                          arrow: exiting.arrow,
+                          hexSize: hexSize,
+                          radius: radius,
+                          origin: origin,
+                          color: exiting.color,
+                          onComplete: exiting.onComplete,
+                        ),
+                      ),
+                    for (final impacting in impactingArrows)
+                      Positioned.fill(
+                        key: ValueKey(impacting.id),
+                        child: HexArrowImpactAnimation(
+                          arrow: impacting.arrow,
+                          hexSize: hexSize,
+                          origin: origin,
+                          onComplete: impacting.onComplete,
+                        ),
+                      ),
                   ],
                 ),
               ),

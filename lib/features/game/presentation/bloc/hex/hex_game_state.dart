@@ -28,6 +28,7 @@ class HexGameState extends Equatable {
     this.defeatReason,
     this.exitableIds = const {},
     this.lastBlockedId,
+    this.lastBlockingId,
   });
 
   static const loading = HexGameState(status: HexStatus.loading);
@@ -71,6 +72,11 @@ class HexGameState extends Equatable {
   /// cleared on the next successful move.
   final String? lastBlockedId;
 
+  /// The arrow that blocked [lastBlockedId]'s exit — flashed alongside it so
+  /// the collision reads as "these two arrows hit each other", not just "this
+  /// one couldn't move".
+  final String? lastBlockingId;
+
   int get arrowsRemaining => board?.arrowCount ?? 0;
 
   /// Whether there is a next (harder) level to advance to after this one.
@@ -90,6 +96,7 @@ class HexGameState extends Equatable {
     DefeatReason? defeatReason,
     Set<String>? exitableIds,
     Object? lastBlockedId = _unset,
+    Object? lastBlockingId = _unset,
   }) {
     return HexGameState(
       status: status ?? this.status,
@@ -106,6 +113,9 @@ class HexGameState extends Equatable {
       exitableIds: exitableIds ?? this.exitableIds,
       lastBlockedId:
           identical(lastBlockedId, _unset) ? this.lastBlockedId : lastBlockedId as String?,
+      lastBlockingId: identical(lastBlockingId, _unset)
+          ? this.lastBlockingId
+          : lastBlockingId as String?,
     );
   }
 
@@ -124,6 +134,7 @@ class HexGameState extends Equatable {
         defeatReason,
         exitableIds,
         lastBlockedId,
+        lastBlockingId,
       ];
 }
 

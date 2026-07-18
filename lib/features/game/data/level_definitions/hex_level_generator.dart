@@ -15,20 +15,30 @@ class HexLevelConfig {
   /// Target fraction of cells to occupy with an arrow (0.0-1.0).
   final double fillRatio;
 
+  /// Minimum body length (in hexagons) an arrow may span. Defaults to 2 so
+  /// every arrow's shape (straight vs. its turns) is actually legible on
+  /// screen — a 1-cell arrow is just a dot with a short stub.
+  final int minArrowLength;
+
   /// Maximum body length (in hexagons) an arrow may span.
   final int maxArrowLength;
 
   const HexLevelConfig({
     required this.radius,
     required this.fillRatio,
-    this.maxArrowLength = 1,
-  });
+    this.minArrowLength = 2,
+    this.maxArrowLength = 2,
+  }) : assert(
+          maxArrowLength >= minArrowLength,
+          'maxArrowLength must be >= minArrowLength',
+        );
 }
 
 /// Deterministic, **provably-solvable** generator for hexagonal-board levels.
-/// An arrow may span one or more hexagons (straight body, per
-/// [HexLevelConfig.maxArrowLength]), pointing in one of the six
-/// [HexDirection]s.
+/// An arrow spans two or more hexagons (straight body, per
+/// [HexLevelConfig.minArrowLength]/[HexLevelConfig.maxArrowLength] — never a
+/// single cell, so its shape reads clearly on screen), pointing in one of
+/// the six [HexDirection]s.
 ///
 /// ## Why the output is always solvable
 /// Arrows are placed one at a time. A candidate placement is accepted only
@@ -106,6 +116,7 @@ class HexLevelGenerator {
         occupied,
         topology,
         allNodes,
+        config.minArrowLength,
         config.maxArrowLength,
         'h$seq',
       );
@@ -126,6 +137,7 @@ class HexLevelGenerator {
     Set<String> occupied,
     HexTopology topology,
     List<HexNodeId> allNodes,
+    int minLength,
     int maxLength,
     String id,
   ) {
@@ -133,9 +145,10 @@ class HexLevelGenerator {
     if (occupied.contains(head.key)) return null;
 
     final dirs = List<HexDirection>.from(HexDirection.values)..shuffle(rng);
+    final lengthSpan = maxLength - minLength + 1;
 
     for (final dir in dirs) {
-      final length = 1 + rng.nextInt(maxLength);
+      final length = minLength + rng.nextInt(lengthSpan);
       final body = _buildBody(topology, head, dir, length);
       if (body == null) continue;
       if (body.any((n) => occupied.contains(n.key))) continue;

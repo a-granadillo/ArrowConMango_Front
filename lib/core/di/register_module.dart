@@ -73,12 +73,12 @@ abstract class RegisterModule {
       TriggerArrowExitUseCase(validator);
 
   /// Fixed board radius (like the cube's fixed 6x6x6), large enough to cover
-  /// every level in [HexLevels] (max radius 3) plus headroom for the remote
+  /// every level in [HexLevels] (max radius 4) plus headroom for the remote
   /// catalogue.
   @Named('hex')
   @lazySingleton
   CollisionValidator get hexCollisionValidator =>
-      CollisionValidator(HexTopology(radius: 4));
+      CollisionValidator(HexTopology(radius: 6));
 
   @Named('hex')
   @lazySingleton

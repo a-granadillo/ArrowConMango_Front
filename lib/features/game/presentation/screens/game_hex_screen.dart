@@ -10,11 +10,13 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../../domain/entities/arrow_entity.dart';
 import '../../domain/services/cube_mango_scoring.dart';
 import '../bloc/game_state.dart' show DefeatReason;
 import '../bloc/hex/hex_game_cubit.dart';
 import '../bloc/hex/hex_game_state.dart';
 import '../widgets/arrow_color_assigner.dart';
+import '../widgets/board_grid_widget.dart' show ExitingArrowData, ImpactingArrowData;
 import '../widgets/hex/hex_board_widget.dart';
 import '../widgets/mango_rating.dart';
 import '../widgets/mango_slots.dart';
@@ -42,6 +44,11 @@ class _GameHexScreenState extends State<GameHexScreen> {
   Timer? _flashTimer;
   Timer? _clockTimer;
 
+  List<ArrowEntity> _prevArrows = const [];
+  final List<ExitingArrowData> _exiting = [];
+  final List<ImpactingArrowData> _impacting = [];
+  int _seq = 0;
+
   @override
   void initState() {
     super.initState();
@@ -60,20 +67,82 @@ class _GameHexScreenState extends State<GameHexScreen> {
   }
 
   void _onState(BuildContext context, HexGameState state) {
+    if (state.board != null) _syncExiting(state.board!.arrows);
+
     if (state.lastBlockedId == null) return;
+    _spawnImpacting(state);
     _flashTimer?.cancel();
     _flashTimer = Timer(const Duration(milliseconds: 450), () {
       if (mounted) context.read<HexGameCubit>().clearBlockedFlash();
     });
   }
 
+  /// Spawns impact-flash animations for the two arrows that just collided.
+  void _spawnImpacting(HexGameState state) {
+    final board = state.board;
+    if (board == null) return;
+    for (final arrowId in {state.lastBlockedId, state.lastBlockingId}) {
+      if (arrowId == null) continue;
+      final arrow = board.getArrowById(arrowId);
+      if (arrow == null) continue;
+      final id = 'impact_${_seq++}';
+      _impacting.add(
+        ImpactingArrowData(
+          id: id,
+          arrow: arrow,
+          onComplete: () => _removeImpacting(id),
+        ),
+      );
+    }
+    setState(() {});
+  }
+
+  void _removeImpacting(String id) {
+    if (!mounted) return;
+    setState(() => _impacting.removeWhere((e) => e.id == id));
+  }
+
+  /// Spawns exit animations for arrows present last frame but gone this frame.
+  void _syncExiting(List<ArrowEntity> current) {
+    final currentIds = current.map((a) => a.id).toSet();
+    var changed = false;
+    for (var i = 0; i < _prevArrows.length; i++) {
+      final arrow = _prevArrows[i];
+      if (!currentIds.contains(arrow.id)) {
+        final id = 'exit_${_seq++}';
+        _exiting.add(
+          ExitingArrowData(
+            id: id,
+            arrow: arrow,
+            color: _colors.colorOf(arrow.id),
+            onComplete: () => _removeExiting(id),
+          ),
+        );
+        changed = true;
+      }
+    }
+    _prevArrows = current;
+    if (changed && mounted) setState(() {});
+  }
+
+  void _removeExiting(String id) {
+    if (!mounted) return;
+    setState(() => _exiting.removeWhere((e) => e.id == id));
+  }
+
   void _retry(BuildContext context) {
     _colors.reset();
+    _prevArrows = const [];
+    _exiting.clear();
+    _impacting.clear();
     context.read<HexGameCubit>().retryLevel();
   }
 
   void _next(BuildContext context) {
     _colors.reset();
+    _prevArrows = const [];
+    _exiting.clear();
+    _impacting.clear();
     context.read<HexGameCubit>().nextLevel();
   }
 
@@ -97,14 +166,24 @@ class _GameHexScreenState extends State<GameHexScreen> {
                               color: AppColors.primary,
                             ),
                           )
-                        : Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: HexBoardWidget(
-                              radius: state.radius,
-                              arrows: state.board!.arrows,
-                              colorOf: _colors.colorOf,
-                              onArrowTap: (id) =>
-                                  context.read<HexGameCubit>().tapArrow(id),
+                        : Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 340,
+                                maxHeight: 340,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 18),
+                                child: HexBoardWidget(
+                                  radius: state.radius,
+                                  arrows: state.board!.arrows,
+                                  colorOf: _colors.colorOf,
+                                  exitingArrows: _exiting,
+                                  impactingArrows: _impacting,
+                                  onArrowTap: (id) =>
+                                      context.read<HexGameCubit>().tapArrow(id),
+                                ),
+                              ),
                             ),
                           ),
                   ),

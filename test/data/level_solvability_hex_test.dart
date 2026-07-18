@@ -29,8 +29,8 @@ List<String> _drain(BoardState board, CollisionValidator validator) {
 void main() {
   // Topology must be at least as large as the biggest hex board so exit
   // trajectories resolve correctly (mirrors the production service locator's
-  // shared-topology pattern; the widest catalogue level has radius 3).
-  final validator = CollisionValidator(HexTopology(radius: 5));
+  // shared-topology pattern; the widest catalogue level has radius 4).
+  final validator = CollisionValidator(HexTopology(radius: 6));
 
   group('Hexagonal level solvability', () {
     for (final level in HexLevels.all) {
@@ -44,6 +44,23 @@ void main() {
         );
       });
     }
+
+    test('every_arrow_in_every_hex_level_spans_at_least_2_hexagons', () {
+      // A 1-cell arrow is barely a dot on screen — its shape (and thus which
+      // way it will slide) is unreadable. The generator enforces this via
+      // HexLevelConfig.minArrowLength (default 2); this asserts the whole
+      // shipped catalogue actually honors it.
+      for (final level in HexLevels.all) {
+        for (final arrow in level.templateBoard.arrows) {
+          expect(
+            arrow.length,
+            greaterThanOrEqualTo(2),
+            reason: 'Arrow "${arrow.id}" in level ${level.id} only spans '
+                '${arrow.length} hexagon(s)',
+          );
+        }
+      }
+    });
 
     test('every_hex_level_has_at_least_one_immediately_exitable_arrow', () {
       for (final level in HexLevels.all) {
