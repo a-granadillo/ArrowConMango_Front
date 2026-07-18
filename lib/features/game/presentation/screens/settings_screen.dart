@@ -9,10 +9,12 @@ import '../../../../core/audio/audio_settings_state.dart';
 import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/i18n/locale_cubit.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
 import '../../../player/domain/guest_player.dart';
+import '../../../player/presentation/bloc/auth_cubit.dart';
 import '../../../player/presentation/player_cubit.dart';
 
 /// Settings screen — styled consistently with the design system.
@@ -134,6 +136,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Text('English'),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTap: _withClick(() async {
+                    await context.read<AuthCubit>().signOut();
+                    if (context.mounted) {
+                      context.go(AppRoutes.auth);
+                    }
+                  }),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0xFFE8D5C0),
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.logout_rounded,
+                          color: AppColors.danger,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Cerrar sesión',
+                          style: GoogleFonts.nunito(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.danger,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

@@ -79,13 +79,11 @@ void main() {
       ),
       expect: () => [
         const AuthLoading(),
-        const AuthAuthenticated(),
         const AuthAuthenticated(progressMigrated: true),
       ],
       verify: (_) {
         expect(sessionStore.mode, SessionMode.authenticated);
         expect(sessionStore.token, 'new-token');
-        verify(() => progressRepo.loadProgress()).called(1);
         verify(() => progressRepo.saveProgress(any())).called(1);
       },
     );
@@ -138,7 +136,6 @@ void main() {
           cubit.login(email: 'ana@test.com', password: 'secret123'),
       expect: () => [
         const AuthLoading(),
-        const AuthAuthenticated(),
         const AuthAuthenticated(progressMigrated: true),
       ],
       verify: (_) {
@@ -173,7 +170,7 @@ void main() {
     );
 
     blocTest<AuthCubit, AuthState>(
-      'does not fail the login flow when progress migration fails',
+      'does not fail the login flow when progress loading fails',
       build: () {
         when(() => remoteAuth.login(
               email: any(named: 'email'),
@@ -188,7 +185,6 @@ void main() {
           cubit.login(email: 'ana@test.com', password: 'secret123'),
       expect: () => [
         const AuthLoading(),
-        const AuthAuthenticated(),
         const AuthAuthenticated(progressMigrated: true),
       ],
       verify: (_) {
