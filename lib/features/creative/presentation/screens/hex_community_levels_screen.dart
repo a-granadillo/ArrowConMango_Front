@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_header.dart';
 import '../../../game/domain/entities/hex_level.dart';
 import '../../../game/presentation/bloc/hex/hex_game_cubit.dart';
 import '../../../game/presentation/screens/game_hex_screen.dart';
@@ -34,65 +38,83 @@ class HexCommunityLevelsScreen extends StatelessWidget {
       create: (_) => sl<HexCommunityLevelsCubit>()..load(),
       child: Scaffold(
         backgroundColor: AppColors.cream,
-        appBar: AppBar(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          title: const Text('Comunidad hexagonal'),
-        ),
-        body: BlocBuilder<HexCommunityLevelsCubit, HexCreativeListState>(
-          builder: (context, state) {
-            return switch (state) {
-              HexCreativeListLoading() =>
-                const Center(child: CircularProgressIndicator()),
-              HexCreativeListError(:final message) => Center(
-                  child: Text('Error: $message'),
+        body: Column(
+          children: [
+            AppScreenHeader(
+              title: 'Comunidad hexagonal',
+              onBack: () => context.pop(),
+            ),
+            Expanded(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppSpacing.maxContentWidth,
+                  ),
+                  child:
+                      BlocBuilder<HexCommunityLevelsCubit, HexCreativeListState>(
+                    builder: (context, state) {
+                      return switch (state) {
+                        HexCreativeListLoading() =>
+                          const Center(child: CircularProgressIndicator()),
+                        HexCreativeListError(:final message) => Center(
+                            child: Text('Error: $message'),
+                          ),
+                        HexCreativeListLoaded(:final levels) => levels.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'Aún no hay niveles hexagonales publicados.',
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: AppSpacing.page,
+                                itemCount: levels.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: AppSpacing.sm),
+                                itemBuilder: (context, i) {
+                                  final level = levels[i];
+                                  return Card(
+                                    elevation: 0,
+                                    color: Colors.white,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: AppRadii.mdAll,
+                                    ),
+                                    child: ListTile(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      title: Text(
+                                        level.name,
+                                        style: AppTypography.bodyText(),
+                                      ),
+                                      subtitle: Text(
+                                        '${level.difficulty} · radio ${level.radius} · '
+                                        '${level.arrowCount} flechas',
+                                        style: AppTypography.label(),
+                                      ),
+                                      trailing: IconButton(
+                                        icon: const Icon(
+                                          Icons.emoji_events_outlined,
+                                        ),
+                                        tooltip: 'Ver ranking',
+                                        onPressed: () => context.push(
+                                          AppRoutes.creativeRankingHex,
+                                          extra: level,
+                                        ),
+                                      ),
+                                      onTap: () => _play(context, level),
+                                    ),
+                                  );
+                                },
+                              ),
+                      };
+                    },
+                  ),
                 ),
-              HexCreativeListLoaded(:final levels) => levels.isEmpty
-                  ? const Center(
-                      child: Text('Aún no hay niveles hexagonales publicados.'),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(20),
-                      itemCount: levels.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
-                      itemBuilder: (context, i) {
-                        final level = levels[i];
-                        return Card(
-                          elevation: 0,
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            title: Text(
-                              level.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${level.difficulty} · radio ${level.radius} · '
-                              '${level.arrowCount} flechas',
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.emoji_events_outlined),
-                              tooltip: 'Ver ranking',
-                              onPressed: () => context.push(
-                                AppRoutes.creativeRankingHex,
-                                extra: level,
-                              ),
-                            ),
-                            onTap: () => _play(context, level),
-                          ),
-                        );
-                      },
-                    ),
-            };
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );

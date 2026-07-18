@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_typography.dart';
 
 /// A single stat cell (value + label) used in [ResultStatsRow].
 class ResultStat extends StatelessWidget {
@@ -27,25 +28,15 @@ class ResultStat extends StatelessWidget {
         decoration: showDivider
             ? const BoxDecoration(
                 border: Border(
-                  right: BorderSide(color: Color(0xFFE8D5C0), width: 1),
+                  right: BorderSide(color: AppColors.border, width: 1),
                 ),
               )
             : null,
         child: Column(
           children: [
-            Text(
-              value,
-              style: GoogleFonts.fredoka(fontSize: 26, height: 1, color: color),
-            ),
+            Text(value, style: AppTypography.statValue(color: color)),
             const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
-              ),
-            ),
+            Text(label, style: AppTypography.caption(weight: FontWeight.w600)),
           ],
         ),
       ),
@@ -65,9 +56,9 @@ class ResultStatsRow extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.cream2,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: AppRadii.mdAll,
       ),
       child: Row(
         children: [

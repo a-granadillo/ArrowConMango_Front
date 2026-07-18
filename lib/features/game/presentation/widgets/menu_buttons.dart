@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_gradients.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_shadows.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_svgs.dart';
 
 /// Large call-to-action button used on the main menu and the "Jugar" hub.
@@ -33,36 +36,23 @@ class PlayButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: bg,
-          gradient: bg == null
-              ? const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                )
-              : null,
-          borderRadius: BorderRadius.circular(22),
+          gradient: bg == null ? AppGradients.orange : null,
+          borderRadius: AppRadii.pillAll,
           boxShadow: [
             BoxShadow(
-              color: shadow ?? const Color(0xFFB03800),
+              color: shadow ?? AppColors.shadowButton,
               offset: const Offset(0, 6),
             ),
-            if (bg == null)
-              const BoxShadow(
-                color: Color(0x59F4843D),
-                offset: Offset(0, 10),
-                blurRadius: 28,
-              ),
+            if (bg == null) ...AppShadows.button.sublist(1),
           ],
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
-          style: GoogleFonts.fredoka(
-            fontSize: 26,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2,
+          style: AppTypography.display(
+            26,
             color: fg ?? (bg != null ? AppColors.textDark : Colors.white),
-          ),
+          ).copyWith(letterSpacing: 2),
         ),
       ),
     );
@@ -96,7 +86,7 @@ class NavButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 8),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: AppRadii.mdAll,
           boxShadow: [BoxShadow(color: shadow, offset: const Offset(0, 5))],
         ),
         child: Column(
@@ -106,11 +96,7 @@ class NavButton extends StatelessWidget {
             const SizedBox(height: 5),
             Text(
               label,
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: fg,
-              ),
+              style: AppTypography.label(color: fg, weight: FontWeight.w800),
             ),
           ],
         ),

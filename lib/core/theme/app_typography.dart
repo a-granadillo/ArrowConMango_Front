@@ -26,6 +26,67 @@ abstract final class AppTypography {
     );
   }
 
+  // --- Semantic scale --------------------------------------------------
+  // Named styles so screens stop hardcoding `GoogleFonts.fredoka(fontSize: …)`
+  // with drifting values (headers 17 vs 19, victory 32 vs 36, etc.).
+
+  /// Large result / celebration titles (¡NIVEL COMPLETO!, ¡CUBO DESPEJADO!).
+  static TextStyle titleLg({Color? color}) => GoogleFonts.fredoka(
+        fontSize: 36,
+        height: 1,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.5,
+        color: color ?? AppColors.primary,
+      );
+
+  /// Section / screen-header titles (level selection, settings, leaderboard).
+  static TextStyle titleMd({Color? color}) => GoogleFonts.fredoka(
+        fontSize: 22,
+        height: 1.1,
+        fontWeight: FontWeight.w600,
+        color: color ?? AppColors.textDark,
+      );
+
+  /// Compact in-game header titles (2D/hex/3D — unified at 19).
+  static TextStyle headline({Color? color}) => GoogleFonts.fredoka(
+        fontSize: 19,
+        height: 1.1,
+        fontWeight: FontWeight.w600,
+        color: color ?? Colors.white,
+      );
+
+  /// Big numeric stat values (taps / time / mangos).
+  static TextStyle statValue({Color? color}) => GoogleFonts.fredoka(
+        fontSize: 26,
+        height: 1,
+        fontWeight: FontWeight.w600,
+        color: color ?? AppColors.primary,
+      );
+
+  /// Standard body copy / row titles.
+  static TextStyle bodyText({Color? color, FontWeight? weight}) =>
+      GoogleFonts.nunito(
+        fontSize: 14,
+        fontWeight: weight ?? FontWeight.w700,
+        color: color ?? AppColors.textDark,
+      );
+
+  /// Small labels (chip labels, subtitles).
+  static TextStyle label({Color? color, FontWeight? weight}) =>
+      GoogleFonts.nunito(
+        fontSize: 12,
+        fontWeight: weight ?? FontWeight.w600,
+        color: color ?? AppColors.textMuted,
+      );
+
+  /// Smallest captions (difficulty tags, meta counts).
+  static TextStyle caption({Color? color, FontWeight? weight}) =>
+      GoogleFonts.nunito(
+        fontSize: 11,
+        fontWeight: weight ?? FontWeight.w700,
+        color: color ?? AppColors.textMuted,
+      );
+
   /// Full text theme wired into [ThemeData].
   static TextTheme textTheme(TextTheme base) {
     return GoogleFonts.nunitoTextTheme(base).copyWith(

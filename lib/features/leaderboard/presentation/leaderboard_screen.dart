@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/i18n/app_localizations_extension.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_gradients.dart';
+import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_svgs.dart';
 import '../../player/presentation/player_cubit.dart';
 import '../domain/leaderboard_entry.dart';
@@ -56,7 +60,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               child: Text(
                 message,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textDark),
+                style: AppTypography.body(16),
               ),
             ),
           _ => const Center(
@@ -77,22 +81,37 @@ class _LeaderboardBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final podium = entries.take(3).toList();
-    final rest = entries.length > 3 ? entries.sublist(3) : const <LeaderboardEntry>[];
+    final rest =
+        entries.length > 3 ? entries.sublist(3) : const <LeaderboardEntry>[];
 
     return Column(
       children: [
         _Header(podium: podium),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            itemCount: rest.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 10),
-            itemBuilder: (context, index) => _LeaderboardRow(entry: rest[index]),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: AppSpacing.maxContentWidth,
+              ),
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xs,
+                ),
+                itemCount: rest.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(height: AppSpacing.sm),
+                itemBuilder: (context, index) =>
+                    _LeaderboardRow(entry: rest[index]),
+              ),
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child:           TextButton.icon(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: TextButton.icon(
             onPressed: onSignIn,
             icon: const Icon(Icons.login_rounded, size: 18),
             label: Text(context.l10n.leaderboardLinkAccount),
@@ -121,49 +140,28 @@ class _Header extends StatelessWidget {
     ];
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, top + 20, 20, 0),
+      padding: EdgeInsets.fromLTRB(AppSpacing.lg, top + AppSpacing.lg, AppSpacing.lg, 0),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(-0.4, -1),
-          end: Alignment(0.4, 1),
-          colors: [AppColors.successDark, AppColors.success],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        gradient: AppGradients.green,
+        borderRadius: AppRadii.headerBottom,
       ),
       child: Column(
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: () => context.pop(),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: AppSvgs.icon(AppSvgs.backChevron, 20),
-                ),
-              ),
-              const SizedBox(width: 12),
+              HeaderBackButton(onTap: () => context.pop()),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       l10n.leaderboardTitle,
-                      style: GoogleFonts.fredoka(
-                        fontSize: 22,
-                        height: 1.1,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                      style: AppTypography.titleMd(color: Colors.white),
                     ),
                     Text(
                       l10n.leaderboardSubtitle,
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.label(
                         color: Colors.white.withValues(alpha: 0.7),
                       ),
                     ),
@@ -173,14 +171,14 @@ class _Header extends StatelessWidget {
               AppSvgs.icon(AppSvgs.trophyFilled, 30),
             ],
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: AppSpacing.xl),
           if (ordered.isNotEmpty)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 for (var i = 0; i < ordered.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 12),
+                  if (i > 0) const SizedBox(width: AppSpacing.sm),
                   _PodiumSlot(entry: ordered[i]),
                 ],
               ],
@@ -219,13 +217,17 @@ class _PodiumSlot extends StatelessWidget {
               color: Color(entry.colorValue),
               border: Border.all(color: ring, width: 3),
               boxShadow: const [
-                BoxShadow(color: Color(0x33000000), blurRadius: 10, offset: Offset(0, 4)),
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
               ],
             ),
             alignment: Alignment.center,
             child: Text(
               entry.initial,
-              style: GoogleFonts.fredoka(fontSize: avatarFontSize, color: Colors.white),
+              style: AppTypography.display(avatarFontSize, color: Colors.white),
             ),
           ),
           const SizedBox(height: 6),
@@ -233,10 +235,9 @@ class _PodiumSlot extends StatelessWidget {
             entry.displayName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
+            style: AppTypography.label(
               color: Colors.white,
+              weight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 2),
@@ -246,13 +247,17 @@ class _PodiumSlot extends StatelessWidget {
             padding: const EdgeInsets.only(top: 8),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.22),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(AppRadii.sm)),
             ),
             child: Column(
               children: [
                 Text(
                   '${entry.rank}',
-                  style: GoogleFonts.fredoka(fontSize: 20, height: 1, color: numColor),
+                  style: AppTypography.display(
+                    20,
+                    color: numColor,
+                  ).copyWith(height: 1),
                 ),
                 const SizedBox(height: 2),
                 Row(
@@ -262,10 +267,9 @@ class _PodiumSlot extends StatelessWidget {
                     const SizedBox(width: 3),
                     Text(
                       '${entry.mangos}',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
+                      style: AppTypography.label(
                         color: Colors.white,
+                        weight: FontWeight.w800,
                       ),
                     ),
                   ],
@@ -295,10 +299,11 @@ class _LeaderboardRow extends StatelessWidget {
           color: highlighted ? AppColors.primary : const Color(0xFFF0E4D4),
           width: 2,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadii.mdAll,
         boxShadow: [
           BoxShadow(
-            color: highlighted ? const Color(0xFFE8C088) : const Color(0xFFE8DCC8),
+            color:
+                highlighted ? const Color(0xFFE8C088) : const Color(0xFFE8DCC8),
             offset: const Offset(0, 3),
           ),
         ],
@@ -310,19 +315,19 @@ class _LeaderboardRow extends StatelessWidget {
             child: Text(
               '${entry.rank}',
               textAlign: TextAlign.center,
-              style: GoogleFonts.fredoka(fontSize: 17, color: AppColors.textMuted),
+              style: AppTypography.display(17, color: AppColors.textMuted),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.sm),
           CircleAvatar(
             radius: 18,
             backgroundColor: Color(entry.colorValue),
             child: Text(
               entry.initial,
-              style: GoogleFonts.fredoka(fontSize: 15, color: Colors.white),
+              style: AppTypography.display(15, color: Colors.white),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,25 +336,21 @@ class _LeaderboardRow extends StatelessWidget {
                   highlighted
                       ? context.l10n.leaderboardCurrentPlayer(entry.displayName)
                       : entry.displayName,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
-                  ),
+                  style: AppTypography.body(14, weight: FontWeight.w800),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   context.l10n.leaderboardLevelsSub(entry.levelsCompleted),
-                  style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMuted),
+                  style: AppTypography.caption(weight: FontWeight.w400),
                 ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.cream2,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadii.smAll,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -358,7 +359,7 @@ class _LeaderboardRow extends StatelessWidget {
                 const SizedBox(width: 5),
                 Text(
                   '${entry.mangos}',
-                  style: GoogleFonts.fredoka(fontSize: 15, color: AppColors.textDark),
+                  style: AppTypography.display(15, color: AppColors.textDark),
                 ),
               ],
             ),

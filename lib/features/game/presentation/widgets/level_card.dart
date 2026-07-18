@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_shadows.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_svgs.dart';
 
 /// Visual state of a level tile.
@@ -34,31 +36,31 @@ class LevelCard extends StatelessWidget {
 
   Decoration get _decoration {
     if (_completed) {
-      return BoxDecoration(
-        gradient: const LinearGradient(
+      return const BoxDecoration(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [AppColors.mango, AppColors.primary],
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0xFFC87010), offset: Offset(0, 5))],
+        borderRadius: AppRadii.lgAll,
+        boxShadow: AppShadows.mango,
       );
     }
     if (_locked) {
-      return BoxDecoration(
-        color: const Color(0xFFEDE0D4),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0xFFC5B8A5), offset: Offset(0, 3))],
+      return const BoxDecoration(
+        color: AppColors.lockedSurface,
+        borderRadius: AppRadii.lgAll,
+        boxShadow: AppShadows.locked,
       );
     }
-    return BoxDecoration(
-      gradient: const LinearGradient(
+    return const BoxDecoration(
+      gradient: LinearGradient(
         begin: Alignment(-0.6, -1),
         end: Alignment(0.6, 1),
-        colors: [Colors.white, Color(0xFFFFF0D4)],
+        colors: [Colors.white, AppColors.cream2],
       ),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: const [BoxShadow(color: Color(0xFFD4C4B0), offset: Offset(0, 4))],
+      borderRadius: AppRadii.lgAll,
+      boxShadow: AppShadows.cardRaised,
     );
   }
 
@@ -84,12 +86,7 @@ class LevelCard extends StatelessWidget {
       children: [
         Text(
           '$levelId',
-          style: GoogleFonts.fredoka(
-            fontSize: 30,
-            height: 1,
-            fontWeight: FontWeight.w600,
-            color: numColor,
-          ),
+          style: AppTypography.display(30, color: numColor).copyWith(height: 1),
         ),
         const SizedBox(height: 4),
         if (_completed)
@@ -106,14 +103,7 @@ class LevelCard extends StatelessWidget {
             ],
           )
         else
-          Text(
-            difficulty,
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-            ),
-          ),
+          Text(difficulty, style: AppTypography.caption()),
       ],
     );
   }
@@ -124,14 +114,7 @@ class LevelCard extends StatelessWidget {
       children: [
         AppSvgs.icon(AppSvgs.lock, 18),
         const SizedBox(height: 4),
-        Text(
-          'Nivel $levelId',
-          style: GoogleFonts.nunito(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textMuted,
-          ),
-        ),
+        Text('Nivel $levelId', style: AppTypography.caption()),
       ],
     );
   }
