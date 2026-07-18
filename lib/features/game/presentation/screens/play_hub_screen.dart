@@ -43,6 +43,14 @@ class PlayHubScreen extends StatelessWidget {
             shadow: AppColors.successDark,
             onTap: () => context.push(AppRoutes.game3d),
           ),
+          const SizedBox(height: 14),
+          PlayButton(
+            label: 'HEXAGONAL',
+            bg: AppColors.mango,
+            fg: AppColors.textDark,
+            shadow: const Color(0xFFB8860B),
+            onTap: () => context.push(AppRoutes.gameHex),
+          ),
         ],
       ),
     );

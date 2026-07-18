@@ -109,5 +109,39 @@ void main() {
         expect(geom1.hashCode, equals(geom2.hashCode));
       });
     });
+
+    group('BoardGeometryHex', () {
+      test('should create valid instance when radius is positive', () {
+        // Arrange & Act
+        const geometry = BoardGeometryHex(radius: 3);
+
+        // Assert
+        expect(geometry.radius, equals(3));
+      });
+
+      test('should throw AssertionError when radius is non-positive', () {
+        // Act & Assert
+        expect(
+          () => BoardGeometryHex(radius: 0),
+          throwsA(isA<AssertionError>()),
+        );
+        expect(
+          () => BoardGeometryHex(radius: -1),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('should support value equality', () {
+        // Arrange
+        const geom1 = BoardGeometryHex(radius: 2);
+        const geom2 = BoardGeometryHex(radius: 2);
+        const geom3 = BoardGeometryHex(radius: 3);
+
+        // Assert
+        expect(geom1, equals(geom2));
+        expect(geom1, isNot(equals(geom3)));
+        expect(geom1.hashCode, equals(geom2.hashCode));
+      });
+    });
   });
 }

@@ -43,3 +43,23 @@ class BoardGeometry3D extends BoardGeometry {
   @override
   String toString() => 'BoardGeometry3D(rows: $rows, cols: $cols, depth: $depth)';
 }
+
+/// Concrete subclass representing a hexagonal board: a hexagon-shaped
+/// arrangement of pointy-top hex cells with the given [radius], addressed
+/// with axial coordinates (see [HexDirection], `HexNodeId`).
+///
+/// A cell at axial (q, r) belongs to the board when
+/// `max(|q|, |r|, |q + r|) <= radius`, so `radius` alone fully determines
+/// the board's shape and size (a radius-N hexagon has `3*N*(N+1) + 1` cells).
+class BoardGeometryHex extends BoardGeometry {
+  final int radius;
+
+  const BoardGeometryHex({required this.radius})
+      : assert(radius > 0, 'radius must be greater than 0');
+
+  @override
+  List<Object?> get props => [radius];
+
+  @override
+  String toString() => 'BoardGeometryHex(radius: $radius)';
+}
