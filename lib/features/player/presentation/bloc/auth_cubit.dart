@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../game/domain/entities/app_progress.dart';
 import '../../../game/domain/repositories/i_progress_repository.dart';
-import '../../../game/domain/repositories/result.dart';
 import '../../data/remote_auth_data_source.dart';
 import '../../data/session_store.dart';
 import 'auth_state.dart';
