@@ -286,7 +286,13 @@ class _HexBoardEditorState extends State<_HexBoardEditor> {
         final available =
             constraints.maxWidth < _maxBoardSide ? constraints.maxWidth : _maxBoardSide;
         final widthFactor = _sqrt3 * (2 * radius + 1);
-        final heightFactor = 1.5 * radius + 2;
+        // Pointy-top hex: row-center spacing is 1.5*size and row centers
+        // span 2*radius rows, so the row-center range alone is
+        // 3*radius*size; add one hex's half-height (= size) on top and
+        // bottom for the board's true vertical extent. (Using half of this
+        // — the previous bug — sized the canvas for only the middle band of
+        // rows, clipping the top and bottom ones.)
+        final heightFactor = 3 * radius + 2;
         final hexSize = (available / widthFactor)
             .clamp(_minHexSize, _maxHexSize)
             .toDouble();

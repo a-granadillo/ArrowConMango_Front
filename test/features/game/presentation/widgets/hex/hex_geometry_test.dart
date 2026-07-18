@@ -50,6 +50,55 @@ void main() {
     });
   });
 
+  group('hex-of-hexagons board bounding box', () {
+    // Regression test for a board-sizing bug: HexBoardWidget/the creative
+    // editor once computed a board canvas height using `1.5*radius+2` —
+    // exactly half the true extent — clipping the top and bottom rows of
+    // hexagons. The true height factor is `3*radius+2`: row centers span
+    // `1.5*size` each across `2*radius` rows (= `3*radius*size` total),
+    // plus one hex's half-height (`size`) of margin on each side.
+    for (final radius in [1, 2, 3, 5]) {
+      test('every_hex_corner_fits_within_the_3R+2_height_factor_for_radius_$radius', () {
+        final widthFactor = 1.7320508075688772 * (2 * radius + 1);
+        final heightFactor = 3 * radius + 2;
+        final maxX = widthFactor / 2 * _size;
+        final maxY = heightFactor / 2 * _size;
+
+        for (var q = -radius; q <= radius; q++) {
+          final rMin = (-radius - q).clamp(-radius, radius);
+          final rMax = (radius - q).clamp(-radius, radius);
+          for (var r = rMin; r <= rMax; r++) {
+            final center = axialToPixel(q, r, _size);
+            for (final corner in hexCorners(center, _size)) {
+              expect(
+                corner.dx.abs(),
+                lessThanOrEqualTo(maxX + 0.01),
+                reason: 'q=$q r=$r corner $corner exceeds width bound $maxX',
+              );
+              expect(
+                corner.dy.abs(),
+                lessThanOrEqualTo(maxY + 0.01),
+                reason: 'q=$q r=$r corner $corner exceeds height bound $maxY',
+              );
+            }
+          }
+        }
+      });
+
+      test('the_old_buggy_1_5R+2_height_factor_would_clip_corners_for_radius_$radius', () {
+        // Documents *why* the fix was needed: the previous (wrong) factor
+        // is provably too small to contain every corner.
+        final buggyHeightFactor = 1.5 * radius + 2;
+        final maxY = buggyHeightFactor / 2 * _size;
+
+        final topCenter = axialToPixel(0, -radius, _size);
+        final topCorner = hexCorners(topCenter, _size)
+            .reduce((a, b) => a.dy < b.dy ? a : b); // most-negative dy
+        expect(topCorner.dy.abs(), greaterThan(maxY));
+      });
+    }
+  });
+
   group('unitVector', () {
     test('every_hex_direction_has_unit_length', () {
       for (final direction in HexDirection.values) {
