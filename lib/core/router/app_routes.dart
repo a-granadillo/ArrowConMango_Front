@@ -1,6 +1,7 @@
 /// Centralised route paths so screens don't hardcode strings.
 abstract final class AppRoutes {
   static const String splash = '/';
+  static const String auth = '/auth';
   static const String menu = '/menu';
   static const String playHub = '/play';
   static const String levels = '/levels';
