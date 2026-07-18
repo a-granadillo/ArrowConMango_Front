@@ -49,10 +49,9 @@ class HexGraph implements Graph<HexNodeId> {
 
   HexGraph._({
     required this.radius,
-    required Map<String, Map<Direction, HexNodeId>> adjacency,
-    required Map<String, Set<Direction>> boundaries,
-  })  : _adjacency = adjacency,
-        _boundaries = boundaries;
+    required this._adjacency,
+    required this._boundaries,
+  });
 
   factory HexGraph.build({required int radius}) {
     final adjacency = <String, Map<Direction, HexNodeId>>{};
