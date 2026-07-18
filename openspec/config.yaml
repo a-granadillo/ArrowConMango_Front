@@ -1,0 +1,34 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Flutter / Dart
+  Architecture: Clean Architecture (Domain / Application / Data / Presentation)
+  State management: flutter_bloc, get_it + injectable, Hive, Dio
+  Testing: test, mocktail, flutter_test, bloc_test
+  Style: SOLID & GoF patterns, conventional commits, sealed result types (Result<T>)
+
+rules:
+  proposal:
+    - Include rollback plan for cross-cutting changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHOULD, MAY)
+  design:
+    - Document decorator and observer patterns with rationale
+    - Explicitly avoid runtime reflection or bytecode weaving; prefer compile-safe decorators
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    guidelines:
+      - Match existing code patterns and indentation
+      - Do not change public repository signatures
+      - Keep AOP infrastructure injectable and testable
+    tdd: false
+    test_command: "flutter test"
+  verify:
+    test_command: "flutter test"
+    build_command: ""
+    coverage_threshold: 0
+  archive:
+    - Warn before removing decorator layers

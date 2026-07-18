@@ -3,9 +3,9 @@ name: Flutter CI/CD
 # Se ejecuta al hacer push o pull request en la rama principal
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "develop" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "develop" ]
   workflow_dispatch:
 
 jobs:

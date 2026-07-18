@@ -1,0 +1,17 @@
+# Normalize line endings to LF across all platforms.
+# Prevents CRLF/LF false diffs when working from WSL + Windows + OneDrive.
+* text=auto eol=lf
+
+# Explicitly mark binary files so Git never tries to convert them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.jar binary
+*.keystore binary
+*.jks binary

@@ -1,0 +1,113 @@
+{
+  "@@locale": "es",
+
+  "appTitle": "Arrow con Mango",
+
+  "splashTapToContinue": "Toca para continuar",
+
+  "menuSubtitle": "¡EL LABERINTO MÁS SABROSO!",
+  "menuPlay": "JUGAR",
+  "menuCampaignMode": "MODO CAMPAÑA",
+  "menuSurvivalMode": "SUPERVIVENCIA",
+  "menuLevels": "Niveles",
+  "menuRanking": "Ranking",
+  "menuSettings": "Ajustes",
+
+  "settingsTitle": "Ajustes",
+  "settingsPlayerName": "Nombre de jugador",
+  "settingsEdit": "Editar",
+  "settingsSound": "Sonido",
+  "settingsLanguage": "Idioma",
+  "settingsDialogPlayerName": "Nombre de jugador",
+  "settingsDialogHint": "Tu nombre",
+  "settingsDialogCancel": "Cancelar",
+  "settingsDialogSave": "Guardar",
+
+  "levelSelectTitle": "Seleccionar Nivel",
+  "levelSelectAvailable": "{unlocked} de {total} disponibles",
+  "@levelSelectAvailable": {
+    "placeholders": {
+      "unlocked": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "levelSelectRetry": "Reintentar",
+  "difficultyEasy": "Fácil",
+  "difficultyMedium": "Medio",
+  "difficultyHard": "Difícil",
+
+  "gameLevelLabel": "Nivel {id}",
+  "@gameLevelLabel": {
+    "placeholders": { "id": { "type": "int" } }
+  },
+  "gameLevelSubtitle": "Nivel {id} · {difficulty}",
+  "@gameLevelSubtitle": {
+    "placeholders": {
+      "id": { "type": "int" },
+      "difficulty": { "type": "String" }
+    }
+  },
+  "gameStatArrows": "flechas",
+  "gameStatTaps": "toques",
+  "gameStatLevels": "niveles",
+  "gameLivesLabel": "Vidas: {lives} de 3",
+  "@gameLivesLabel": {
+    "placeholders": { "lives": { "type": "int" } }
+  },
+  "gameInstructions": "Toca una flecha para sacarla del tablero.\nSolo queda bloqueada si otra flecha cruza su salida.",
+  "gameUndo": "Deshacer",
+  "gameMenuButton": "Menú",
+
+  "victoryTitle": "¡ENHORABUENA!",
+  "victoryLevelCompleted": "¡NIVEL COMPLETADO!",
+  "victoryMangosLabel": "{stars}/3 MANGOS",
+  "@victoryMangosLabel": {
+    "placeholders": { "stars": { "type": "int" } }
+  },
+  "victoryStatTaps": "Toques",
+  "victoryStatTime": "Tiempo",
+  "victoryStatLevels": "Niveles",
+  "victoryStatLives": "Vidas",
+  "victoryStatMangos": "Mangos",
+  "victoryNextLevel": "Siguiente nivel",
+  "victoryMenu": "Menú",
+
+  "ratingPerfect": "¡Cosecha perfecta! Eres un maestro del mango",
+  "ratingGreat": "¡Muy bien! Casi una cosecha perfecta",
+  "ratingPass": "¡Nivel superado! Sé más rápido y preciso para más mangos",
+
+  "defeatOhNo": "¡Oh no!",
+  "defeatGameOver": "¡Game Over!",
+  "defeatTimeExpired": "¡Se acabó el tiempo!",
+  "defeatNoMoves": "No quedan movimientos posibles.",
+  "defeatOutOfLives": "¡Te quedaste sin vidas!",
+  "defeatNoLivesMessage": "Te quedaste sin vidas",
+  "defeatStatTaps": "Toques",
+  "defeatStatTime": "Tiempo",
+  "defeatStatLevels": "Niveles",
+  "defeatStatLives": "Vidas",
+  "defeatRestart": "Reiniciar",
+  "defeatRetry": "Reintentar",
+  "defeatMenu": "Menú",
+
+  "rankingTitle": "Clasificación",
+  "rankingComingSoon": "Los mejores cosechadores llegarán pronto 🥭",
+  "rankingPlayAs": "Jugarás como: {name}",
+  "@rankingPlayAs": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "leaderboardTitle": "Clasificación",
+  "leaderboardSubtitle": "Los mejores cosechadores",
+  "leaderboardLinkAccount": "Vincular cuenta (Google / Apple)",
+  "leaderboardSignInComingSoon": "Inicio de sesión con Google/Apple — próximamente 🥭",
+  "leaderboardCurrentPlayer": "{name} (Tú)",
+  "@leaderboardCurrentPlayer": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "leaderboardLevelsSub": "{count, plural, =1{1 nivel} other{{count} niveles}}",
+  "@leaderboardLevelsSub": {
+    "placeholders": { "count": { "type": "int" } }
+  }
+}
