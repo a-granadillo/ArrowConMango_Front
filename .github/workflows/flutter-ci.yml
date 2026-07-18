@@ -55,3 +55,39 @@ jobs:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 3 # El archivo estará disponible por 3 días
+
+  crear-release:
+    name: Crear Release y Subir APK
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Descargar APK compilado
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/
+
+      - name: Calcular versión y crear Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+
+      - name: Crear GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
