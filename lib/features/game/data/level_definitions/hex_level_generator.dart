@@ -23,33 +23,45 @@ class HexLevelConfig {
   /// Maximum body length (in hexagons) an arrow may span.
   final int maxArrowLength;
 
+  /// Maximum number of straight direction-segments an arrow's body may be
+  /// built from. `1` = always straight; `2`+ allows bent ("L"/"Z"-shaped,
+  /// like the 2D mode's L/Z/U arrows) bodies that turn through one or more
+  /// corners on their way from tail to head.
+  final int maxSegments;
+
   const HexLevelConfig({
     required this.radius,
     required this.fillRatio,
     this.minArrowLength = 2,
     this.maxArrowLength = 2,
-  }) : assert(
+    this.maxSegments = 1,
+  })  : assert(
           maxArrowLength >= minArrowLength,
           'maxArrowLength must be >= minArrowLength',
-        );
+        ),
+        assert(maxSegments >= 1, 'maxSegments must be >= 1');
 }
 
 /// Deterministic, **provably-solvable** generator for hexagonal-board levels.
-/// An arrow spans two or more hexagons (straight body, per
-/// [HexLevelConfig.minArrowLength]/[HexLevelConfig.maxArrowLength] — never a
-/// single cell, so its shape reads clearly on screen), pointing in one of
-/// the six [HexDirection]s.
+/// An arrow spans two or more hexagons (per [HexLevelConfig.minArrowLength]/
+/// [HexLevelConfig.maxArrowLength] — never a single cell, so its shape reads
+/// clearly on screen) and, when [HexLevelConfig.maxSegments] > 1, may bend
+/// through one or more genuine turns instead of always being a straight
+/// line — the hex equivalent of the 2D mode's L/Z/U-shaped arrows.
 ///
 /// ## Why the output is always solvable
-/// Arrows are placed one at a time. A candidate placement is accepted only
-/// when (a) every cell of its body lies within the board and is unoccupied,
-/// and (b) its exit trajectory (head to the board's boundary, via
-/// [HexTopology.getTrajectory]) is clear of every cell occupied so far.
-/// Removing the arrows in the **reverse** of insertion order is therefore
-/// always a valid solution: when arrow A is removed, every arrow inserted
-/// after A has already been removed, and A's exit path was verified clear of
-/// every arrow inserted *before* A — so the path is still clear. (Same
-/// monotone-exit argument used by [CubeLevelGenerator]/[LevelGenerator].)
+/// Arrows are placed one at a time, walking tail→head across each of their
+/// direction segments. A candidate placement is accepted only when (a)
+/// every cell of its body lies within the board and is unoccupied, and (b)
+/// its exit trajectory (head to the board's boundary, in the *last*
+/// segment's direction, via [HexTopology.getTrajectory]) is clear of every
+/// cell occupied so far. Removing the arrows in the **reverse** of
+/// insertion order is therefore always a valid solution: when arrow A is
+/// removed, every arrow inserted after A has already been removed, and A's
+/// exit path was verified clear of every arrow inserted *before* A — so the
+/// path is still clear. (Same monotone-exit argument used by
+/// [CubeLevelGenerator]/[LevelGenerator]; bending the body doesn't affect
+/// it, since only the head's forward trajectory is ever checked.)
 class HexLevelGenerator {
   HexLevelGenerator._();
 
@@ -111,15 +123,7 @@ class HexLevelGenerator {
 
     while (arrows.length < targetCount && attempts < maxAttempts) {
       attempts++;
-      final candidate = _tryPlaceOne(
-        rng,
-        occupied,
-        topology,
-        allNodes,
-        config.minArrowLength,
-        config.maxArrowLength,
-        'h$seq',
-      );
+      final candidate = _tryPlaceOne(rng, occupied, topology, allNodes, config, 'h$seq');
       if (candidate == null) continue;
       seq++;
       arrows.add(candidate.entity);
@@ -129,38 +133,49 @@ class HexLevelGenerator {
     return arrows;
   }
 
-  /// Picks a random empty head cell, a random body length and direction, and
-  /// accepts the first combination (shuffled) whose body is unoccupied and
-  /// whose exit trajectory is clear.
+  /// Picks a random empty tail cell and a random sequence of direction
+  /// segments (turning at each segment boundary when `maxSegments` > 1),
+  /// and accepts the first shuffled direction/segment-count combination
+  /// whose body is unoccupied, in-bounds and non-self-intersecting, and
+  /// whose exit trajectory (from the final head, in the last segment's
+  /// direction) is clear.
   static _HexCandidate? _tryPlaceOne(
     Random rng,
     Set<String> occupied,
     HexTopology topology,
     List<HexNodeId> allNodes,
-    int minLength,
-    int maxLength,
+    HexLevelConfig config,
     String id,
   ) {
-    final head = allNodes[rng.nextInt(allNodes.length)];
-    if (occupied.contains(head.key)) return null;
+    final tail = allNodes[rng.nextInt(allNodes.length)];
+    if (occupied.contains(tail.key)) return null;
 
-    final dirs = List<HexDirection>.from(HexDirection.values)..shuffle(rng);
-    final lengthSpan = maxLength - minLength + 1;
+    final segmentCount = 1 + rng.nextInt(config.maxSegments);
+    final totalLength = max(
+      segmentCount,
+      config.minArrowLength +
+          rng.nextInt(config.maxArrowLength - config.minArrowLength + 1),
+    );
+    final segmentLengths = _splitLength(rng, totalLength, segmentCount);
 
-    for (final dir in dirs) {
-      final length = minLength + rng.nextInt(lengthSpan);
-      final body = _buildBody(topology, head, dir, length);
-      if (body == null) continue;
+    for (var attempt = 0; attempt < 8; attempt++) {
+      final directions = _randomSegmentDirections(rng, segmentCount);
+      final built = _buildBody(topology, tail, directions, segmentLengths);
+      if (built == null) continue;
+      final (body, headDirection) = built;
+
+      if (body.toSet().length != body.length) continue; // self-intersecting
       if (body.any((n) => occupied.contains(n.key))) continue;
 
-      final exitPath = topology.getTrajectory(head, dir);
+      final head = body.last;
+      final exitPath = topology.getTrajectory(head, headDirection);
       final clear = exitPath.every(
         (n) => n is! HexNodeId || !occupied.contains(n.key),
       );
       if (!clear) continue;
 
       return _HexCandidate(
-        ArrowEntity(id: id, direction: dir, occupiedNodes: body),
+        ArrowEntity(id: id, direction: headDirection, occupiedNodes: body),
         body.map((n) => n.key).toSet(),
       );
     }
@@ -168,26 +183,60 @@ class HexLevelGenerator {
     return null;
   }
 
-  /// Walks backward from [head] (the arrow's tip) along the opposite of
-  /// [direction] to build the ordered tail->head body. Returns null if the
-  /// body would fall off the board (arrows must be fully on-board at rest).
-  static List<HexNodeId>? _buildBody(
-    HexTopology topology,
-    HexNodeId head,
-    HexDirection direction,
-    int length,
-  ) {
-    final opposite = _opposite(direction);
-    final bodyReversed = <HexNodeId>[head];
-    var current = head;
-    for (var i = 1; i < length; i++) {
-      final prevRaw = topology.getNeighbor(current, opposite);
-      if (prevRaw == null) return null;
-      final prev = prevRaw as HexNodeId;
-      bodyReversed.add(prev);
-      current = prev;
+  /// Splits [total] into [parts] positive integers (each part gets 1 first,
+  /// then the remainder is handed out to random parts).
+  static List<int> _splitLength(Random rng, int total, int parts) {
+    final lengths = List<int>.filled(parts, 1);
+    var remaining = total - parts;
+    while (remaining > 0) {
+      lengths[rng.nextInt(parts)]++;
+      remaining--;
     }
-    return bodyReversed.reversed.toList();
+    return lengths;
+  }
+
+  /// Picks [count] directions, one per segment: the first is unconstrained;
+  /// every following one excludes the previous segment's direction *and*
+  /// its opposite, guaranteeing a genuine turn (never a straight
+  /// continuation nor a doubling-back over the previous segment).
+  static List<HexDirection> _randomSegmentDirections(Random rng, int count) {
+    final directions = <HexDirection>[];
+    HexDirection? previous;
+    for (var i = 0; i < count; i++) {
+      final choices = previous == null
+          ? HexDirection.values
+          : HexDirection.values
+              .where((d) => d != previous && d != _opposite(previous!))
+              .toList();
+      final next = choices[rng.nextInt(choices.length)];
+      directions.add(next);
+      previous = next;
+    }
+    return directions;
+  }
+
+  /// Walks forward from [tail] through each (direction, length) segment,
+  /// building the ordered tail→head body. Returns null if the body would
+  /// fall off the board (arrows must be fully on-board at rest). The
+  /// returned direction is the *last* segment's — the direction the arrow
+  /// points/exits in.
+  static (List<HexNodeId>, HexDirection)? _buildBody(
+    HexTopology topology,
+    HexNodeId tail,
+    List<HexDirection> directions,
+    List<int> lengths,
+  ) {
+    final body = <HexNodeId>[tail];
+    var current = tail;
+    for (var s = 0; s < directions.length; s++) {
+      for (var step = 0; step < lengths[s]; step++) {
+        final nextRaw = topology.getNeighbor(current, directions[s]);
+        if (nextRaw == null) return null;
+        current = nextRaw as HexNodeId;
+        body.add(current);
+      }
+    }
+    return (body, directions.last);
   }
 
   static HexDirection _opposite(HexDirection direction) {

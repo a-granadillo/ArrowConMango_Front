@@ -17,6 +17,14 @@ import 'package:injectable/injectable.dart' as _i526;
 
 import '../../features/creative/presentation/bloc/community_levels_cubit.dart'
     as _i524;
+import '../../features/creative/presentation/bloc/hex_community_levels_cubit.dart'
+    as _i932;
+import '../../features/creative/presentation/bloc/hex_level_editor_cubit.dart'
+    as _i1051;
+import '../../features/creative/presentation/bloc/hex_level_ranking_cubit.dart'
+    as _i901;
+import '../../features/creative/presentation/bloc/hex_my_levels_cubit.dart'
+    as _i99;
 import '../../features/creative/presentation/bloc/level_editor_cubit.dart'
     as _i129;
 import '../../features/creative/presentation/bloc/level_ranking_cubit.dart'
@@ -67,6 +75,8 @@ import '../../features/game/data/models/mappers/board_state_mapper.dart'
 import '../../features/game/data/models/mappers/level_mapper.dart' as _i61;
 import '../../features/game/data/repositories/api_creative_level_repository.dart'
     as _i718;
+import '../../features/game/data/repositories/api_hex_creative_level_repository.dart'
+    as _i618;
 import '../../features/game/data/repositories/hex_level_repository.dart'
     as _i973;
 import '../../features/game/data/repositories/hive_level_repository.dart'
@@ -80,6 +90,8 @@ import '../../features/game/data/repositories/synced_progress_repository.dart'
 import '../../features/game/domain/entities/scoring_strategy.dart' as _i440;
 import '../../features/game/domain/repositories/i_creative_level_repository.dart'
     as _i48;
+import '../../features/game/domain/repositories/i_hex_creative_level_repository.dart'
+    as _i508;
 import '../../features/game/domain/repositories/i_hex_level_repository.dart'
     as _i965;
 import '../../features/game/domain/repositories/i_level_repository.dart'
@@ -162,6 +174,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i803.RemotePlayerDataSource>(
       () => _i803.RemotePlayerDataSource(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i508.IHexCreativeLevelRepository>(
+      () => _i618.ApiHexCreativeLevelRepository(
+        gh<_i80.RemoteCreativeLevelDataSource>(),
+        gh<_i924.RemoteLeaderboardDataSource>(),
+      ),
     );
     gh.lazySingleton<_i979.Box<dynamic>>(
       () => registerModule.playerBox,
@@ -248,6 +266,20 @@ extension GetItInjectableX on _i174.GetIt {
         scoringStrategy: gh<_i440.ScoringStrategy>(),
         pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
       ),
+    );
+    gh.factory<_i932.HexCommunityLevelsCubit>(
+      () => _i932.HexCommunityLevelsCubit(
+        gh<_i508.IHexCreativeLevelRepository>(),
+      ),
+    );
+    gh.factory<_i1051.HexLevelEditorCubit>(
+      () => _i1051.HexLevelEditorCubit(gh<_i508.IHexCreativeLevelRepository>()),
+    );
+    gh.factory<_i901.HexLevelRankingCubit>(
+      () => _i901.HexLevelRankingCubit(gh<_i508.IHexCreativeLevelRepository>()),
+    );
+    gh.factory<_i99.HexMyLevelsCubit>(
+      () => _i99.HexMyLevelsCubit(gh<_i508.IHexCreativeLevelRepository>()),
     );
     gh.factory<_i143.LeaderboardCubit>(
       () => _i143.LeaderboardCubit(

@@ -11,6 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
 import '../../domain/entities/arrow_entity.dart';
+import '../../domain/entities/hex_level.dart';
 import '../../domain/services/cube_mango_scoring.dart';
 import '../bloc/game_state.dart' show DefeatReason;
 import '../bloc/hex/hex_game_cubit.dart';
@@ -33,7 +34,23 @@ import '../widgets/result_stat.dart';
 /// remaining-attempts hearts as the other modes, so all three feel like one
 /// system.
 class GameHexScreen extends StatefulWidget {
-  const GameHexScreen({super.key});
+  const GameHexScreen({
+    super.key,
+    this.externalLevel,
+    this.onEditorTestSolved,
+  });
+
+  /// Plays this single level instead of the catalogue's progression — used
+  /// for creative-mode test-play (pass [onEditorTestSolved]) and for
+  /// playing a single published community hex level (omit it).
+  final HexLevel? externalLevel;
+
+  /// Called on victory when [externalLevel] is a creative-mode draft being
+  /// test-played, instead of submitting a leaderboard score (mirrors
+  /// [GameScreen]'s `onEditorTestSolved`).
+  final VoidCallback? onEditorTestSolved;
+
+  bool get isEditorTestPlay => onEditorTestSolved != null;
 
   @override
   State<GameHexScreen> createState() => _GameHexScreenState();
@@ -52,7 +69,15 @@ class _GameHexScreenState extends State<GameHexScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<HexGameCubit>().loadLevels();
+    final externalLevel = widget.externalLevel;
+    if (externalLevel != null) {
+      context.read<HexGameCubit>().loadExternal(
+            externalLevel,
+            onSolved: widget.onEditorTestSolved,
+          );
+    } else {
+      context.read<HexGameCubit>().loadLevels();
+    }
     // The cubit has no internal clock — pump ticks so elapsed time advances.
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) context.read<HexGameCubit>().tick();

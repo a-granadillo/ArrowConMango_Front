@@ -242,3 +242,27 @@ class HexGraphBuilder implements GraphBuilder<HexNodeId> {
     return HexGraph.build(radius: radius);
   }
 }
+
+/// The [HexDirection] from [from] to [to], if they are hex-adjacent; null
+/// otherwise. The inverse of stepping one hex in a direction — used when
+/// serializing an arrow's body (an ordered list of nodes) back into
+/// direction segments, e.g. for the creative-mode hex level editor/mapper
+/// (mirrors how `ArrowMapper._inferDirection` does the same for grids).
+HexDirection? hexDirectionBetween(HexNodeId from, HexNodeId to) {
+  final dq = to.q - from.q;
+  final dr = to.r - from.r;
+  for (final dir in HexDirection.values) {
+    final (vq, vr) = _hexVector(dir);
+    if (vq == dq && vr == dr) return dir;
+  }
+  return null;
+}
+
+(int, int) _hexVector(HexDirection direction) => switch (direction) {
+      HexDirection.n => (0, -1),
+      HexDirection.ne => (1, -1),
+      HexDirection.se => (1, 0),
+      HexDirection.s => (0, 1),
+      HexDirection.sw => (-1, 1),
+      HexDirection.nw => (-1, 0),
+    };
