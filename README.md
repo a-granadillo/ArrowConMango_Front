@@ -1,5 +1,5 @@
 # ArrowConMango (Frontend)
-[![CI/CD Pipeline](https://github.com/tu-usuario/arrowconmango_front/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/tu-usuario/arrowconmango_front/actions)
+[![CI/CD Pipeline](https://github.com/a-granadillo/ArrowConMango_Front/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/a-granadillo/ArrowConMango_Front/actions)
 [![Test Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
