@@ -10,25 +10,33 @@ Cuenta con los siguientes modos de juego:
 *   **Campaña (2D):** Niveles prediseñados con penalizaciones de tiempo y errores.
 *   **Supervivencia:** Modo de resistencia infinito (endless) para poner a prueba tu velocidad mental.
 *   **Cubo 3D:** Retos espaciales generados en un entorno tridimensional con físicas de rotación de 360 grados.
-
+*   **Modo Creativo:** Crea tus propios mapas de Arrow con Mango y compartelos con la comunidad.
 ---
 
 ## Demo / Screenshots
 
-### Menú Principal
-<img src="docs/images/menu_principal.jpeg" width="250" alt="Menú Principal">
+<div align="center">
+  <img src="docs/images/gifArrowconMango.gif" width="300" alt="Gameplay Demo">
+  <br>
+  <i>🕹️ Demo del juego en acción</i>
+</div>
 
-### Modo Campaña
-<img src="docs/images/modo_campana.jpeg" width="250" alt="Modo Campaña">
+<br>
 
-### Modo Supervivencia
-<img src="docs/images/modo_supervivencia.jpeg" width="250" alt="Modo Supervivencia">
+### 📸 Galerías y Modos de Juego
 
-### Modo Cubo
-<img src="docs/images/modo_cubo.jpeg" width="250" alt="Modo Cubo">
-
-### Modo Creativo
-<img src="docs/images/modo_creativo.jpeg" width="250" alt="Modo Creativo">
+<table align="center">
+  <tr>
+    <td align="center"><b>Menú Principal</b><br><br><img src="docs/images/menu_principal.jpeg" width="220" alt="Menú Principal"></td>
+    <td align="center"><b>Modo Campaña</b><br><br><img src="docs/images/modo_campana.jpeg" width="220" alt="Modo Campaña"></td>
+    <td align="center"><b>Supervivencia</b><br><br><img src="docs/images/modo_supervivencia.jpeg" width="220" alt="Modo Supervivencia"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Modo Cubo 3D</b><br><br><img src="docs/images/modo_cubo.jpeg" width="220" alt="Modo Cubo"></td>
+    <td align="center"><b>Modo Creativo</b><br><br><img src="docs/images/modo_creativo.jpeg" width="220" alt="Modo Creativo"></td>
+    <td align="center"><!-- Espacio Vacío --></td>
+  </tr>
+</table>
 
 ---
 
@@ -461,7 +469,7 @@ El proyecto utiliza **Programación Orientada a Aspectos** para manejar preocupa
 ### Instrucciones paso a paso
 1. **Clonar el repositorio:**
    ```bash
-   git clone https://github.com/tu-usuario/arrowconmango_front.git
+   git clone https://github.com/a-granadillo/ArrowConMango_Front.git
    ```
 2. **Entrar al directorio:**
    ```bash
@@ -527,4 +535,4 @@ El desarrollo de este proyecto se gestionó ágilmente utilizando **GitHub Issue
 
 ## License
 Este proyecto se distribuye bajo la licencia **MIT License**. Consulta el archivo `LICENSE` para más información. 
-*(Nota: El archivo LICENSE aún no existe en la raíz, recuerda agregarlo).*
+
