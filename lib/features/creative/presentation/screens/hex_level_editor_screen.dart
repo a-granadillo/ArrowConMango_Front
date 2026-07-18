@@ -251,9 +251,11 @@ class _Stepper extends StatelessWidget {
   }
 }
 
-/// The hex board: sized so the whole board fits on screen without scrolling,
-/// centered regardless of the surrounding column's width. Arrows are drawn
-/// with [HexArrowsLayerPainter] — the same painter the real hex game board
+/// The hex board: sized to use nearly the full available width (the whole
+/// editor already scrolls vertically, so the board isn't squeezed to fit a
+/// fixed height the way a non-scrolling layout would need), centered
+/// regardless of the surrounding column's width. Arrows are drawn with
+/// [HexArrowsLayerPainter] — the same painter the real hex game board
 /// uses — so the editor's arrows look identical to gameplay.
 class _HexBoardEditor extends StatefulWidget {
   const _HexBoardEditor({required this.state, required this.cubit});
@@ -268,9 +270,9 @@ class _HexBoardEditor extends StatefulWidget {
 class _HexBoardEditorState extends State<_HexBoardEditor> {
   final _colorAssigner = ArrowColorAssigner();
 
-  static const double _maxBoardSide = 300;
-  static const double _minHexSize = 16;
-  static const double _maxHexSize = 34;
+  static const double _maxBoardSide = 480;
+  static const double _minHexSize = 24;
+  static const double _maxHexSize = 56;
   static const double _sqrt3 = 1.7320508075688772;
 
   @override

@@ -28,18 +28,23 @@ class HexSurfacePainter extends CustomPainter {
       Paint()..color = const Color(0x29000000),
     );
 
+    // A faint fill under every cell so its hexagon silhouette reads clearly
+    // even before any arrow is drawn on it (an outline alone all but
+    // disappears against the dark backdrop at small hex sizes).
+    final fillPaint = Paint()..color = const Color(0x1AFFF8EE);
     final outlinePaint = Paint()
-      ..color = const Color(0x21FFF8EE)
+      ..color = const Color(0x4DFFF8EE)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 2;
 
     for (var q = -radius; q <= radius; q++) {
       final rMin = _max(-radius, -q - radius);
       final rMax = _min(radius, -q + radius);
       for (var r = rMin; r <= rMax; r++) {
         final center = origin + axialToPixel(q, r, hexSize);
-        final corners = hexCorners(center, hexSize * 0.94);
+        final corners = hexCorners(center, hexSize * 0.96);
         final path = Path()..addPolygon(corners, true);
+        canvas.drawPath(path, fillPaint);
         canvas.drawPath(path, outlinePaint);
       }
     }
