@@ -1,4 +1,4 @@
-# AI Usage Documentation — Arrow Maze Frontend (Cliente)
+# AI Usage Documentation — Arrow con Mango Frontend (Cliente)
 
 > Obligatorio según el §7 del enunciado del proyecto.
 > Este archivo registra cada uso significativo de IA durante el desarrollo del cliente móvil en Flutter.
@@ -9,8 +9,13 @@
 
 | Herramienta | Modelo / Versión | Rol en el flujo de trabajo |
 |---|---|---|
-| **OpenCode** | [Ej. Llama 3 70B / Claude 3.5 Sonnet] | Diseño de arquitectura, planificación de BLoC, revisión de principios SOLID/GoF y definición de interfaces en la Capa de Dominio. |
-| **OpenCode** | [Ej. GPT-4o / CodeLlama] | Implementación de widgets en Flutter, lógica del Grafo Dirigido en Dart puro, inyección de dependencias y pruebas de widgets/unitarias. |
+| **Gemini / Antigravity** | Gemini 3.1 Pro / 3.5 Flash | Configuración de DevOps (CI/CD), versionado (Git), formato de documentación  y automatización en terminal. |
+| **OpenCode** | Qwen 3.7 Max / Qwen 3.7 Plus | Diseño de arquitectura, planificación, diseño de lógica basada en grafos, y revisión de principios SOLID/GoF en la Capa de Dominio. |
+| **OpenCode** | DeepSeek V4 Pro | Generación de código base puro en Dart e implementación de refactorizaciones estructurales complejas. |
+| **OpenCode** | Kimi K2.7 Code | Ejecutor principal para la Capa de Aplicación, implementación de Casos de Uso, Mappers y reglas de partida. |
+| **OpenCode** | gpt-5-mini / big-pickle | Creación de modelos de datos, deserialización JSON, definiciones estructuradas de niveles y persistencia (Hive). |
+| **Claude Code** | Claude Opus 4-8 / Sonnet 5 | Implementación avanzada de Widgets en Flutter, integración de Gestores de Estado (BLoC/Cubit) y resolución de bugs visuales. |
+| **GitHub Copilot** | Copilot (default) | Autocompletado continuo en el IDE y análisis/resumen automático de Pull Requests. |
 
 ---
 
@@ -1343,8 +1348,8 @@ Prevención de disparos múltiples: Explícame cómo puedo implementar un mecani
 | Data Models & Mappers (5 modelos, 4 mappers, 27 tests) | 90% | 10% |
 | Hive Repositories (2 repos, 5 adapters, 8 tests) | 95% | 5% |
 | AOP Logging & Error Handling decorators (4 repos, BlocObserver, 6 tests) | 90% | 10% |
-| BLoC (Events, States, Mappers) | ~% | ~% |
-| Flutter UI (Widgets, Animaciones, Screens) | ~% | ~% |
+| BLoC (Events, States, Mappers) | 85% | 15% |
+| Flutter UI (Widgets, Animaciones, Screens) | 80% | 20% |
 | Configuración CI/CD (GitHub Actions) | 70% | 30% |
 | Pruebas Unitarias (Dominio v2 — 44 tests) | 90% | 10% |
 
