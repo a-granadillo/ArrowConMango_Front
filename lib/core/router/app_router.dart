@@ -13,8 +13,10 @@ import '../../features/game/presentation/bloc/game_state.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
 import '../../features/game/presentation/bloc/menu_event.dart';
 import '../../features/game/presentation/bloc/cube3d/cube3d_game_cubit.dart';
+import '../../features/game/presentation/bloc/hex/hex_game_cubit.dart';
 import '../../features/game/presentation/screens/defeat_screen.dart';
 import '../../features/game/presentation/screens/game_3d_screen.dart';
+import '../../features/game/presentation/screens/game_hex_screen.dart';
 import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
 import '../../features/game/presentation/screens/main_menu_screen.dart';
@@ -64,6 +66,13 @@ GoRouter buildAppRouter() {
         builder: (context, state) => BlocProvider<Cube3DGameCubit>(
           create: (_) => sl<Cube3DGameCubit>(),
           child: const Game3DScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.gameHex,
+        builder: (context, state) => BlocProvider<HexGameCubit>(
+          create: (_) => sl<HexGameCubit>(),
+          child: const GameHexScreen(),
         ),
       ),
       GoRoute(

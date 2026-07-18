@@ -10,6 +10,7 @@ import '../../features/game/data/models/app_progress_model.dart';
 import '../../features/game/data/models/level_model.dart';
 import '../../features/game/data/topologies/grid_2d_topology.dart';
 import '../../features/game/data/topologies/grid_3d_topology.dart';
+import '../../features/game/data/topologies/hex_topology.dart';
 import '../../features/game/domain/services/collision_validator.dart';
 import '../../features/game/domain/services/move_based_scoring.dart';
 import '../../features/game/domain/entities/scoring_strategy.dart';
@@ -68,6 +69,21 @@ abstract class RegisterModule {
   @lazySingleton
   TriggerArrowExitUseCase cube3dTriggerArrowExitUseCase(
     @Named('cube3d') CollisionValidator validator,
+  ) =>
+      TriggerArrowExitUseCase(validator);
+
+  /// Fixed board radius (like the cube's fixed 6x6x6), large enough to cover
+  /// every level in [HexLevels] (max radius 3) plus headroom for the remote
+  /// catalogue.
+  @Named('hex')
+  @lazySingleton
+  CollisionValidator get hexCollisionValidator =>
+      CollisionValidator(HexTopology(radius: 4));
+
+  @Named('hex')
+  @lazySingleton
+  TriggerArrowExitUseCase hexTriggerArrowExitUseCase(
+    @Named('hex') CollisionValidator validator,
   ) =>
       TriggerArrowExitUseCase(validator);
 

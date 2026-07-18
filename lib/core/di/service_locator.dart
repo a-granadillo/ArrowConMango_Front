@@ -20,8 +20,10 @@ import '../../features/game/data/level_definitions/level_definitions.dart';
 import '../../features/game/domain/services/collision_validator.dart';
 import '../../features/game/domain/repositories/i_level_repository.dart';
 import '../../features/game/domain/repositories/i_progress_repository.dart';
+import '../../features/game/domain/repositories/i_hex_level_repository.dart';
 import '../../features/game/presentation/bloc/cube3d/cube3d_game_cubit.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
+import '../../features/game/presentation/bloc/hex/hex_game_cubit.dart';
 import '../../features/leaderboard/domain/i_leaderboard_repository.dart';
 import '../../features/player/data/auth_token_store.dart';
 import '../../features/player/data/guest_name_generator.dart';
@@ -149,6 +151,16 @@ Future<void> setupServiceLocator() async {
           instanceName: 'cube3d',
         ),
         collisionValidator: sl<CollisionValidator>(instanceName: 'cube3d'),
+        audioService: sl<AudioService>(),
+      ),
+    )
+    ..registerFactory<HexGameCubit>(
+      () => HexGameCubit(
+        triggerArrowExitUseCase: sl<TriggerArrowExitUseCase>(
+          instanceName: 'hex',
+        ),
+        collisionValidator: sl<CollisionValidator>(instanceName: 'hex'),
+        hexLevelRepository: sl<IHexLevelRepository>(),
         audioService: sl<AudioService>(),
       ),
     );
