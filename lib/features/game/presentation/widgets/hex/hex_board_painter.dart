@@ -28,18 +28,23 @@ class HexSurfacePainter extends CustomPainter {
       Paint()..color = const Color(0x29000000),
     );
 
+    // A faint fill under every cell so its hexagon silhouette reads clearly
+    // even before any arrow is drawn on it (an outline alone all but
+    // disappears against the dark backdrop at small hex sizes).
+    final fillPaint = Paint()..color = const Color(0x1AFFF8EE);
     final outlinePaint = Paint()
-      ..color = const Color(0x21FFF8EE)
+      ..color = const Color(0x4DFFF8EE)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 2;
 
     for (var q = -radius; q <= radius; q++) {
       final rMin = _max(-radius, -q - radius);
       final rMax = _min(radius, -q + radius);
       for (var r = rMin; r <= rMax; r++) {
         final center = origin + axialToPixel(q, r, hexSize);
-        final corners = hexCorners(center, hexSize * 0.94);
+        final corners = hexCorners(center, hexSize * 0.96);
         final path = Path()..addPolygon(corners, true);
+        canvas.drawPath(path, fillPaint);
         canvas.drawPath(path, outlinePaint);
       }
     }
@@ -65,12 +70,18 @@ class HexArrowsLayerPainter extends CustomPainter {
     required this.colorOf,
     required this.hexSize,
     required this.origin,
+    this.opacity = 1.0,
   });
 
   final List<ArrowEntity> arrows;
   final Color Function(String id) colorOf;
   final double hexSize;
   final Offset origin;
+
+  /// Scales both the shadow and color passes uniformly (1.0 = fully
+  /// opaque) — used by the creative-mode editor to render its drag preview
+  /// as a translucent overlay, mirroring [ArrowsLayerPainter]'s `opacity`.
+  final double opacity;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -92,13 +103,16 @@ class HexArrowsLayerPainter extends CustomPainter {
       // Shadow pass.
       canvas.save();
       canvas.translate(kArrowShadowOffset.dx, kArrowShadowOffset.dy);
-      paint.color = kArrowShadowColor;
+      paint.color = kArrowShadowColor.withValues(
+        alpha: kArrowShadowColor.a * opacity,
+      );
       canvas.drawPath(body, paint);
       canvas.drawPath(head, paint);
       canvas.restore();
 
       // Color pass.
-      paint.color = colorOf(arrow.id);
+      final color = colorOf(arrow.id);
+      paint.color = color.withValues(alpha: color.a * opacity);
       canvas.drawPath(body, paint);
       canvas.drawPath(head, paint);
 
@@ -107,7 +121,7 @@ class HexArrowsLayerPainter extends CustomPainter {
         final tailCenter = origin + axialToPixel(tq, tr, hexSize);
 
         final indicatorPaint = Paint()
-          ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.9)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.9 * opacity)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5;
 
@@ -123,5 +137,6 @@ class HexArrowsLayerPainter extends CustomPainter {
   bool shouldRepaint(covariant HexArrowsLayerPainter old) =>
       old.hexSize != hexSize ||
       old.origin != origin ||
+      old.opacity != opacity ||
       !listEquals(old.arrows, arrows);
 }

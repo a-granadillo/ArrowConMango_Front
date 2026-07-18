@@ -48,7 +48,10 @@ class HexBoardWidget extends StatelessWidget {
 
   double _hexSizeFor(double maxWidth, double maxHeight) {
     final widthFactor = _sqrt3 * (2 * radius + 1);
-    final heightFactor = 1.5 * radius + 2;
+    // Pointy-top hex: row-center spacing is 1.5*size and row centers span
+    // 2*radius rows, so the row-center range alone is 3*radius*size; add
+    // one hex's half-height (= size) on top and bottom for the true extent.
+    final heightFactor = 3 * radius + 2;
     return [
       maxWidth / widthFactor,
       maxHeight / heightFactor,

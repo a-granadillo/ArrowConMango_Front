@@ -16,6 +16,7 @@ import 'package:arrowconmango_front/features/game/domain/services/cube_mango_sco
 import 'package:arrowconmango_front/features/game/presentation/bloc/game_state.dart'
     show DefeatReason;
 import 'package:arrowconmango_front/features/game/presentation/bloc/hex/hex_game_state.dart';
+import 'package:flutter/foundation.dart' show VoidCallback;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Orchestrates the hexagonal-board mode: a sequence of levels of
@@ -60,10 +61,23 @@ class HexGameCubit extends Cubit<HexGameState> {
   GameSession? _session;
   List<HexLevel> _levels = const [];
 
+  /// Whether the current session is a one-off external play (test-play from
+  /// the editor, or a single community level) rather than progression
+  /// through the catalogue — see [loadExternal].
+  bool _isTestPlay = false;
+
+  /// Callback for a test-play session (set via [loadExternal]'s [onSolved]),
+  /// invoked on victory *instead of* submitting a leaderboard score — a
+  /// draft/community single-level test-play has no meaningful score to
+  /// submit against its own id the way catalogue progression does.
+  VoidCallback? _onExternalSolved;
+
   /// Fetches the hexagonal catalogue (remote-first, local-fallback — see
   /// [IHexLevelRepository]) and starts the first level.
   Future<void> loadLevels() async {
     emit(HexGameState.loading);
+    _isTestPlay = false;
+    _onExternalSolved = null;
     final result = await _hexLevelRepository.getLevels();
     switch (result) {
       case Success(value: final levels):
@@ -78,6 +92,19 @@ class HexGameCubit extends Cubit<HexGameState> {
           ),
         );
     }
+  }
+
+  /// Plays a single [level] outside the catalogue's progression — used for
+  /// creative-mode test-play (pass [onSolved] so victory calls it instead of
+  /// submitting a score, mirroring `LevelEditorCubit.markSolved`) and for
+  /// playing a single published community hex level (omit [onSolved]: a
+  /// normal victory submits the score against the level's own ranking, like
+  /// catalogue play).
+  void loadExternal(HexLevel level, {VoidCallback? onSolved}) {
+    _isTestPlay = onSolved != null;
+    _onExternalSolved = onSolved;
+    _levels = [level];
+    _startLevel(0);
   }
 
   void _startLevel(int index) {
@@ -196,17 +223,23 @@ class HexGameCubit extends Cubit<HexGameState> {
           score: score,
           exitableIds: const {},
           lastBlockedId: null,
+          lastBlockingId: null,
         ),
       );
-      final level = state.level;
-      if (level != null) {
-        // Fire-and-forget: a failed submission has no meaningful UI recovery
-        // here (see SubmitScoreUseCase / VictoryScreen's community-level path).
-        _hexLevelRepository.submitScore(
-          levelId: level.id,
-          moves: moveCount,
-          elapsedSeconds: elapsed,
-        );
+      if (_isTestPlay) {
+        _onExternalSolved?.call();
+      } else {
+        final level = state.level;
+        if (level != null) {
+          // Fire-and-forget: a failed submission has no meaningful UI
+          // recovery here (see SubmitScoreUseCase / VictoryScreen's
+          // community-level path).
+          _hexLevelRepository.submitScore(
+            levelId: level.id,
+            moves: moveCount,
+            elapsedSeconds: elapsed,
+          );
+        }
       }
       return;
     }
@@ -223,6 +256,7 @@ class HexGameCubit extends Cubit<HexGameState> {
           elapsedSeconds: elapsed,
           exitableIds: const {},
           lastBlockedId: null,
+          lastBlockingId: null,
         ),
       );
       return;

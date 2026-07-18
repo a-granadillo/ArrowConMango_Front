@@ -21,6 +21,8 @@ class CreativeHubScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          const _SectionHeader('Tablero cuadriculado'),
+          const SizedBox(height: 8),
           _HubTile(
             icon: Icons.add_circle_outline,
             title: 'Crear nivel',
@@ -41,7 +43,49 @@ class CreativeHubScreen extends StatelessWidget {
             subtitle: 'Juega niveles publicados por otros jugadores',
             onTap: () => context.push(AppRoutes.creativeCommunity),
           ),
+          const SizedBox(height: 24),
+          const _SectionHeader('Tablero hexagonal'),
+          const SizedBox(height: 8),
+          _HubTile(
+            icon: Icons.add_circle_outline,
+            title: 'Crear nivel hexagonal',
+            subtitle: 'Diseña un panal de hexágonos desde cero',
+            onTap: () => context.push(AppRoutes.creativeEditorHex),
+          ),
+          const SizedBox(height: 12),
+          _HubTile(
+            icon: Icons.folder_open,
+            title: 'Mis niveles hexagonales',
+            subtitle: 'Borradores y niveles hexagonales que ya publicaste',
+            onTap: () => context.push(AppRoutes.creativeMineHex),
+          ),
+          const SizedBox(height: 12),
+          _HubTile(
+            icon: Icons.public,
+            title: 'Comunidad hexagonal',
+            subtitle: 'Juega niveles hexagonales de otros jugadores',
+            onTap: () => context.push(AppRoutes.creativeCommunityHex),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontWeight: FontWeight.w800,
+        fontSize: 13,
+        letterSpacing: 0.5,
+        color: AppColors.textMuted,
       ),
     );
   }

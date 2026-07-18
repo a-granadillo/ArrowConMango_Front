@@ -24,4 +24,10 @@ abstract final class AppRoutes {
   static const String creativeMine = '/creative/mine';
   static const String creativeCommunity = '/creative/community';
   static const String creativeRanking = '/creative/ranking';
+
+  // ── Modo Creativo — tableros hexagonales ────────────────────────────────
+  static const String creativeEditorHex = '/creative/editor/hex';
+  static const String creativeMineHex = '/creative/mine/hex';
+  static const String creativeCommunityHex = '/creative/community/hex';
+  static const String creativeRankingHex = '/creative/ranking/hex';
 }
