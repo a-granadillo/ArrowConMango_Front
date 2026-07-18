@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
@@ -10,6 +9,8 @@ import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
 import '../widgets/menu_buttons.dart';
@@ -54,45 +55,45 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: c.maxHeight - 40),
                     child: IntrinsicHeight(
-                      child: Column(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: AppSpacing.maxContentWidth,
+                          ),
+                          child: Column(
                         children: [
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppSpacing.xl),
                           const FloatingMango(size: 112),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             'ARROW CON',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.fredoka(
-                              fontSize: 44,
-                              height: 1.05,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textDark,
-                            ),
+                            style: AppTypography.display(
+                              44,
+                              weight: FontWeight.w700,
+                            ).copyWith(height: 1.05),
                           ),
                           Text(
                             'MANGO',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.fredoka(
-                              fontSize: 50,
-                              height: 1,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1,
+                            style: AppTypography.display(
+                              50,
+                              weight: FontWeight.w700,
                               color: AppColors.primary,
-                            ),
+                            ).copyWith(height: 1, letterSpacing: 1),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             context.l10n.menuSubtitle,
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2.5,
-                              color: AppColors.textMuted,
-                            ),
+                            style: AppTypography.label(
+                              weight: FontWeight.w700,
+                            ).copyWith(letterSpacing: 2.5),
                           ),
                           const Spacer(),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xl,
+                            ),
                             child: Column(
                               children: [
                                 PlayButton(
@@ -101,17 +102,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     () => context.push(AppRoutes.playHub),
                                   ),
                                 ),
-                                const SizedBox(height: 14),
+                                const SizedBox(height: AppSpacing.md),
                                 PlayButton(
                                   label: 'MODO CREATIVO',
                                   bg: AppColors.mango,
                                   fg: AppColors.textDark,
-                                  shadow: const Color(0xFFD4A017),
+                                  shadow: AppColors.gold,
                                   onTap: _withClick(
                                     () => context.push(AppRoutes.creativeHub),
                                   ),
                                 ),
-                                const SizedBox(height: 14),
+                                const SizedBox(height: AppSpacing.md),
                                 Row(
                                   children: [
                                     Expanded(
@@ -120,13 +121,13 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                         label: context.l10n.menuLevels,
                                         bg: AppColors.mango,
                                         fg: AppColors.textDark,
-                                        shadow: const Color(0xFFD4A017),
+                                        shadow: AppColors.gold,
                                         onTap: _withClick(
                                           () => context.push(AppRoutes.levels),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: AppSpacing.sm),
                                     Expanded(
                                       child: NavButton(
                                         svg: AppSvgs.ranking,
@@ -139,14 +140,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: AppSpacing.sm),
                                     Expanded(
                                       child: NavButton(
                                         svg: AppSvgs.ajustes,
                                         label: context.l10n.menuSettings,
                                         bg: AppColors.textDark,
                                         fg: AppColors.mango,
-                                        shadow: const Color(0xFF3E2723),
+                                        shadow: AppColors.espresso,
                                         onTap: _withClick(
                                           () => context.push(AppRoutes.settings),
                                         ),
@@ -157,10 +158,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppSpacing.lg),
                           const _PageDots(),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppSpacing.xl),
                         ],
+                          ),
+                        ),
                       ),
                     ),
                   ),

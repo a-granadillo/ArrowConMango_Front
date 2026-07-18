@@ -3,13 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_gradients.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_buttons.dart';
+import '../../../../core/widgets/app_header.dart';
 import '../../../../core/widgets/app_svgs.dart';
 import '../../../../core/widgets/mango_logo.dart';
+import '../widgets/stat_chip.dart';
 import '../../data/level_definitions/cube_levels.dart';
 import '../../domain/services/cube_mango_scoring.dart';
 import '../bloc/cube3d/cube3d_game_cubit.dart';
@@ -93,12 +99,12 @@ class _Game3DScreenState extends State<Game3DScreen> {
                             ),
                           )
                         : Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(AppSpacing.sm),
                             child: Container(
                               padding: const EdgeInsets.all(9),
                               decoration: BoxDecoration(
                                 color: AppColors.textDark,
-                                borderRadius: BorderRadius.circular(22),
+                                borderRadius: BorderRadius.circular(AppRadii.pill),
                                 boxShadow: const [
                                   BoxShadow(
                                     color: Color(0x526D4C2A),
@@ -108,7 +114,7 @@ class _Game3DScreenState extends State<Game3DScreen> {
                                 ],
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(13),
+                                borderRadius: BorderRadius.circular(AppRadii.sm),
                                 child: CubeBoardWidget(
                                   arrows: state.board!.arrows,
                                   width: state.width,
@@ -127,18 +133,15 @@ class _Game3DScreenState extends State<Game3DScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 18,
-                      vertical: 10,
+                      vertical: AppSpacing.xs,
                     ),
                     child: Text(
                       'Arrastra para rotar el cubo. Toca una flecha para '
                       'sacarla si su salida está libre.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        height: 1.4,
-                        color: AppColors.textMuted,
-                      ),
+                      style: AppTypography.label(
+                        weight: FontWeight.w700,
+                      ).copyWith(height: 1.4),
                     ),
                   ),
                 ],
@@ -177,18 +180,14 @@ class _Header extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(16, top + 20, 16, 14),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(-0.4, -1),
-          end: Alignment(0.4, 1),
-          colors: [AppColors.successDark, AppColors.success],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        gradient: AppGradients.green,
+        borderRadius: AppRadii.headerBottom,
       ),
       child: Column(
         children: [
           Row(
             children: [
-              _HeaderIconButton(
+              HeaderIconButton(
                 svg: AppSvgs.home,
                 onTap: () => context.go(AppRoutes.menu),
               ),
@@ -196,45 +195,40 @@ class _Header extends StatelessWidget {
                 child: Text(
                   'Cubo 3D',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.fredoka(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                  style: AppTypography.headline(),
                 ),
               ),
-              _HeaderIconButton(svg: AppSvgs.restart, onTap: onRestart),
+              HeaderIconButton(svg: AppSvgs.restart, onTap: onRestart),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
-                child: _StatChip(
+                child: StatChip(
                   svg: AppSvgs.arrowsRemaining,
                   value: '${state.arrowsRemaining}',
                   label: 'flechas',
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.xs),
               Expanded(
-                child: _StatChip(
+                child: StatChip(
                   svg: AppSvgs.taps,
                   value: '${state.moveCount}',
                   label: 'toques',
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.xs),
               Expanded(
-                child: _StatChip(
+                child: StatChip(
                   svg: AppSvgs.timer,
                   value: '${state.elapsedSeconds}s',
-                  label: '',
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           _AttemptsIndicator(
             remaining: CubeMangoScoring.maxMistakes - state.mistakes,
             total: CubeMangoScoring.maxMistakes,
@@ -284,132 +278,6 @@ class _AttemptsIndicator extends StatelessWidget {
   }
 }
 
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.svg, required this.onTap});
-
-  final String svg;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.22),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: AppSvgs.icon(svg, 17),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.svg,
-    required this.value,
-    required this.label,
-  });
-
-  final String svg;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppSvgs.icon(svg, 15),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: GoogleFonts.fredoka(fontSize: 20, color: Colors.white),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.75),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Outlined "Menú" button, matching the 2D result dialogs' exact styling.
-class _MenuButton extends StatelessWidget {
-  const _MenuButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: () => context.go(AppRoutes.menu),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        backgroundColor: AppColors.cream2,
-        foregroundColor: AppColors.textMuted,
-        side: const BorderSide(color: Color(0xFFE8D5C0), width: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700),
-      ),
-      child: const Text('Menú'),
-    );
-  }
-}
-
-/// Primary gradient action button, matching the 2D result dialogs' "Siguiente
-/// nivel"/"Reintentar" styling.
-class _PrimaryActionButton extends StatelessWidget {
-  const _PrimaryActionButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, Color(0xFFD85E18)],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFA83800), offset: Offset(0, 5)),
-          ],
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.fredoka(
-            fontSize: 20,
-            letterSpacing: .5,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Victory dialog — the same [ResultSheet]/[MangoRating]/[MangoSlots]/
 /// [ResultStatsRow] chrome as [VictoryScreen], so earning "up to 3 mangos"
 /// reads identically in the cube mode.
@@ -430,40 +298,29 @@ class _Cube3DVictorySheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const _PoppingMangoIcon(),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             '¡CUBO DESPEJADO!',
             textAlign: TextAlign.center,
-            style: GoogleFonts.fredoka(
-              fontSize: 36,
-              height: 1,
-              letterSpacing: 1.5,
-              color: AppColors.primary,
-            ),
+            style: AppTypography.titleLg(),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             rating.message,
             textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-            ),
+            style: AppTypography.bodyText(color: AppColors.textMuted),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.md),
           MangoSlots(filled: rating.stars),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             '${rating.stars}/3 MANGOS',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
-              color: const Color(0xFFC5B8A5),
-            ),
+            style: AppTypography.label(
+              color: AppColors.stone,
+              weight: FontWeight.w800,
+            ).copyWith(letterSpacing: 1),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           ResultStatsRow(
             stats: [
               ResultStat(
@@ -483,19 +340,12 @@ class _Cube3DVictorySheet extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Expanded(child: _MenuButton()),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: _PrimaryActionButton(
-                  label: 'Otro cubo',
-                  onTap: onRestart,
-                ),
-              ),
-            ],
+          const SizedBox(height: AppSpacing.md),
+          ResultActionRow(
+            secondaryLabel: 'Menú',
+            onSecondary: () => context.go(AppRoutes.menu),
+            primaryLabel: 'Otro cubo',
+            onPrimary: onRestart,
           ),
         ],
       ),
@@ -520,31 +370,22 @@ class _Cube3DDefeatSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(outOfAttempts ? '💀' : '😵', style: const TextStyle(fontSize: 56)),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             outOfAttempts ? '¡Game Over!' : '¡Oh no!',
             textAlign: TextAlign.center,
-            style: GoogleFonts.fredoka(
-              fontSize: 36,
-              height: 1,
-              letterSpacing: 1.5,
-              color: AppColors.danger,
-            ),
+            style: AppTypography.titleLg(color: AppColors.danger),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             outOfAttempts
                 ? 'Alcanzaste el máximo de ${CubeMangoScoring.maxMistakes} '
                     'errores.'
                 : 'Ninguna flecha puede salir ya.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-            ),
+            style: AppTypography.bodyText(color: AppColors.textMuted),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.md),
           ResultStatsRow(
             stats: [
               ResultStat(
@@ -560,19 +401,12 @@ class _Cube3DDefeatSheet extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Expanded(child: _MenuButton()),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: _PrimaryActionButton(
-                  label: 'Reintentar',
-                  onTap: onRestart,
-                ),
-              ),
-            ],
+          const SizedBox(height: AppSpacing.md),
+          ResultActionRow(
+            secondaryLabel: 'Menú',
+            onSecondary: () => context.go(AppRoutes.menu),
+            primaryLabel: 'Reintentar',
+            onPrimary: onRestart,
           ),
         ],
       ),

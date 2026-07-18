@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_header.dart';
 import '../../../game/domain/entities/arrow_entity.dart';
 import '../../../game/domain/entities/creative_level.dart';
 import '../../../game/presentation/bloc/game_bloc.dart';
@@ -48,51 +53,63 @@ class _LevelEditorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.cream,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        title: const Text('Editor de niveles'),
-      ),
-      body: BlocConsumer<LevelEditorCubit, LevelEditorState>(
-        listener: (context, state) {
-          if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
-          } else if (state.infoMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.infoMessage!)),
-            );
-          }
-        },
-        builder: (context, state) {
-          final cubit = context.read<LevelEditorCubit>();
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _MetadataForm(state: state, cubit: cubit),
-                const SizedBox(height: 12),
-                _BoardEditor(state: state, cubit: cubit),
-                const SizedBox(height: 8),
-                if (state.selectedArrowId != null)
-                  _SelectedArrowToolbar(state: state, cubit: cubit)
-                else
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      'Arrastra desde una celda vacía para trazar una flecha.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+      body: Column(
+        children: [
+          AppScreenHeader(
+            title: 'Editor de niveles',
+            onBack: () => context.pop(),
+          ),
+          Expanded(
+            child: BlocConsumer<LevelEditorCubit, LevelEditorState>(
+              listener: (context, state) {
+                if (state.errorMessage != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.errorMessage!)),
+                  );
+                } else if (state.infoMessage != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.infoMessage!)),
+                  );
+                }
+              },
+              builder: (context, state) {
+                final cubit = context.read<LevelEditorCubit>();
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: AppSpacing.maxContentWidth,
+                    ),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _MetadataForm(state: state, cubit: cubit),
+                          const SizedBox(height: AppSpacing.sm),
+                          _BoardEditor(state: state, cubit: cubit),
+                          const SizedBox(height: AppSpacing.xs),
+                          if (state.selectedArrowId != null)
+                            _SelectedArrowToolbar(state: state, cubit: cubit)
+                          else
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Text(
+                                'Arrastra desde una celda vacía para trazar una flecha.',
+                                textAlign: TextAlign.center,
+                                style: AppTypography.label(),
+                              ),
+                            ),
+                          const SizedBox(height: AppSpacing.sm),
+                          _ActionButtons(state: state, cubit: cubit),
+                        ],
+                      ),
                     ),
                   ),
-                const SizedBox(height: 12),
-                _ActionButtons(state: state, cubit: cubit),
-              ],
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -109,9 +126,9 @@ class _MetadataForm extends StatelessWidget {
     return Card(
       color: Colors.white,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadii.mdAll),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.sm),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

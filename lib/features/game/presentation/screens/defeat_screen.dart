@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
@@ -9,6 +8,9 @@ import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_buttons.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
@@ -62,28 +64,19 @@ class DefeatScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(isGameOver ? '💀' : '😵', style: const TextStyle(fontSize: 56)),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               isGameOver ? l10n.defeatGameOver : l10n.defeatOhNo,
               textAlign: TextAlign.center,
-              style: GoogleFonts.fredoka(
-                fontSize: 36,
-                height: 1,
-                letterSpacing: 1.5,
-                color: AppColors.danger,
-              ),
+              style: AppTypography.titleLg(color: AppColors.danger),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               isGameOver ? l10n.defeatNoLivesMessage : _reasonText(l10n),
               textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textMuted,
-              ),
+              style: AppTypography.bodyText(color: AppColors.textMuted),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.md),
             ResultStatsRow(
               stats: [
                 if (result.isEndlessMode) ...[
@@ -113,89 +106,36 @@ class DefeatScreen extends StatelessWidget {
                 ],
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: withClick(() {
-                      audioService.playBgm(AudioTrack.menuTheme);
-                      if (_isExternalLevel) {
-                        // See VictoryScreen's Menu button: return to the
-                        // editor/community screen that launched this play
-                        // session instead of resetting the whole nav stack.
-                        context.pop();
-                        context.pop();
-                      } else {
-                        context.go(AppRoutes.menu);
-                      }
-                    }),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: AppColors.cream2,
-                      foregroundColor: AppColors.textMuted,
-                      side: const BorderSide(color: Color(0xFFE8D5C0), width: 2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      textStyle: GoogleFonts.nunito(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    child: Text(l10n.defeatMenu),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    onTap: withClick(() {
-                      if ((result.isEndlessMode && hasLivesRemaining) ||
-                          (_isExternalLevel && bloc != null)) {
-                        // Reintentar reusando el bloc existente — el único
-                        // camino válido para supervivencia y para niveles
-                        // externos (comunidad / prueba en el editor), que
-                        // no existen en el catálogo local que resolvería
-                        // AppRoutes.gameFor(id).
-                        bloc!.add(const RetryLevel());
-                        context.pop();
-                      } else {
-                        // En modo campaña o game over, reintentar el mismo nivel
-                        context.pushReplacement(
-                          AppRoutes.gameFor(result.levelId),
-                        );
-                      }
-                    }),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [AppColors.primary, Color(0xFFD85E18)],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0xFFA83800),
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        isGameOver ? l10n.defeatRestart : l10n.defeatRetry,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.fredoka(
-                          fontSize: 20,
-                          letterSpacing: .5,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: AppSpacing.md),
+            ResultActionRow(
+              secondaryLabel: l10n.defeatMenu,
+              onSecondary: withClick(() {
+                audioService.playBgm(AudioTrack.menuTheme);
+                if (_isExternalLevel) {
+                  // See VictoryScreen's Menu button: return to the
+                  // editor/community screen that launched this play session
+                  // instead of resetting the whole nav stack.
+                  context.pop();
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.menu);
+                }
+              }),
+              primaryLabel: isGameOver ? l10n.defeatRestart : l10n.defeatRetry,
+              onPrimary: withClick(() {
+                if ((result.isEndlessMode && hasLivesRemaining) ||
+                    (_isExternalLevel && bloc != null)) {
+                  // Retry reusing the existing bloc — the only valid path for
+                  // survival and external levels (community / editor test),
+                  // which don't exist in the local catalog AppRoutes.gameFor
+                  // would resolve.
+                  bloc!.add(const RetryLevel());
+                  context.pop();
+                } else {
+                  // Campaign or game over: replay the same level.
+                  context.pushReplacement(AppRoutes.gameFor(result.levelId));
+                }
+              }),
             ),
           ],
         ),

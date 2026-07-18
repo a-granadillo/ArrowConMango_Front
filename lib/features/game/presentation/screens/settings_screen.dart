@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_settings_cubit.dart';
@@ -11,7 +10,10 @@ import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/i18n/locale_cubit.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/app_svgs.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_header.dart';
 import '../../../../core/widgets/mango_logo.dart';
 import '../../../player/domain/guest_player.dart';
 import '../../../player/presentation/bloc/auth_cubit.dart';
@@ -85,151 +87,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Header(),
+          AppScreenHeader(
+            title: context.l10n.settingsTitle,
+            onBack: _withClick(() => context.pop()),
+            trailing: const MangoLogo(size: 36, leaf: AppColors.mango),
+          ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                BlocBuilder<PlayerCubit, GuestPlayer>(
-                  builder: (context, player) => _SettingCard(
-                    icon: Icons.person_rounded,
-                    title: context.l10n.settingsPlayerName,
-                    subtitle: player.displayName,
-                    trailing: TextButton(
-                      onPressed: _withClick(() => _editName(context)),
-                      child: Text(context.l10n.settingsEdit),
-                    ),
-                  ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: AppSpacing.maxContentWidth,
                 ),
-                const SizedBox(height: 12),
-                _SettingCard(
-                  icon: Icons.volume_up_rounded,
-                  title: context.l10n.settingsSound,
-                  trailing: BlocBuilder<AudioSettingsCubit, AudioSettingsState>(
-                    builder: (context, audioState) => Switch(
-                      value: !audioState.isMuted,
-                      activeThumbColor: AppColors.success,
-                      onChanged: (_) =>
-                          context.read<AudioSettingsCubit>().toggleMute(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _SettingCard(
-                  icon: Icons.language_rounded,
-                  title: context.l10n.settingsLanguage,
-                  trailing: DropdownButton<Locale>(
-                    value: _language,
-                    underline: const SizedBox.shrink(),
-                    onChanged: (locale) {
-                      if (locale == null) return;
-                      setState(() => _language = locale);
-                      context.read<LocaleCubit>().setLocale(locale);
-                    },
-                    items: const [
-                      DropdownMenuItem(
-                        value: Locale('es'),
-                        child: Text('Español'),
-                      ),
-                      DropdownMenuItem(
-                        value: Locale('en'),
-                        child: Text('English'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                GestureDetector(
-                  onTap: _withClick(() async {
-                    await context.read<AuthCubit>().signOut();
-                    if (context.mounted) {
-                      context.go(AppRoutes.auth);
-                    }
-                  }),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0xFFE8D5C0),
-                          offset: Offset(0, 3),
+                child: ListView(
+                  padding: AppSpacing.page,
+                  children: [
+                    BlocBuilder<PlayerCubit, GuestPlayer>(
+                      builder: (context, player) => _SettingCard(
+                        icon: Icons.person_rounded,
+                        title: context.l10n.settingsPlayerName,
+                        subtitle: player.displayName,
+                        trailing: TextButton(
+                          onPressed: _withClick(() => _editName(context)),
+                          child: Text(context.l10n.settingsEdit),
                         ),
-                      ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.logout_rounded,
-                          color: AppColors.danger,
+                    const SizedBox(height: AppSpacing.sm),
+                    _SettingCard(
+                      icon: Icons.volume_up_rounded,
+                      title: context.l10n.settingsSound,
+                      trailing:
+                          BlocBuilder<AudioSettingsCubit, AudioSettingsState>(
+                        builder: (context, audioState) => Switch(
+                          value: !audioState.isMuted,
+                          activeThumbColor: AppColors.success,
+                          onChanged: (_) =>
+                              context.read<AudioSettingsCubit>().toggleMute(),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Cerrar sesión',
-                          style: GoogleFonts.nunito(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _SettingCard(
+                      icon: Icons.language_rounded,
+                      title: context.l10n.settingsLanguage,
+                      trailing: DropdownButton<Locale>(
+                        value: _language,
+                        underline: const SizedBox.shrink(),
+                        onChanged: (locale) {
+                          if (locale == null) return;
+                          setState(() => _language = locale);
+                          context.read<LocaleCubit>().setLocale(locale);
+                        },
+                        items: const [
+                          DropdownMenuItem(
+                            value: Locale('es'),
+                            child: Text('Español'),
+                          ),
+                          DropdownMenuItem(
+                            value: Locale('en'),
+                            child: Text('English'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    AppCard(
+                      onTap: _withClick(() async {
+                        await context.read<AuthCubit>().signOut();
+                        if (context.mounted) {
+                          context.go(AppRoutes.auth);
+                        }
+                      }),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.logout_rounded,
                             color: AppColors.danger,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            'Cerrar sesión',
+                            style: AppTypography.body(
+                              15,
+                              weight: FontWeight.w700,
+                              color: AppColors.danger,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, top + 20, 20, 22),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(-0.4, -1),
-          end: Alignment(0.4, 1),
-          colors: [AppColors.successDark, AppColors.success],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              context.read<AudioService>().playSfx(SfxClip.click);
-              context.pop();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: AppSvgs.icon(AppSvgs.backChevron, 20),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              context.l10n.settingsTitle,
-              style: GoogleFonts.fredoka(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
               ),
             ),
           ),
-          const MangoLogo(size: 36, leaf: AppColors.mango),
         ],
       ),
     );
@@ -251,38 +204,23 @@ class _SettingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFE8D5C0), offset: Offset(0, 3)),
-        ],
-      ),
+    return AppCard(
       child: Row(
         children: [
           Icon(icon, color: AppColors.primary),
-          const SizedBox(width: 14),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
+                  style: AppTypography.body(15, weight: FontWeight.w700),
                 ),
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.textMuted,
-                    ),
+                    style: AppTypography.body(13, color: AppColors.textMuted),
                   ),
               ],
             ),
