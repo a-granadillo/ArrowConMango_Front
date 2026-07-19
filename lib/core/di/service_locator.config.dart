@@ -17,6 +17,14 @@ import 'package:injectable/injectable.dart' as _i526;
 
 import '../../features/creative/presentation/bloc/community_levels_cubit.dart'
     as _i524;
+import '../../features/creative/presentation/bloc/hex_community_levels_cubit.dart'
+    as _i932;
+import '../../features/creative/presentation/bloc/hex_level_editor_cubit.dart'
+    as _i1051;
+import '../../features/creative/presentation/bloc/hex_level_ranking_cubit.dart'
+    as _i901;
+import '../../features/creative/presentation/bloc/hex_my_levels_cubit.dart'
+    as _i99;
 import '../../features/creative/presentation/bloc/level_editor_cubit.dart'
     as _i129;
 import '../../features/creative/presentation/bloc/level_ranking_cubit.dart'
@@ -49,6 +57,8 @@ import '../../features/game/application/use_cases/unlock_next_level_use_case.dar
     as _i1015;
 import '../../features/game/data/datasources/remote_creative_level_data_source.dart'
     as _i80;
+import '../../features/game/data/datasources/remote_hex_level_data_source.dart'
+    as _i204;
 import '../../features/game/data/datasources/remote_leaderboard_data_source.dart'
     as _i924;
 import '../../features/game/data/datasources/remote_level_data_source.dart'
@@ -65,6 +75,10 @@ import '../../features/game/data/models/mappers/board_state_mapper.dart'
 import '../../features/game/data/models/mappers/level_mapper.dart' as _i61;
 import '../../features/game/data/repositories/api_creative_level_repository.dart'
     as _i718;
+import '../../features/game/data/repositories/api_hex_creative_level_repository.dart'
+    as _i618;
+import '../../features/game/data/repositories/hex_level_repository.dart'
+    as _i973;
 import '../../features/game/data/repositories/hive_level_repository.dart'
     as _i821;
 import '../../features/game/data/repositories/hive_progress_repository.dart'
@@ -76,6 +90,10 @@ import '../../features/game/data/repositories/synced_progress_repository.dart'
 import '../../features/game/domain/entities/scoring_strategy.dart' as _i440;
 import '../../features/game/domain/repositories/i_creative_level_repository.dart'
     as _i48;
+import '../../features/game/domain/repositories/i_hex_creative_level_repository.dart'
+    as _i508;
+import '../../features/game/domain/repositories/i_hex_level_repository.dart'
+    as _i965;
 import '../../features/game/domain/repositories/i_level_repository.dart'
     as _i76;
 import '../../features/game/domain/repositories/i_progress_repository.dart'
@@ -135,8 +153,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1070.BoardStateMapper>(
       () => _i1070.BoardStateMapper(gh<_i330.ArrowMapper>()),
     );
+    gh.lazySingleton<_i775.CollisionValidator>(
+      () => registerModule.hexCollisionValidator,
+      instanceName: 'hex',
+    );
     gh.lazySingleton<_i80.RemoteCreativeLevelDataSource>(
       () => _i80.RemoteCreativeLevelDataSource(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i204.RemoteHexLevelDataSource>(
+      () => _i204.RemoteHexLevelDataSource(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i924.RemoteLeaderboardDataSource>(
       () => _i924.RemoteLeaderboardDataSource(gh<_i361.Dio>()),
@@ -149,6 +174,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i803.RemotePlayerDataSource>(
       () => _i803.RemotePlayerDataSource(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i508.IHexCreativeLevelRepository>(
+      () => _i618.ApiHexCreativeLevelRepository(
+        gh<_i80.RemoteCreativeLevelDataSource>(),
+        gh<_i924.RemoteLeaderboardDataSource>(),
+      ),
     );
     gh.lazySingleton<_i979.Box<dynamic>>(
       () => registerModule.playerBox,
@@ -167,6 +198,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i749.EvaluateGameStateUseCase>(
       () => _i749.EvaluateGameStateUseCase(gh<_i440.ScoringStrategy>()),
     );
+    gh.lazySingleton<_i47.TriggerArrowExitUseCase>(
+      () => registerModule.hexTriggerArrowExitUseCase(
+        gh<_i775.CollisionValidator>(instanceName: 'hex'),
+      ),
+      instanceName: 'hex',
+    );
     gh.lazySingleton<_i651.ILeaderboardRepository>(
       () => _i330.ApiLeaderboardRepository(
         gh<_i924.RemoteLeaderboardDataSource>(),
@@ -175,6 +212,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i598.AudioSettingsLocalDataSource>(
       () => _i598.AudioSettingsLocalDataSource(
         box: gh<_i979.Box<dynamic>>(instanceName: 'audioBox'),
+      ),
+    );
+    gh.lazySingleton<_i965.IHexLevelRepository>(
+      () => _i973.HexLevelRepository(
+        gh<_i204.RemoteHexLevelDataSource>(),
+        gh<_i924.RemoteLeaderboardDataSource>(),
       ),
     );
     gh.lazySingleton<_i908.SubmitScoreUseCase>(
@@ -223,6 +266,20 @@ extension GetItInjectableX on _i174.GetIt {
         scoringStrategy: gh<_i440.ScoringStrategy>(),
         pendingFlagBox: gh<_i979.Box<dynamic>>(instanceName: 'playerBox'),
       ),
+    );
+    gh.factory<_i932.HexCommunityLevelsCubit>(
+      () => _i932.HexCommunityLevelsCubit(
+        gh<_i508.IHexCreativeLevelRepository>(),
+      ),
+    );
+    gh.factory<_i1051.HexLevelEditorCubit>(
+      () => _i1051.HexLevelEditorCubit(gh<_i508.IHexCreativeLevelRepository>()),
+    );
+    gh.factory<_i901.HexLevelRankingCubit>(
+      () => _i901.HexLevelRankingCubit(gh<_i508.IHexCreativeLevelRepository>()),
+    );
+    gh.factory<_i99.HexMyLevelsCubit>(
+      () => _i99.HexMyLevelsCubit(gh<_i508.IHexCreativeLevelRepository>()),
     );
     gh.factory<_i143.LeaderboardCubit>(
       () => _i143.LeaderboardCubit(

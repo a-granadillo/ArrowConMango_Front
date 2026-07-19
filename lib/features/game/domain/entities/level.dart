@@ -32,14 +32,20 @@ class Level extends Equatable {
     this.difficultyOverride,
   });
 
+  /// The board's bounding-box row count. For [BoardGeometryHex], this is the
+  /// diameter of the hexagon (`2 * radius + 1`) — hex boards have no native
+  /// row/col concept, so callers that need it (rectangular grid rendering,
+  /// legacy view models) get a same-sized square bounding box instead.
   int get rows => switch (geometry) {
         BoardGeometry2D(rows: final r) => r,
         BoardGeometry3D(rows: final r) => r,
+        BoardGeometryHex(radius: final r) => 2 * r + 1,
       };
 
   int get cols => switch (geometry) {
         BoardGeometry2D(cols: final c) => c,
         BoardGeometry3D(cols: final c) => c,
+        BoardGeometryHex(radius: final r) => 2 * r + 1,
       };
 
   /// Returns a human-readable difficulty label based on [levelId].

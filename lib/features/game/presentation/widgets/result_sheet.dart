@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_shadows.dart';
+import '../../../../core/theme/app_spacing.dart';
 
 /// Faithful reproduction of the design's result-dialog chrome: a dark
 /// translucent backdrop behind a bottom sheet that slides up with a drag
@@ -43,7 +46,7 @@ class _ResultSheetState extends State<ResultSheet>
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF6D4C2A),
+      color: AppColors.textDark,
       child: Stack(
         children: [
           if (widget.confetti)
@@ -56,17 +59,16 @@ class _ResultSheetState extends State<ResultSheet>
               position: _slide,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(26, 14, 26, 40),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl,
+                  14,
+                  AppSpacing.xl,
+                  40,
+                ),
                 decoration: const BoxDecoration(
                   color: AppColors.cream,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x406D4C2A),
-                      blurRadius: 40,
-                      offset: Offset(0, -8),
-                    ),
-                  ],
+                  borderRadius: AppRadii.sheetTop,
+                  boxShadow: AppShadows.sheet,
                 ),
                 child: SafeArea(
                   top: false,
@@ -78,7 +80,7 @@ class _ResultSheetState extends State<ResultSheet>
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD4C4B0),
+                          color: AppColors.shadowCard,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),

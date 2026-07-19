@@ -8,6 +8,7 @@ abstract final class AppRoutes {
   static const String settings = '/settings';
   static const String ranking = '/ranking';
   static const String game3d = '/game3d';
+  static const String gameHex = '/gamehex';
 
   /// Game route template; use [gameFor] to build a concrete path.
   static const String game = '/game/:levelId';
@@ -23,4 +24,10 @@ abstract final class AppRoutes {
   static const String creativeMine = '/creative/mine';
   static const String creativeCommunity = '/creative/community';
   static const String creativeRanking = '/creative/ranking';
+
+  // ── Modo Creativo — tableros hexagonales ────────────────────────────────
+  static const String creativeEditorHex = '/creative/editor/hex';
+  static const String creativeMineHex = '/creative/mine/hex';
+  static const String creativeCommunityHex = '/creative/community/hex';
+  static const String creativeRankingHex = '/creative/ranking/hex';
 }

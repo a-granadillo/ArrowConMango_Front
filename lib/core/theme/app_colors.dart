@@ -42,8 +42,41 @@ abstract final class AppColors {
   /// Secondary cream.
   static const Color cream2 = Color(0xFFFFF0D4);
 
-  /// Beige surface / board cells.
+  /// Beige surface / board cells. Also the app's hairline border/divider color
+  /// (previously hardcoded as `0xFFE8D5C0` in ~6 places).
   static const Color beige = Color(0xFFE8D5C0);
+
+  /// Muted border/divider (alias of [beige]) for card outlines and dividers.
+  static const Color border = beige;
+
+  /// Locked / disabled surface (level tiles).
+  static const Color lockedSurface = Color(0xFFEDE0D4);
+
+  /// Muted stone used for "N/3 MANGOS" labels and locked-tile shadows.
+  static const Color stone = Color(0xFFC5B8A5);
+
+  // --- Chrome accents ---
+  /// Unified brand gold (previously two competing values `0xFFD4A017` /
+  /// `0xFFB8860B` for the same mango button).
+  static const Color gold = Color(0xFFD4A017);
+
+  /// Deep espresso brown for high-contrast button shadows.
+  static const Color espresso = Color(0xFF3E2723);
+
+  /// Warm mid orange — end stop of the in-game header gradient.
+  static const Color headerOrangeEnd = Color(0xFFF9A84D);
+
+  /// Primary action-button gradient end + its drop shadow.
+  static const Color primaryButtonEnd = Color(0xFFD85E18);
+  static const Color primaryButtonShadow = Color(0xFFA83800);
+
+  // --- Shadow tones (opaque; wrapped in BoxShadow by AppShadows) ---
+  /// Neutral card drop shadow.
+  static const Color shadowCard = Color(0xFFD4C4B0);
+  /// Warm button drop shadow.
+  static const Color shadowButton = Color(0xFFB03800);
+  /// Mango/completed-tile drop shadow.
+  static const Color shadowMango = Color(0xFFC87010);
 
   // --- Difficulty accents ---
   /// Easy levels.

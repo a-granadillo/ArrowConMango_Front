@@ -39,13 +39,16 @@ class RemoteLeaderboardDataSource {
         .cast<Map<String, dynamic>>();
   }
 
-  /// String-levelId sibling of [submit], for community levels (backend
-  /// UUIDs) — [submit] stays int-only so the campaign call site never has
-  /// to change.
+  /// String-levelId sibling of [submit], for community and hexagonal-mode
+  /// levels (backend UUIDs/hex ids) — [submit] stays int-only so the
+  /// campaign call site never has to change. [mode] is omitted for
+  /// community levels (backend defaults to 'campaign') and set to
+  /// 'hexagonal' for the hexagonal mode.
   Future<void> submitForLevel({
     required String levelId,
     required int moves,
     required int elapsedSeconds,
+    String? mode,
   }) async {
     await _dio.post<void>(
       '/leaderboard',
@@ -53,6 +56,7 @@ class RemoteLeaderboardDataSource {
         'levelId': levelId,
         'moves': moves,
         'timeMs': elapsedSeconds * 1000,
+        'mode': ?mode,
       },
     );
   }

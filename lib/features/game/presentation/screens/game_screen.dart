@@ -3,14 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/audio_track.dart';
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_gradients.dart';
+import '../../../../core/theme/app_radii.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_header.dart';
 import '../../../../core/widgets/app_svgs.dart';
+import '../widgets/stat_chip.dart';
 import '../../domain/entities/arrow_entity.dart';
 import '../../domain/entities/level.dart';
 import '../bloc/arrow_collision_event.dart';
@@ -261,21 +266,18 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 13),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: Text(
-                    context.l10n.gameInstructions,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      height: 1.5,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
+              const SizedBox(height: AppSpacing.sm),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Text(
+                  context.l10n.gameInstructions,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.label(
+                    weight: FontWeight.w700,
+                  ).copyWith(height: 1.5),
                 ),
-              const SizedBox(height: 10),
+              ),
+              const SizedBox(height: AppSpacing.xs),
               GameControlsWidget(
                 canUndo: state.canUndo,
                 onUndo: () => bloc.add(const UndoMove()),
@@ -344,93 +346,75 @@ class _Header extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(16, top + 20, 16, 14),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(-0.4, -1),
-          end: Alignment(0.4, 1),
-          colors: [AppColors.primary, Color(0xFFF9A84D)],
-        ),
+        gradient: AppGradients.gameHeader,
+        borderRadius: AppRadii.headerBottom,
       ),
       child: Column(
         children: [
           Row(
             children: [
-              _HeaderIconButton(svg: AppSvgs.home, onTap: onHome),
+              HeaderIconButton(svg: AppSvgs.home, onTap: onHome),
               Expanded(
                 child: Column(
                   children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.fredoka(
-                        fontSize: 19,
-                        height: 1.1,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+                    Text(title, style: AppTypography.headline()),
                     Text(
                       l10n.gameLevelSubtitle(
                         state.levelId,
                         _difficultyEs(state.difficulty, l10n),
                       ),
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.caption(
                         color: Colors.white.withValues(alpha: 0.75),
+                        weight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
               ),
-              _HeaderIconButton(svg: AppSvgs.restart, onTap: onRestart),
+              HeaderIconButton(svg: AppSvgs.restart, onTap: onRestart),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
-                child: _StatChip(
+                child: StatChip(
                   svg: AppSvgs.arrowsRemaining,
                   value: '${state.arrowsRemaining}',
                   label: l10n.gameStatArrows,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.xs),
               Expanded(
-                child: _StatChip(
+                child: StatChip(
                   svg: AppSvgs.taps,
                   value: '${state.moveCount}',
                   label: l10n.gameStatTaps,
                 ),
               ),
-              const SizedBox(width: 8),
-              if (state.isEndlessMode)
-                Expanded(
-                  child: _StatChip(
-                    svg: AppSvgs.timer,
-                    value: _formatTime(state.totalTimeRemaining),
-                    label: '',
-                  ),
-                )
-              else
-                Expanded(
-                  child: _StatChip(
-                    svg: AppSvgs.timer,
-                    value: _formatTime(state.elapsedSeconds),
-                    label: '',
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: StatChip(
+                  svg: AppSvgs.timer,
+                  value: _formatTime(
+                    state.isEndlessMode
+                        ? state.totalTimeRemaining
+                        : state.elapsedSeconds,
                   ),
                 ),
+              ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           Row(
             children: [
               Expanded(
                 child: _LivesIndicator(lives: state.livesRemaining),
               ),
               if (state.isEndlessMode) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.xs),
                 Expanded(
-                  child: _StatChip(
+                  child: StatChip(
                     svg: AppSvgs.niveles,
                     value: '${state.levelsCompleted}',
                     label: l10n.gameStatLevels,
@@ -440,28 +424,6 @@ class _Header extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.svg, required this.onTap});
-
-  final String svg;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.22),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: AppSvgs.icon(svg, 17),
       ),
     );
   }
@@ -496,52 +458,6 @@ class _LivesIndicator extends StatelessWidget {
             );
           }),
         ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.svg,
-    required this.value,
-    required this.label,
-  });
-
-  final String svg;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppSvgs.icon(svg, 15),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: GoogleFonts.fredoka(fontSize: 20, color: Colors.white),
-          ),
-          if (label.isNotEmpty) ...[
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.75),
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

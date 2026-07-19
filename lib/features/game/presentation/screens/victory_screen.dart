@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/app_info.dart';
 import '../../../../core/audio/audio_service.dart';
@@ -10,6 +9,9 @@ import '../../../../core/audio/sfx_clip.dart';
 import '../../../../core/i18n/app_localizations_extension.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_buttons.dart';
 import '../../../../core/widgets/mango_logo.dart';
 import 'package:get_it/get_it.dart';
 
@@ -23,6 +25,7 @@ import '../widgets/mango_rating.dart';
 import '../widgets/mango_slots.dart';
 import '../widgets/result_sheet.dart';
 import '../widgets/result_stat.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Victory screen: faithful reproduction of the design's "Dialogo
 /// Enhorabuena" — a celebratory bottom sheet with confetti, a 1-3 mango
@@ -121,7 +124,7 @@ class _VictoryScreenState extends State<VictoryScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const _PoppingMangoIcon(),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
@@ -129,37 +132,26 @@ class _VictoryScreenState extends State<VictoryScreen> {
                     ? l10n.victoryLevelCompleted
                     : l10n.victoryTitle,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.fredoka(
-                  fontSize: 36,
-                  height: 1,
-                  letterSpacing: 1.5,
-                  color: AppColors.primary,
-                ),
+                style: AppTypography.titleLg(),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               rating.message,
               textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textMuted,
-              ),
+              style: AppTypography.bodyText(color: AppColors.textMuted),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.md),
             MangoSlots(filled: rating.stars),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               l10n.victoryMangosLabel(rating.stars),
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1,
-                color: const Color(0xFFC5B8A5),
-              ),
+              style: AppTypography.label(
+                color: AppColors.stone,
+                weight: FontWeight.w800,
+              ).copyWith(letterSpacing: 1),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             ResultStatsRow(
               stats: [
                 ResultStat(
@@ -191,130 +183,64 @@ class _VictoryScreenState extends State<VictoryScreen> {
                   ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                  Expanded(
-                  child: OutlinedButton(
-                    onPressed: _withClick(() {
-                      _audioService?.playBgm(AudioTrack.menuTheme);
-                      if (widget.onEditorTestSolved != null ||
-                          widget.communityLevelId != null) {
-                        // Return to whichever creative screen launched this
-                        // play session (editor or community list), rather
-                        // than resetting the whole nav stack to the main
-                        // menu — that flow pushed exactly [GameScreen, this
-                        // screen] on top of it, so two pops land there.
-                        context.pop();
-                        context.pop();
-                      } else {
-                        context.go(AppRoutes.menu);
-                      }
-                    }),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: AppColors.cream2,
-                      foregroundColor: AppColors.textMuted,
-                      side: const BorderSide(
-                        color: Color(0xFFE8D5C0),
-                        width: 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      textStyle: GoogleFonts.nunito(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    child: Text(l10n.victoryMenu),
-                  ),
-                ),
-                if (result.isEndlessMode) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: GestureDetector(
-                      onTap: _withClick(() {
-                        // Cargar siguiente nivel en modo supervivencia reusando el bloc existente
-                        if (widget.bloc != null) {
-                          widget.bloc!.add(const NextEndlessLevel());
-                          context.pop();
-                        } else {
-                          final nextLevelId = -(DateTime.now().millisecondsSinceEpoch % 10000 + 1);
-                          context.pushReplacement(AppRoutes.gameFor(nextLevelId));
-                        }
-                      }),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [AppColors.primary, Color(0xFFD85E18)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0xFFA83800),
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          l10n.victoryNextLevel,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.fredoka(
-                            fontSize: 20,
-                            letterSpacing: .5,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ] else if (hasNext) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: GestureDetector(
-                      onTap: _withClick(() => context.pushReplacement(
-                        AppRoutes.gameFor(result.levelId + 1),
-                      )),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [AppColors.primary, Color(0xFFD85E18)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0xFFA83800),
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          l10n.victoryNextLevel,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.fredoka(
-                            fontSize: 20,
-                            letterSpacing: .5,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+            const SizedBox(height: AppSpacing.md),
+            _buildActions(context, result, hasNext, l10n),
           ],
         ),
       ),
+    );
+  }
+
+  /// Menu (secondary) + next-level (primary) actions. When there's no next
+  /// level to advance to, the menu button spans the full width alone.
+  Widget _buildActions(
+    BuildContext context,
+    GameVictory result,
+    bool hasNext,
+    AppLocalizations l10n,
+  ) {
+    final onMenu = _withClick(() {
+      _audioService?.playBgm(AudioTrack.menuTheme);
+      if (widget.onEditorTestSolved != null || widget.communityLevelId != null) {
+        // Return to whichever creative screen launched this play session
+        // (editor or community list) — that flow pushed exactly [GameScreen,
+        // this screen], so two pops land there.
+        context.pop();
+        context.pop();
+      } else {
+        context.go(AppRoutes.menu);
+      }
+    });
+
+    final showPrimary = result.isEndlessMode || hasNext;
+    if (!showPrimary) {
+      return SizedBox(
+        width: double.infinity,
+        child: SecondaryActionButton(label: l10n.victoryMenu, onTap: onMenu),
+      );
+    }
+
+    final onNext = _withClick(() {
+      if (result.isEndlessMode) {
+        // Advance survival mode reusing the existing bloc.
+        if (widget.bloc != null) {
+          widget.bloc!.add(const NextEndlessLevel());
+          context.pop();
+        } else {
+          final nextLevelId =
+              -(DateTime.now().millisecondsSinceEpoch % 10000 + 1);
+          context.pushReplacement(AppRoutes.gameFor(nextLevelId));
+        }
+      } else {
+        context.pushReplacement(AppRoutes.gameFor(result.levelId + 1));
+      }
+    });
+
+    return ResultActionRow(
+      secondaryLabel: l10n.victoryMenu,
+      onSecondary: onMenu,
+      primaryLabel: l10n.victoryNextLevel,
+      onPrimary: onNext,
     );
   }
 }

@@ -4,17 +4,24 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/creative/presentation/screens/community_levels_screen.dart';
 import '../../features/creative/presentation/screens/creative_hub_screen.dart';
+import '../../features/creative/presentation/screens/hex_community_levels_screen.dart';
+import '../../features/creative/presentation/screens/hex_level_editor_screen.dart';
+import '../../features/creative/presentation/screens/hex_level_ranking_screen.dart';
+import '../../features/creative/presentation/screens/hex_my_levels_screen.dart';
 import '../../features/creative/presentation/screens/level_editor_screen.dart';
 import '../../features/creative/presentation/screens/level_ranking_screen.dart';
 import '../../features/creative/presentation/screens/my_levels_screen.dart';
 import '../../features/game/domain/entities/creative_level.dart';
+import '../../features/game/domain/entities/hex_level.dart';
 import '../../features/game/presentation/bloc/game_bloc.dart';
 import '../../features/game/presentation/bloc/game_state.dart';
 import '../../features/game/presentation/bloc/menu_bloc.dart';
 import '../../features/game/presentation/bloc/menu_event.dart';
 import '../../features/game/presentation/bloc/cube3d/cube3d_game_cubit.dart';
+import '../../features/game/presentation/bloc/hex/hex_game_cubit.dart';
 import '../../features/game/presentation/screens/defeat_screen.dart';
 import '../../features/game/presentation/screens/game_3d_screen.dart';
+import '../../features/game/presentation/screens/game_hex_screen.dart';
 import '../../features/game/presentation/screens/game_screen.dart';
 import '../../features/game/presentation/screens/level_selection_screen.dart';
 import '../../features/game/presentation/screens/main_menu_screen.dart';
@@ -76,6 +83,13 @@ GoRouter buildAppRouter() {
         builder: (context, state) => BlocProvider<Cube3DGameCubit>(
           create: (_) => sl<Cube3DGameCubit>(),
           child: const Game3DScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.gameHex,
+        builder: (context, state) => BlocProvider<HexGameCubit>(
+          create: (_) => sl<HexGameCubit>(),
+          child: const GameHexScreen(),
         ),
       ),
       GoRoute(
@@ -160,6 +174,24 @@ GoRouter buildAppRouter() {
         path: AppRoutes.creativeRanking,
         builder: (context, state) =>
             LevelRankingScreen(level: state.extra as CreativeLevel),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeEditorHex,
+        builder: (context, state) =>
+            HexLevelEditorScreen(existing: state.extra as HexLevel?),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeMineHex,
+        builder: (context, state) => const HexMyLevelsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeCommunityHex,
+        builder: (context, state) => const HexCommunityLevelsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.creativeRankingHex,
+        builder: (context, state) =>
+            HexLevelRankingScreen(level: state.extra as HexLevel),
       ),
     ],
   );
